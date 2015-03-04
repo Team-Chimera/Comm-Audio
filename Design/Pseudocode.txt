@@ -1,0 +1,47 @@
+// I'm putting this here because I'd like to discuss it before putting it into the doc
+
+// Also I don't like writing code in word...
+
+StartVoiceChat // given IP address
+{
+	Start thread for recording // should there be separate threads for recording and sending?
+    Start thread for recieving
+
+    Call sound playing function
+}
+
+// All the following functions would be in a separate thread, and probably would need shared memory
+
+VoiceRecording
+{
+    open local microphone
+    
+    while signal not given // probably a pointer
+	    record into voiceOutBuffer
+}
+
+VoiceSending // could potentially be at the end of voice recording
+{
+	open udp sending socket
+
+	while signal not given // probably a pointer
+	    send data from voiceOutBuffer
+}
+
+VoiceRecieving
+{
+	Open udp listening socket
+
+	while signal not given // probably a pointer
+	    wait for data
+	    place data into voiceInBuffer
+}
+
+VoicePlaying
+{
+	open local speakers
+
+	while signal not given // probably a pointer
+	    play chunk of voiceInBuffer
+}
+
