@@ -1,0 +1,44 @@
+Multicast Pseudocode
+====================
+
+Multicast Thread function
+{
+    Start Multicast
+    
+    while server not in shut down state
+        run Music Multicast
+    
+    Stop Multicast
+}
+
+Start Multicast function
+{
+    initialize resources
+
+    start multicast session
+}
+
+Music Multicast function
+{
+    choose random song from song folder
+    
+    set currently playing song to picked song
+    
+    load song
+    
+    set up callback for UDP music sending to Multicast Routine
+}
+
+Multicast Routine function
+{
+    send audio file until it has all been sent
+}
+
+Stop Multicast function
+{
+    communicate end of session to all clients
+    
+    end multicast session
+    
+    clean up used resources
+}
