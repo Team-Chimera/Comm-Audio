@@ -24,4 +24,10 @@ typedef struct _SOCKET_INFORMATION {
 
 void CALLBACK WorkerRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
+int InitMulticastSocket(LPSOCKET_INFORMATION lpSocketInfo);
+int MulticastSendLoop(LPSOCKET_INFORMATION lpSocketInfo);
+
+int SocketOption(SOCKET socket, char *opt, int size);
+void DisplayError(char *errStr, int errCode);
+
 #endif
