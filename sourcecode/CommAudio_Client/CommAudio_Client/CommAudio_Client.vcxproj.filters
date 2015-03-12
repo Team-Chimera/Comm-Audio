@@ -18,12 +18,21 @@
     <ClInclude Include="multicast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="voiceChat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="multicast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="voiceChat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

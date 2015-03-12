@@ -64,11 +64,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="client.h" />
     <ClInclude Include="multicast.h" />
+    <ClInclude Include="voiceChat.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="multicast.cpp" />
+    <ClCompile Include="voiceChat.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
