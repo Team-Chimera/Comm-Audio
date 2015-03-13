@@ -27,12 +27,13 @@ SOCKET createUDPSOCKET()
 	return s;
 }
 
-bool connectTCPSOCKET(SOCKET s, sockaddr_in addr)
+bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr)
 {
 
-	if (connect(s, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	if (connect(s, (SOCKADDR*)addr, sizeof(sockaddr_in)) == SOCKET_ERROR)
     {
         perror("failed to connect socket.\n");
+		printf("wsa get error  %d\n", WSAGetLastError());
         return false;
     }
 	return true;
@@ -40,7 +41,6 @@ bool connectTCPSOCKET(SOCKET s, sockaddr_in addr)
 
 void printIP(sockaddr_in& peer)
 {
-	char addr[IP_SIZE];
 	char* temp_addr = inet_ntoa( peer.sin_addr );
 	printf("IP address is %s\n", temp_addr);
 

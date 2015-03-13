@@ -7,7 +7,7 @@
 #include <winsock2.h>
 #include <windows.h>
 
-#define CLIENT_TCP_PORT 5658
+#define CLIENT_TCP_PORT 6678
 
 typedef struct _SOCKET_INFORMATION {
    OVERLAPPED Overlapped;
@@ -24,7 +24,7 @@ extern const char* DENY;
 
 SOCKET createTCPSOCKET();
 SOCKET createUDPSOCKET();
-bool connectTCPSOCKET(SOCKET s, sockaddr_in addr);
+bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr);
 bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s);
 void deleteSocketInfo(LPSOCKET_INFORMATION si);
 

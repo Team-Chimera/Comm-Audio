@@ -310,7 +310,7 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
 		{
 			temp = createTCPSOCKET();
 			createSocketInfo(&(m->send), temp);
-			if( !connectTCPSOCKET(m->send.Socket, client) )
+			if( !connectTCPSOCKET(m->send.Socket, &client) )
 			{
 				printf("error on tcp send connecting for session %d", m->control.Socket);
 					return FALSE;
@@ -319,19 +319,16 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
 		
 		long totalSent = 0;
 
-		FILE *f;
-		fopen_s(&f, m->filename, "rb");
-		fseek(f, 0, SEEK_END);
-		m->filesize = ftell(f);
-		fseek(f, 0, SEEK_SET);
+		std::ifstream input( m->filename, std::ios::binary );
+		// copies all data into buffer
+		string buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
+		input.close();
 
-		m->fileToSend = (unsigned char*) malloc(m->filesize);
-		fread(m->fileToSend, m->filesize, 1, f);
-		fclose(f);
+		m->fileToSend = &buffer;		
 
-		m->send.bytesToSend = m->filesize;
+		m->send.bytesToSend = (m->fileToSend)->length();
 		m->send.BytesSEND = 0;
-		m->send.DataBuf.buf = (char*)m->fileToSend;
+		m->send.DataBuf.buf = (char*)m->fileToSend; // seems risky...
 		m->send.DataBuf.len = m->send.bytesToSend;
 		
 		//call send function
