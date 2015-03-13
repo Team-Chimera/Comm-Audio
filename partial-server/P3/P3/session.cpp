@@ -236,14 +236,12 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
    if (BytesTransferred == 0) // nothing sent or rcvd...
    {
-      printf("Closing control socket %d\n", SI->Socket);
+      printf("Closing send socket %d\n", SI->Socket);
    }
 
    if (Error != 0 || BytesTransferred == 0)
    {
-      closesocket(SI->Socket);
-      GlobalFree(SI);
-	  // closeSession
+      deleteSocketInfo(SI);
       return;
    }
 
@@ -252,9 +250,6 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
    if (SI->bytesToSend > 0) // send or continue sending
    {
-		//memcpy(&client, &(m->ip), sizeof(m->ip));
-		//client.sin_port = htons(CLIENT_TCP_PORT);
-
 		getIP_Addr(&client, m->ip, CLIENT_TCP_PORT);
 
       // Post another WSASend() request.
@@ -319,16 +314,31 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
 		
 		long totalSent = 0;
 
-		std::ifstream input( m->filename, std::ios::binary );
-		// copies all data into buffer
-		string buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
-		input.close();
+		ifstream input;
+		unsigned long size;
 
-		m->fileToSend = &buffer;		
+		input.open( m->filename, std::ios::binary | ifstream::ate );
+		if(!input.is_open())
+		{
+			printf("Error opening in put file %s, aborting send", m->filename);
+			deleteSocketInfo(&(m->send));
 
-		m->send.bytesToSend = (m->fileToSend)->length();
+			// perhaps send error message to client
+
+			m->sending = false;
+			continue;
+		}
+		size = input.tellg();
+		input.seekg(ios_base::beg);
+
+		char* holder = new char[size];
+		input.read(holder, size);
+
+		m->fileToSend = holder;	
+
+		m->send.bytesToSend = size;
 		m->send.BytesSEND = 0;
-		m->send.DataBuf.buf = (char*)m->fileToSend; // seems risky...
+		m->send.DataBuf.buf = m->fileToSend; 
 		m->send.DataBuf.len = m->send.bytesToSend;
 		
 		//call send function
