@@ -50,6 +50,8 @@ int main(void)
 		n = recv(Receive, buf, BUFFERSIZE, 0);
 		buf[n] = '\0';
 		printf("%s", buf);
+		if(buf[0] == 0x011)
+			break;
 	}
 
 

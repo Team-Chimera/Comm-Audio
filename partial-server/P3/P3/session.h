@@ -30,7 +30,7 @@ typedef struct _MUSIC_SESSION {
 
 	HANDLE sendSem;
 
-	std::string* fileToSend;
+	char* fileToSend;
 	char filename[FILE_PATH];
 	char mode;
 	bool sending;
