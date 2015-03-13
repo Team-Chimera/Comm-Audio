@@ -16,9 +16,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    multicast.cpp \
+    voiceChat.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    client.h \
+    multicast.h \
+    voiceChat.h
 
 FORMS    += mainwindow.ui
 
