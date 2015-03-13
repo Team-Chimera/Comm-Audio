@@ -32,7 +32,6 @@ int main(void)
 
 	printf("sending start message...\n\n");
 	sendTCPMessage(&Control, START, BUFFERSIZE);
-	// only works if i bloody well watch it, else session isn't added????
 
 	// need to set up a socket to listen, then receive the file that gets transferred...
 	printf("opening listen socket...\n\n");
@@ -125,7 +124,7 @@ bool openListenSocket(SOCKET* s, int port)
 	SOCKADDR_IN InternetAddr;
 	int Ret;
 
-	if ((*s = socket (PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) 
+	if ((*s = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) 
 	{
 		printf("Failed to get a socket %d\n", WSAGetLastError());
 		return false;
@@ -142,7 +141,7 @@ bool openListenSocket(SOCKET* s, int port)
       return false;
    }
 
-   if (listen(*s, 1))
+   if (listen(*s, 5))
    {
       printf("listen() failed with error %d\n", WSAGetLastError());
       return false;

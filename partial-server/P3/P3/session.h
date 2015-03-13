@@ -8,6 +8,7 @@
 #include <map>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 #define FILE_PATH 64
 
@@ -29,8 +30,7 @@ typedef struct _MUSIC_SESSION {
 
 	HANDLE sendSem;
 
-	unsigned char* fileToSend;
-	unsigned long filesize;
+	std::string* fileToSend;
 	char filename[FILE_PATH];
 	char mode;
 	bool sending;
