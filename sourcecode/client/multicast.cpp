@@ -65,14 +65,14 @@ void InitializeMulticastData()
 -- Joins the multicast session, and starts multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void JoinMulticast(SOCKET multicast, in_addr group)
+void JoinMulticast(SOCKET multicast, in_addr group, in_addr local)
 {
 	struct ip_mreq addr;
 	DWORD recvThread;
 	DWORD playThread;
 
 	addr.imr_multiaddr = group;
-	// addr.imr_interface = inet_addr("0.0.0.0"); // get the local address
+    addr.imr_interface = local;
 	setsockopt(multicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &addr, sizeof(addr));
 
 	CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
@@ -200,7 +200,7 @@ void PlayMulti(BufControl * bCont)
 {
 	char datagram[DATAGRAM]; // remember to change this from char
 
-	HANDLE semaBuf = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiBuffer");
+    HANDLE semaBuf = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiBuf");
 	HANDLE semaPut = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiPut");
 	HANDLE semaUse = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiUse");
 
