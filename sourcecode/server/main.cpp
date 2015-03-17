@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include <WinSock2.h>
+#include "controlChannel.h"
+
+using std::cout;
+
 
 int main(int argc, char *argv[])
 {
