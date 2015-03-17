@@ -366,7 +366,8 @@ release/main.o: ../server/main.cpp ../server/mainwindow.h \
 		C:/Qt/5.4/mingw491_32/include/QtCore/qeventloop.h \
 		C:/Qt/5.4/mingw491_32/include/QtWidgets/qdesktopwidget.h \
 		C:/Qt/5.4/mingw491_32/include/QtGui/qguiapplication.h \
-		C:/Qt/5.4/mingw491_32/include/QtGui/qinputmethod.h
+		C:/Qt/5.4/mingw491_32/include/QtGui/qinputmethod.h \
+		../server/controlChannel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\main.o ..\server\main.cpp
 
 release/mainwindow.o: ../server/mainwindow.cpp ../server/mainwindow.h \

@@ -18,12 +18,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     multicast.cpp \
-    voiceChat.cpp
+    voiceChat.cpp \
+    ControlChannel.cpp \
+    unicastSong.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
     multicast.h \
-    voiceChat.h
+    voiceChat.h \
+    ControlChannel.h \
+    controlMessage.h \
+    unicastSong.h
 
 FORMS    += mainwindow.ui
 
