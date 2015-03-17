@@ -3,6 +3,9 @@
 
 #include <QtWidgets>
 
+WSAData wsadata;
+HANDLE acceptThread;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -53,9 +56,8 @@ void MainWindow::openFile()
 
 bool MainWindow::initialConnect()
 {
-    //do later, i assume will call a socket connect function
-    // to get stuff out of the GUI land.
-    //Please don't write socket stuff in the GUI!!!
+    initWSA(&wsadata);
+    createWorkerThread(AcceptThread, &acceptThread, 0);
 
     return true;
 }
