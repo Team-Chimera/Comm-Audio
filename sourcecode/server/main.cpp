@@ -13,17 +13,5 @@ int main(int argc, char *argv[])
     w.setupConnections();
     w.show();
 
-    //temporary do the WSA startup
-    int ret;
-    WSADATA wsaData;
-    if ((ret = WSAStartup(0x0202,&wsaData)) != 0)
-     {
-        cout << "WSA Error";
-        WSACleanup();
-        return -1;
-     }
-
-    openControlListener();
-
     return a.exec();
 }

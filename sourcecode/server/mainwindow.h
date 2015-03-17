@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include "session.h"
+
+using namespace std;
+
 namespace Ui
 {
 class MainWindow;

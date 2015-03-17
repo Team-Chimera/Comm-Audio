@@ -16,11 +16,15 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    controlChannel.cpp
+mainwindow.cpp \
+network.cpp \
+session.cpp \
+helper.cpp
 
-HEADERS  += mainwindow.h \
-    controlChannel.h
+HEADERS += mainwindow.h \
+network.h \
+session.h \
+helper.h
 
 FORMS    += mainwindow.ui
 
@@ -28,3 +32,4 @@ FORMS    += mainwindow.ui
 INSTALLS += install_it
 
 LIBS += -lws2_32
+CONFIG += c++11
