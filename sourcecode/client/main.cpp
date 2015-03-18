@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
-
+#include "controlMessage.h"
+#include "ControlChannel.h"
 int main(int argc, char *argv[])
 {
 
@@ -8,6 +9,9 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.setupConnections();
     w.show();
+
+    hostent *hp;
+    setupControlChannel(5000, hp);
 
     return a.exec();
 }
