@@ -24,8 +24,10 @@
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-#include <MSWSock.h>
-#include <Windows.h>
+#include <winsock2.h>
+#include <winnetwk.h>
+#include <ws2spi.h>
+#include <wtsapi32.h>
 
 // these numbers are currently arbitrary
 #define BUFFER 2048

@@ -22,6 +22,8 @@ public:
 
 public slots:
     bool initialConnect();
+    void clearListeners();
+    void updateListeners(std::string);
 
 private:
     Ui::MainWindow *ui;

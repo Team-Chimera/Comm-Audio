@@ -34,3 +34,6 @@ FORMS    += mainwindow.ui
 
 
 INSTALLS += install_it
+
+LIBS += -lws2_32
+CONFIG += c++11

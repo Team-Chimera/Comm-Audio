@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
 #include <QtWidgets>
+
+using std::string;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -34,3 +35,13 @@ bool MainWindow::initialConnect()
     return true;
 }
 
+
+void MainWindow::clearListeners()
+{
+    ui->listeners->clear();
+}
+
+void MainWindow::updateListeners(string listener)
+{
+    ui->listeners->addItem(QString::fromStdString(listener));
+}

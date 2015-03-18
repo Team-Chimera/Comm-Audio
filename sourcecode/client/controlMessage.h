@@ -1,3 +1,10 @@
+#ifndef CONTROLMESSAGE
+#define CONTROLMESSAGE
+
+#include <iostream>
+#include <vector>
+#include <string>
+
 enum messageType
 {
     END_CONNECTION,
@@ -19,3 +26,6 @@ struct ctrlMessage
     std::vector<std::string> msgData;
 };
 typedef struct ctrlMessage ctrlMessage;
+
+
+#endif // CONTROLMESSAGE
