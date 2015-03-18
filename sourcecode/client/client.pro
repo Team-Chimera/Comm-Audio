@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     multicast.cpp \
     voiceChat.cpp \
     ControlChannel.cpp \
-    unicastSong.cpp
+    unicastSong.cpp \
+    circularbuffer.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
@@ -28,9 +29,13 @@ HEADERS  += mainwindow.h \
     voiceChat.h \
     ControlChannel.h \
     controlMessage.h \
-    unicastSong.h
+    unicastSong.h \
+    circularbuffer.h
 
 FORMS    += mainwindow.ui
 
 
 INSTALLS += install_it
+
+LIBS += -lws2_32
+CONFIG += c++11

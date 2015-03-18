@@ -15,6 +15,8 @@
 --
 --
 ----------------------------------------------------------------------------------------------------------------------*/
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -22,9 +24,19 @@
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-#include <MSWSock.h>
-#include <Windows.h>
+#include <winnetwk.h>
+#include <ws2spi.h>
+#include <wtsapi32.h>
 
 // these numbers are currently arbitrary
 #define BUFFER 2048
 #define DATAGRAM 256
+
+struct Semaphores
+{
+	HANDLE semaBuf;
+	HANDLE semaIn;
+	HANDLE semaOut;
+};
+
+#endif

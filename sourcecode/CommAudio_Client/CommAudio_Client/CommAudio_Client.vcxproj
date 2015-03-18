@@ -64,11 +64,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="circularbuffer.h" />
     <ClInclude Include="client.h" />
     <ClInclude Include="multicast.h" />
     <ClInclude Include="voiceChat.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="circularbuffer.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="multicast.cpp" />
     <ClCompile Include="voiceChat.cpp" />

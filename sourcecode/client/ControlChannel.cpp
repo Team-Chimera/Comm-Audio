@@ -18,29 +18,23 @@
 **
 **
 *****************************************************************************/
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <cmath>
-#include <winsock2.h>
-
 #include "controlMessage.h"
 #include "ControlChannel.h"
-#include "unicastSong.h"
+#include "mainwindow.h"
 
-using std::stringstream;
-using std::string;
-using std::vector;
-using std::ofstream;
+using namespace std;
 
 //hardcoded default control port
 int port = 8000;
 hostent *host;
 
+//reading thread
+HANDLE readThread = INVALID_HANDLE_VALUE;
+
 int controlSocket;
 
+//GUI Connector
+MainWindow *GUI;
 
 
 /*******************************************************************
@@ -90,9 +84,70 @@ int setupControlChannel(int port, hostent *hp)
         return -1;
     }
 
-    //add control socket & host info to the struct
+    //add control socket & host info to the global
     controlSocket = control;
     host = hp;
+
+    //begin receiving data as completion routine
+    DWORD threadId;
+    if ((readThread = CreateThread(NULL, 0, read, NULL, 0, &threadId)) == NULL)
+    {
+        cerr << "Unable to create accept thread";
+        return -1;
+    }
+
+    cout << "Client Control thread now alive now ready";
+
+    return 0;
+}
+
+DWORD WINAPI read(LPVOID arg)
+{
+    //make the overlapped structure
+    WSAOVERLAPPED Overlapped;
+    WSABUF DataBuf;
+    DWORD RecvBytes;
+    DWORD Flags = 0;
+
+
+    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
+
+    //read infinitely from the server
+    while(true)
+    {
+
+        if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
+        {
+            if (WSAGetLastError() != WSA_IO_PENDING)
+            {
+                cerr << "WSARecv() failed";
+                return -1;
+            }
+        }
+
+        //sleep until we get an event
+        SleepEx(INFINITE, true);
+    }
+
+    return 0;
+}
+
+void CALLBACK ReadRoutine(DWORD Error, DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+{
+    DWORD SendBytes, RecvBytes;
+    DWORD Flags;
+
+    if (Error != 0 ||bytesReceived == 0)
+    {
+        closesocket(controlSocket);
+        return;
+    }
+
+    Flags = 0;
+
+    //Data received successfully; post another request
+    //so we can get another.
+    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
 
 }
 
@@ -163,7 +218,7 @@ void parseControlString(string str, ctrlMessage *msg)
 {
     //get the type of the message
     int type = str.find('~');
-    msg->type = static_cast<MessageType> (atoi(str.substr(0, type).c_str()));
+    msg->type = static_cast<messageType> (atoi(str.substr(0, type).c_str()));
 
     //chunk off the message's type
     str = str.substr(type +1, str.length());
@@ -239,7 +294,20 @@ void handleControlMessage(ctrlMessage *cMessage)
         //liste of current listeners
         case CURRENT_LISTENERS:
         {
+            updateListeners(cMessage->msgData);
             break;
         }
+    }
+}
+
+void updateListeners(vector<string> data)
+{
+    //clear the list of listeners
+    GUI->clearListeners();
+
+    //add each listener to the GUI
+    for (int i = 0; i < data.size(); i++)
+    {
+        GUI->updateListeners(data[i]);
     }
 }
