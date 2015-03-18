@@ -291,4 +291,5 @@ void PlayMulti()
 void OutputSpeakers(byte data[], int size)
 {
 	// out the local speakers
+    cout << "output data to speakers" << endl;
 }
