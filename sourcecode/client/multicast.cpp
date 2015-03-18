@@ -20,7 +20,9 @@
 
 #include "multicast.h"
 
-CircularBuffer * cBuffer;
+SOCKET_INFORMATION * socketInfo;
+Semaphores * semaphores;
+HANDLE threads[2];
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: InitializeMulticastData
@@ -43,11 +45,12 @@ CircularBuffer * cBuffer;
 ----------------------------------------------------------------------------------------------------------------------*/
 void InitializeMulticastData()
 {
-    cBuffer = new CircularBuffer(BUFFER);
+    socketInfo = new SOCKET_INFORMATION;
+    socketInfo->cBuffer = new CircularBuffer(BUFFER);
+    socketInfo->datagram.buf = new char[DATAGRAM];
+    socketInfo->datagram.len = DATAGRAM;
 
-	CreateSemaphoreEx(NULL, BUFFER / DATAGRAM, BUFFER / DATAGRAM, "multiBuf\0", 0, SEMAPHORE_MODIFY_STATE);
-	CreateSemaphoreEx(NULL, 1, 1, "multiPut\0", 0, SEMAPHORE_MODIFY_STATE);
-	CreateSemaphoreEx(NULL, 0, 1, "multiUse\0", 0, SEMAPHORE_MODIFY_STATE);
+    semaphores = new Semaphores;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -69,18 +72,57 @@ void InitializeMulticastData()
 -- Joins the multicast session, and starts multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void JoinMulticast(SOCKET multicast, in_addr group, in_addr local)
+void JoinMulticast(SOCKET s, OVERLAPPED o, in_addr group, in_addr local)
 {
-	struct ip_mreq addr;
 	DWORD recvThread;
 	DWORD playThread;
 
-	addr.imr_multiaddr = group;
-    addr.imr_interface = local;
-	setsockopt(multicast, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &addr, sizeof(addr));
+    if (socketInfo == NULL) return;
 
-	CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
-	CreateThread(NULL, 0, PlayMultiThread, NULL, 0, &recvThread);
+    semaphores->semaBuf = CreateSemaphoreEx(NULL, BUFFER / DATAGRAM, BUFFER / DATAGRAM, NULL, 0, SEMAPHORE_MODIFY_STATE);
+    semaphores->semaIn = CreateSemaphoreEx(NULL, 1, 1, NULL, 0, SEMAPHORE_MODIFY_STATE);
+    semaphores->semaOut = CreateSemaphoreEx(NULL, 0, 1, NULL, 0, SEMAPHORE_MODIFY_STATE);
+
+    socketInfo->socket = s;
+    socketInfo->overlapped = o;
+
+    socketInfo->addr.imr_multiaddr = group;
+    socketInfo->addr.imr_interface = local;
+    setsockopt(socketInfo->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &(socketInfo->addr), sizeof(socketInfo->addr));
+
+    threads[0] = CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
+    threads[1] = CreateThread(NULL, 0, PlayMultiThread, NULL, 0, &playThread);
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: DropMulticast
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void DropMulticast()
+--
+-- RETURNS: void
+--
+-- NOTES:
+-- Drops the multicast session, and stops multicast processing
+--
+----------------------------------------------------------------------------------------------------------------------*/
+void DropMulticast()
+{
+    TerminateThread(thread[0], 0);
+    TerminateThread(thread[1], 0);
+
+    CloseHandle(semaphores->semaBuf);
+    CloseHandle(semaphores->semaIn);
+    CloseHandle(semaphores->semaOut);
+
+    setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *) &(socketInfo->addr), sizeof(socketInfo->addr));
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -104,10 +146,10 @@ void JoinMulticast(SOCKET multicast, in_addr group, in_addr local)
 ----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI RecvMultiThread(LPVOID parameter)
 {
+    WSARecv(socketInfo->socket, socketInfo->datagram, 1, &(socketInfo->bytesRECV), 0, &(socketInfo->overlapped), RecvMulti);
 	while (true)
 	{
-		SleepEx(INFINITE, TRUE);
-		return 0; // remove when this is no longer an infinite loop
+        SleepEx(INFINITE, TRUE);
 	}
 
 	return 0;
@@ -134,21 +176,21 @@ DWORD WINAPI RecvMultiThread(LPVOID parameter)
 ----------------------------------------------------------------------------------------------------------------------*/
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags)
 {
-	HANDLE semaBuf = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiBuf\0");
-	HANDLE semaPut = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiPut\0");
-	HANDLE semaUse = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiUse\0");
-
 	// wait for semaBuf
 	WaitForSingleObjectEx(semaBuf, INFINITE, TRUE);
-	// wait for semaPut
-	WaitForSingleObjectEx(semaPut, INFINITE, TRUE);
+    // wait for semaIn
+    WaitForSingleObjectEx(semaIn, INFINITE, TRUE);
 
-	// put data into buffer
+    // In data into buffer
+    if (socketInfo->cBuffer->In((byte*)socketInfo->datagram, DATAGRAM) == false)
+        cerr << "RecvMulti: buffer insertion error" << endl;
+    else
+        cout << "RecvMulti: buffer insertion success" << endl;
 
-	// signal semaPut
-	ReleaseSemaphore(semaPut, 1, NULL);
-	// signal semaUse
-	ReleaseSemaphore(semaUse, 1, NULL);
+    // signal semaIn
+    ReleaseSemaphore(semaIn, 1, NULL);
+    // signal semaOut
+    ReleaseSemaphore(semaOut, 1, NULL);
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -174,8 +216,7 @@ DWORD WINAPI PlayMultiThread(LPVOID parameter)
 {
 	while (true)
 	{
-		// PlayMulti();
-		return 0; // remove when this is no longer an infinite loop
+        PlayMulti();
 	}
 
 	return 0;
@@ -204,27 +245,23 @@ void PlayMulti()
 {
     byte datagram[DATAGRAM];
 
-    HANDLE semaBuf = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiBuf");
-	HANDLE semaPut = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiPut");
-	HANDLE semaUse = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiUse");
-
-	// wait for semaUse
-	WaitForSingleObjectEx(semaUse, INFINITE, TRUE);
-	// wait for semaPut
-	WaitForSingleObjectEx(semaPut, INFINITE, TRUE);
+    // wait for semaOut
+    WaitForSingleObjectEx(semaOut, INFINITE, TRUE);
+    // wait for semaIn
+    WaitForSingleObjectEx(semaIn, INFINITE, TRUE);
 
 	// pull data from buffer
-    if (cBuffer->Out(datagram, DATAGRAM) == false)
+    if (socket->cBuffer->Out(datagram, DATAGRAM) == false)
         cerr << "PlayMulti: buffer removal error" << endl;
     else
         cout << "PlayMulti: buffer removal success" << endl;
 
-	// signal semaPut
-	ReleaseSemaphore(semaPut, 1, NULL);
+    // signal semaIn
+    ReleaseSemaphore(semaIn, 1, NULL);
 	// signal semaBuf
 	ReleaseSemaphore(semaBuf, 1, NULL);
 
-	OutputSpeakers(datagram);
+    OutInSpeakers(datagram);
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -246,7 +283,7 @@ void PlayMulti()
 --
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void OutputSpeakers(char data[]) // remember to change this from char
+void OutInSpeakers(byte data[]) // remember to change this from char
 {
-	// output out the local speakers
+    // outIn out the local speakers
 }

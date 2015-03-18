@@ -22,7 +22,20 @@
 #include "client.h"
 #include "circularbuffer.h"
 
-void JoinMulticast();
+struct SOCKET_INFORMATION
+{
+   OVERLAPPED overlapped;
+   SOCKET socket;
+   CircularBuffer * cBuffer;
+   WSABUF datagram;
+   DWORD bytesRECV;
+   struct ip_mreq addr;
+};
+
+void InitializeMulticastData();
+
+void JoinMulticast(SOCKET s, OVERLAPPED o, in_addr group, in_addr local);
+void DropMulticast();
 
 DWORD WINAPI RecvMultiThread(LPVOID parameter);
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
@@ -30,6 +43,6 @@ void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED ove
 DWORD WINAPI PlayMultiThread(LPVOID parameter);
 void PlayMulti(CircularBuffer * cBuffer);
 
-void OutputSpeakers(byte * data, int size); // remember to change this from char
+void OutputSpeakers(byte * data, int size);
 
 #endif

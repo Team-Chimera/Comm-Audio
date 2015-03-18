@@ -31,4 +31,11 @@
 #define BUFFER 2048
 #define DATAGRAM 256
 
+struct Semaphores
+{
+    HANDLE semaBuf;
+    HANDLE semaIn;
+    HANDLE semaOut;
+};
+
 #endif

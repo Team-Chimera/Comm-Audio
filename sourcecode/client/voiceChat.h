@@ -20,6 +20,17 @@
 #define VOICECHAT_H
 
 #include "client.h"
+#include "circularbuffer.h"
+
+struct SOCKET_INFORMATION
+{
+   OVERLAPPED Overlapped;
+   SOCKET Socket;
+   CircularBuffer * cBuffer;
+   WSABUF DataBuf;
+   DWORD BytesSEND;
+   DWORD BytesRECV;
+};
 
 struct BufControl
 {
