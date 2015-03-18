@@ -20,6 +20,7 @@
 *****************************************************************************/
 #include "controlMessage.h"
 #include "ControlChannel.h"
+#include "mainwindow.h"
 
 using namespace std;
 
@@ -32,6 +33,8 @@ HANDLE readThread = INVALID_HANDLE_VALUE;
 
 int controlSocket;
 
+//GUI Connector
+MainWindow *GUI;
 
 
 /*******************************************************************
@@ -103,8 +106,8 @@ DWORD WINAPI read(LPVOID arg)
     //make the overlapped structure
     WSAOVERLAPPED Overlapped;
     WSABUF DataBuf;
-    LPDWORD RecvBytes;
-    LPDWORD Flags = 0;
+    DWORD RecvBytes;
+    DWORD Flags = 0;
 
 
     ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
@@ -113,7 +116,7 @@ DWORD WINAPI read(LPVOID arg)
     while(true)
     {
 
-        if(WSARecv(controlSocket, &DataBuf, 1, RecvBytes, Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
+        if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -291,7 +294,20 @@ void handleControlMessage(ctrlMessage *cMessage)
         //liste of current listeners
         case CURRENT_LISTENERS:
         {
+            updateListeners(cMessage->msgData);
             break;
         }
+    }
+}
+
+void updateListeners(vector<string> data)
+{
+    //clear the list of listeners
+    GUI->clearListeners();
+
+    //add each listener to the GUI
+    for (int i = 0; i < data.size(); i++)
+    {
+        GUI->updateListeners(data[i]);
     }
 }

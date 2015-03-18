@@ -15,7 +15,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QListView>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
@@ -40,8 +39,8 @@ public:
     QLabel *label_4;
     QWidget *Library;
     QListWidget *songs;
-    QListView *listView_2;
     QLabel *label;
+    QListWidget *listeners;
     QMenuBar *menuBar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -155,13 +154,12 @@ public:
         songs->setObjectName(QStringLiteral("songs"));
         songs->setGeometry(QRect(0, 0, 591, 351));
         tabWidget->addTab(Library, QString());
-        listView_2 = new QListView(centralWidget);
-        listView_2->setObjectName(QStringLiteral("listView_2"));
-        listView_2->setGeometry(QRect(640, 50, 211, 351));
-        listView_2->setFrameShape(QFrame::WinPanel);
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
         label->setGeometry(QRect(650, 20, 131, 21));
+        listeners = new QListWidget(centralWidget);
+        listeners->setObjectName(QStringLiteral("listeners"));
+        listeners->setGeometry(QRect(640, 40, 211, 341));
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));

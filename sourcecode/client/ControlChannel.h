@@ -1,6 +1,8 @@
 #ifndef CONTROLCHANNEL
 #define CONTROLCHANNEL
 
+
+#define BUFFER_SIZE 1024
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -24,5 +26,8 @@ int setupControlChannel(int , hostent *);
 void parseControlString(std::string, ctrlMessage *);
 DWORD WINAPI read(LPVOID);
 void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
+
+/** GUI editors **/
+void updateListeners(std::vector<std::string>);
 
 #endif // CONTROLCHANNEL
