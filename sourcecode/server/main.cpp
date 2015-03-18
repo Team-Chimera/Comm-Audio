@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include "controlChannel.h"
-
 using std::cout;
 
 
