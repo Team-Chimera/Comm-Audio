@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------------------------------------------
--- SOURCE FILE: voiceChat.h
+-- SOURCE FILE: multicast.h
 --
 -- PROGRAM: CommAudio_Client
 --
@@ -16,11 +16,40 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
-#include "client.h"
+#ifndef MULTICAST_H
+#define MULTICAST_H
 
-struct BufControl
+#include "client.h"
+#include "circularbuffer.h"
+
+struct SOCKET_INFORMATION
 {
-	char buffer[BUFFER];  // buffer for data REMEMBER TO CHANGE THIS FROM CHAR
-	int put;              // pointer to the current insertion point in the buffer
-	int use;              // pointer to the current removal point in the buffer
+	OVERLAPPED overlapped;
+	SOCKET socket;
+	CircularBuffer * cBuffer;
+	WSABUF datagram;
+	DWORD bytesRECV;
+	DWORD bytesSEND;
+	struct ip_mreq addr;
 };
+
+void InitVoiceData();
+
+void StartVoiceChat(SOCKET s, OVERLAPPED o, in_addr group, in_addr local);
+void DropMulticast();
+
+DWORD WINAPI RecvVoiceThread(LPVOID parameter);
+void CALLBACK RecvVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
+
+DWORD WINAPI PlayVoiceThread(LPVOID parameter);
+void PlayVoice();
+
+void VoiceOutputSpeakers(byte * data, int size);
+
+DWORD WINAPI RecordVoiceThread(LPVOID parameter);
+void RecordVoice();
+
+DWORD WINAPI SendVoiceThread(LPVOID parameter);
+void SendVoice();
+
+#endif
