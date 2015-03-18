@@ -21,6 +21,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #pragma comment (lib, "Ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -28,15 +29,31 @@
 #include <ws2spi.h>
 #include <wtsapi32.h>
 
-// these numbers are currently arbitrary
-#define BUFFER 2048
-#define DATAGRAM 256
+#define BUFFER 65536
+#define DATAGRAM 4096
 
-struct Semaphores
+#define BITS_PER_SAMPLE 16
+#define SAMPLES_PER_SECOND 44100
+#define CHANNELS 2
+
+struct TRIPLE_BUFFER
 {
-	HANDLE semaBuf;
-	HANDLE semaIn;
-	HANDLE semaOut;
+	HWAVEOUT waveout;
+	LPWAVEHDR primary;
+	LPWAVEHDR secondary;
+	LPWAVEHDR tertiary;
+	char * buf;
+	int pos;
+};
+
+struct SOCKET_INFORMATION
+{
+	SOCKET socket;
+	WSABUF datagram;
+	DWORD bytesRECV;
+	DWORD bytesSEND;
+	struct ip_mreq addr;
+	OVERLAPPED overlapped;
 };
 
 #endif
