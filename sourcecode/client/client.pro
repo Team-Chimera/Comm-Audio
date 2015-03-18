@@ -20,8 +20,7 @@ SOURCES += main.cpp\
     multicast.cpp \
     voiceChat.cpp \
     ControlChannel.cpp \
-    unicastSong.cpp \
-    circularbuffer.cpp
+    unicastSong.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
@@ -29,8 +28,7 @@ HEADERS  += mainwindow.h \
     voiceChat.h \
     ControlChannel.h \
     controlMessage.h \
-    unicastSong.h \
-    circularbuffer.h
+    unicastSong.h
 
 FORMS    += mainwindow.ui
 

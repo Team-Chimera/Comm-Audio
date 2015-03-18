@@ -20,29 +20,14 @@
 #define MULTICAST_H
 
 #include "client.h"
-#include "circularbuffer.h"
 
-struct SOCKET_INFORMATION
-{
-	OVERLAPPED overlapped;
-	SOCKET socket;
-	CircularBuffer * cBuffer;
-	WSABUF datagram;
-	DWORD bytesRECV;
-	struct ip_mreq addr;
-};
-
-void InitMulticastData();
-
-void JoinMulticast(SOCKET s, OVERLAPPED o, in_addr group, in_addr local);
-void DropMulticast();
+bool JoinMulticast(in_addr group);
+bool StartWaveOut();
+bool DropMulticast();
 
 DWORD WINAPI RecvMultiThread(LPVOID parameter);
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
 
-DWORD WINAPI PlayMultiThread(LPVOID parameter);
-void PlayMulti();
-
-void OutputSpeakers(byte * data, int size);
+void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 #endif
