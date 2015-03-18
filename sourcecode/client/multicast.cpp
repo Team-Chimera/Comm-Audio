@@ -20,6 +20,8 @@
 
 #include "multicast.h"
 
+CircularBuffer * cBuffer;
+
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: InitializeMulticastData
 --
@@ -41,6 +43,8 @@
 ----------------------------------------------------------------------------------------------------------------------*/
 void InitializeMulticastData()
 {
+    cBuffer = new CircularBuffer(BUFFER);
+
 	CreateSemaphoreEx(NULL, BUFFER / DATAGRAM, BUFFER / DATAGRAM, "multiBuf\0", 0, SEMAPHORE_MODIFY_STATE);
 	CreateSemaphoreEx(NULL, 1, 1, "multiPut\0", 0, SEMAPHORE_MODIFY_STATE);
 	CreateSemaphoreEx(NULL, 0, 1, "multiUse\0", 0, SEMAPHORE_MODIFY_STATE);
@@ -196,9 +200,9 @@ DWORD WINAPI PlayMultiThread(LPVOID parameter)
 --
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void PlayMulti(BufControl * bCont)
+void PlayMulti()
 {
-	char datagram[DATAGRAM]; // remember to change this from char
+    byte datagram[DATAGRAM];
 
     HANDLE semaBuf = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiBuf");
 	HANDLE semaPut = OpenSemaphore(SEMAPHORE_MODIFY_STATE, TRUE, "multiPut");
@@ -210,13 +214,10 @@ void PlayMulti(BufControl * bCont)
 	WaitForSingleObjectEx(semaPut, INFINITE, TRUE);
 
 	// pull data from buffer
-	for (int i = 0; i < DATAGRAM; i++) // remember to change this from char
-	{
-		if (bCont->use >= BUFFER) bCont->use = 0;
-		datagram[i] = bCont->buffer[bCont->use];
-		bCont->buffer[bCont->use] = '\0';
-		bCont->use++;
-	}
+    if (cBuffer->Out(datagram, DATAGRAM) == false)
+        cerr << "PlayMulti: buffer removal error" << endl;
+    else
+        cout << "PlayMulti: buffer removal success" << endl;
 
 	// signal semaPut
 	ReleaseSemaphore(semaPut, 1, NULL);

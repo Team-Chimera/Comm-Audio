@@ -20,13 +20,7 @@
 #define MULTICAST_H
 
 #include "client.h"
-
-struct BufControl
-{
-	char buffer[BUFFER];  // buffer for data REMEMBER TO CHANGE THIS FROM CHAR
-	int put;              // pointer to the current insertion point in the buffer
-	int use;              // pointer to the current removal point in the buffer
-};
+#include "circularbuffer.h"
 
 void JoinMulticast();
 
@@ -34,8 +28,8 @@ DWORD WINAPI RecvMultiThread(LPVOID parameter);
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
 
 DWORD WINAPI PlayMultiThread(LPVOID parameter);
-void PlayMulti(BufControl * bCont);
+void PlayMulti(CircularBuffer * cBuffer);
 
-void OutputSpeakers(char data[]); // remember to change this from char
+void OutputSpeakers(byte * data, int size); // remember to change this from char
 
 #endif
