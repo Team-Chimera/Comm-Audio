@@ -3,6 +3,7 @@
 #include <QtWidgets>
 
 using std::string;
+using std::vector;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -23,6 +24,14 @@ void MainWindow::setupConnections()
     //add the connect button function push
     QAction *connectButton = ui->menuBar->addAction("Connect");
     connect(connectButton, SIGNAL(triggered()), this, SLOT(initialConnect()));
+
+
+    //make now playing fields read only
+    ui->artistName->setFocusPolicy(Qt::NoFocus);
+    ui->artistName->setReadOnly(true);
+
+    ui->songName->setFocusPolicy(Qt::NoFocus);
+    ui->songName->setReadOnly(true);
 }
 
 
@@ -44,4 +53,10 @@ void MainWindow::clearListeners()
 void MainWindow::updateListeners(string listener)
 {
     ui->listeners->addItem(QString::fromStdString(listener));
+}
+
+void MainWindow::updateNowPlaying(vector<string> songInfo)
+{
+    ui->songName->append(QString::fromStdString(songInfo[0]));
+    ui->artistName->append(QString::fromStdString(songInfo[1]));
 }

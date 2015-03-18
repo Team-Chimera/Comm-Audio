@@ -282,6 +282,7 @@ void handleControlMessage(ctrlMessage *cMessage)
         //new song is playing
         case NOW_PLAYING:
         {
+            updateNowPlaying(cMessage->msgData);
             break;
         }
 
@@ -310,4 +311,24 @@ void updateListeners(vector<string> data)
     {
         GUI->updateListeners(data[i]);
     }
+}
+
+void updateNowPlaying(vector<string> msgData)
+{
+    //fetch the song
+    string nowPlaying = msgData[0];
+    vector<string> songData;
+
+    //begin parsing out the song information into a vector
+    while(nowPlaying.length() > 0)
+    {
+        int endSection = nowPlaying.find('^');
+        songData.push_back(nowPlaying.substr(0, endSection));
+
+        //chop off that section
+        nowPlaying = nowPlaying.substr(endSection + 1, nowPlaying.length());
+    }
+
+    GUI->updateNowPlaying(songData);
+
 }

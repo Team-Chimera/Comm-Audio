@@ -21,6 +21,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -37,6 +38,8 @@ public:
     QLabel *label_2;
     QLabel *label_3;
     QLabel *label_4;
+    QTextEdit *songName;
+    QTextEdit *artistName;
     QWidget *Library;
     QListWidget *songs;
     QLabel *label;
@@ -147,6 +150,12 @@ public:
         label_4 = new QLabel(Multicast);
         label_4->setObjectName(QStringLiteral("label_4"));
         label_4->setGeometry(QRect(90, 90, 55, 16));
+        songName = new QTextEdit(Multicast);
+        songName->setObjectName(QStringLiteral("songName"));
+        songName->setGeometry(QRect(140, 40, 161, 31));
+        artistName = new QTextEdit(Multicast);
+        artistName->setObjectName(QStringLiteral("artistName"));
+        artistName->setGeometry(QRect(140, 90, 161, 31));
         tabWidget->addTab(Multicast, QString());
         Library = new QWidget();
         Library->setObjectName(QStringLiteral("Library"));
@@ -168,7 +177,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
