@@ -19,7 +19,7 @@ SOCKET createUDPSOCKET()
     if ((s = WSASocket(AF_INET, SOCK_DGRAM, 0, NULL, 0,
       WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET)
     {
-        printf("Failed to get a tcp socket %d\n", WSAGetLastError());
+        printf("Failed to get a udp socket %d\n", WSAGetLastError());
         return -1;
     }
     return s;

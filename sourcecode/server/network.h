@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #define CLIENT_TCP_PORT 6678
+#define CLIENT_UDP_PORT 6698
 
 typedef struct _SOCKET_INFORMATION {
    OVERLAPPED Overlapped;

@@ -279,6 +279,7 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
    if (Error != 0 || BytesTransferred == 0)
    {
       deleteSocketInfo(SI);
+      m->sending = false;
       return;
    }
 
@@ -287,7 +288,8 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
    if (SI->bytesToSend > 0) // send or continue sending
    {
-        getIP_Addr(&client, m->ip, CLIENT_TCP_PORT);
+       int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+        getIP_Addr(&client, m->ip, port);
 
       // Post another WSASend() request.
       // Since WSASend() is not gauranteed to send all of the bytes requested,
@@ -303,6 +305,7 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
             printf("WSASend() failed with error %d\n", WSAGetLastError());
+            m->sending = false;
             return;
             }
         }
@@ -323,10 +326,8 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
     sockaddr_in client;
     SOCKET temp;
 
-    //memcpy(&client, &(m->ip), sizeof(m->ip));
-    //client.sin_port = htons(CLIENT_TCP_PORT);
-    //client.sin_family = AF_INET;
-    getIP_Addr(&client, m->ip, CLIENT_TCP_PORT);
+    int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+    getIP_Addr(&client, m->ip, port);
     printIP(client);
 
     while(1)
@@ -348,8 +349,11 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
                     return FALSE;
             }
         }
-
-        long totalSent = 0;
+        else
+        {
+            temp = createUDPSOCKET();
+            createSocketInfo(&(m->send), temp);
+        }
 
         ifstream input;
         unsigned long size;
@@ -384,6 +388,7 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
             printf("WSASend() failed with error %d\n", WSAGetLastError());
+            delete [] m->fileToSend;
             return FALSE;
             }
         }
@@ -396,12 +401,14 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
              if (result!= WAIT_IO_COMPLETION)
              {
                 printf("error on tcp send for session %d", m->control.Socket);
+                delete [] m->fileToSend;
                 break;
              }
 
              if( !m->sending )
              {
                  deleteSocketInfo(&(m->send));
+                 delete [] m->fileToSend;
 
              }
         }
