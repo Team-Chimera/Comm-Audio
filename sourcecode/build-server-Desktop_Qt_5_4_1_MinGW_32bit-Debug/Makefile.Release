@@ -58,7 +58,8 @@ OBJECTS       = release/main.o \
 DIST          =  ..\server\mainwindow.h \
 		..\server\network.h \
 		..\server\session.h \
-		..\server\helper.h ..\server\main.cpp \
+		..\server\helper.h \
+		controlChannel.h ..\server\main.cpp \
 		..\server\mainwindow.cpp \
 		..\server\network.cpp \
 		..\server\session.cpp \
@@ -228,6 +229,7 @@ release/moc_mainwindow.cpp: C:/Qt/5.4/mingw491_32/include/QtWidgets/QMainWindow 
 		../server/session.h \
 		../server/network.h \
 		../server/helper.h \
+		../client/controlMessage.h \
 		../server/mainwindow.h
 	C:\Qt\5.4\mingw491_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IC:/Qt/5.4/mingw491_32/mkspecs/win32-g++ -IC:/Users/Jeffrey/Desktop/Comm-Audio/sourcecode/server -IC:/Qt/5.4/mingw491_32/include -IC:/Qt/5.4/mingw491_32/include/QtWidgets -IC:/Qt/5.4/mingw491_32/include/QtGui -IC:/Qt/5.4/mingw491_32/include/QtCore -I. ..\server\mainwindow.h -o release\moc_mainwindow.cpp
 
@@ -360,14 +362,14 @@ release/main.o: ../server/main.cpp ../server/mainwindow.h \
 		../server/session.h \
 		../server/network.h \
 		../server/helper.h \
+		../client/controlMessage.h \
 		C:/Qt/5.4/mingw491_32/include/QtWidgets/QApplication \
 		C:/Qt/5.4/mingw491_32/include/QtWidgets/qapplication.h \
 		C:/Qt/5.4/mingw491_32/include/QtCore/qcoreapplication.h \
 		C:/Qt/5.4/mingw491_32/include/QtCore/qeventloop.h \
 		C:/Qt/5.4/mingw491_32/include/QtWidgets/qdesktopwidget.h \
 		C:/Qt/5.4/mingw491_32/include/QtGui/qguiapplication.h \
-		C:/Qt/5.4/mingw491_32/include/QtGui/qinputmethod.h \
-		../server/controlChannel.h
+		C:/Qt/5.4/mingw491_32/include/QtGui/qinputmethod.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\main.o ..\server\main.cpp
 
 release/mainwindow.o: ../server/mainwindow.cpp ../server/mainwindow.h \
@@ -479,6 +481,7 @@ release/mainwindow.o: ../server/mainwindow.cpp ../server/mainwindow.h \
 		../server/session.h \
 		../server/network.h \
 		../server/helper.h \
+		../client/controlMessage.h \
 		ui_mainwindow.h \
 		C:/Qt/5.4/mingw491_32/include/QtCore/QVariant \
 		C:/Qt/5.4/mingw491_32/include/QtWidgets/QAction \
@@ -843,10 +846,12 @@ release/network.o: ../server/network.cpp ../server/network.h
 
 release/session.o: ../server/session.cpp ../server/session.h \
 		../server/network.h \
-		../server/helper.h
+		../server/helper.h \
+		../client/controlMessage.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\session.o ..\server\session.cpp
 
-release/helper.o: ../server/helper.cpp ../server/helper.h
+release/helper.o: ../server/helper.cpp ../server/helper.h \
+		../client/controlMessage.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\helper.o ..\server\helper.cpp
 
 release/moc_mainwindow.o: release/moc_mainwindow.cpp 
