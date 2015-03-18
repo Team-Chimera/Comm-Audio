@@ -24,7 +24,6 @@
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-#include <winsock2.h>
 #include <winnetwk.h>
 #include <ws2spi.h>
 #include <wtsapi32.h>
@@ -35,9 +34,9 @@
 
 struct Semaphores
 {
-    HANDLE semaBuf;
-    HANDLE semaIn;
-    HANDLE semaOut;
+	HANDLE semaBuf;
+	HANDLE semaIn;
+	HANDLE semaOut;
 };
 
 #endif
