@@ -28,6 +28,107 @@ using std::endl;
 SOCKET_INFORMATION * socketInfo;
 TRIPLE_BUFFER * buffers;
 HANDLE multiThread;
+HANDLE multiParentThread;
+
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: DropMulticast
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void DropMulticast()
+--
+-- RETURNS: void
+--
+-- NOTES:
+-- Drops the multicast session, and stops multicast processing
+--
+----------------------------------------------------------------------------------------------------------------------*/
+bool StartMulticast(in_addr group)
+{
+	DWORD thread;
+
+	multiParentThread = CreateThread(NULL, 0, JoinMulticast, NULL, 0, &thread);
+	if (multiParentThread == NULL)
+	{
+		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
+
+	GetExitCodeThread(multiParentThread, &thread);
+	if (thread != STILL_ACTIVE)
+	{
+		cerr << "VoiceChat: Parent start error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
+
+	return true;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: DropMulticast
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void DropMulticast()
+--
+-- RETURNS: void
+--
+-- NOTES:
+-- Drops the multicast session, and stops multicast processing
+--
+----------------------------------------------------------------------------------------------------------------------*/
+bool DropMulticast()
+{
+	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: drop membership error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
+
+	closesocket(socketInfo->socket);
+
+	if (TerminateThread(multiThread, 0) == 0)
+	{
+		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+	}
+
+	if (TerminateThread(multiParentThread, 0) == 0)
+	{
+		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+	}
+
+	waveOutUnprepareHeader(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
+	waveOutUnprepareHeader(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
+	waveOutUnprepareHeader(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+	waveOutClose(buffers->waveout);
+
+	delete buffers->buf;
+	delete buffers->primary->lpData;
+	delete buffers->secondary->lpData;
+	delete buffers->tertiary->lpData;
+	delete buffers;
+
+	delete socketInfo->datagram.buf;
+	delete socketInfo;
+
+	buffers = NULL;
+	socketInfo = NULL;
+
+	return true;
+}
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: JoinMulticast
@@ -48,38 +149,61 @@ HANDLE multiThread;
 -- Joins the multicast session, and starts multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-bool JoinMulticast(in_addr group) // valid ip for the multicast group
+DWORD WINAPI JoinMulticast(LPVOID parameter)
 {
 	DWORD recvThread;
 
 	BOOL flag = true;
 
-	if (socketInfo != NULL) return false;
+	in_addr * group = (in_addr *)parameter;
 
-	if (StartWaveOut() == false) return false;
+	if (socketInfo != NULL) return -1;
+
+	if (StartWaveOut() == false) return -1;
 
 	socketInfo->socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (socketInfo->socket == INVALID_SOCKET)
 	{
 		cerr << "Multicast: Socket creation failure (" << WSAGetLastError() << ")" << endl;
-		return false;
+		return -1;
 	}
 
 	if (setsockopt(socketInfo->socket, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag)) == SOCKET_ERROR)
 	{
 		cerr << "Multicast: Socket options set err (" << WSAGetLastError() << ")" << endl;
-		return false;
+		return -1;
 	}
 
-	socketInfo->addr.imr_multiaddr = group;
+	socketInfo->sockAddr.sin_family = AF_INET;
+	socketInfo->sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	socketInfo->sockAddr.sin_port = htons(MULTICAST_PORT);
+	if (bind(socketInfo->socket, (struct sockaddr*)&(socketInfo->sockAddr), sizeof(socketInfo->sockAddr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: Bind error (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	socketInfo->addr.imr_multiaddr = *group;
 	socketInfo->addr.imr_interface.S_un.S_addr = INADDR_ANY;
-	setsockopt(socketInfo->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr));
+
+	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: add membership error (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
 
 	multiThread = CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
 	if (multiThread == NULL)
 	{
 		cerr << "Multicast: Thread creation error (" << WSAGetLastError() << ")" << endl;
-		return false;
+		return -1;
+	}
+
+	while (true)
+	{
+		WaitForSingleObjectEx(multiThread, INFINITE, FALSE);
+		GetExitCodeThread(multiThread, &recvThread);
+		if (recvThread != STILL_ACTIVE) break;
 	}
 
 	return true;
@@ -157,60 +281,6 @@ bool StartWaveOut()
 		cerr << "Multicast: Error preparing headers (" << result << ")" << endl;
 		return false;
 	}
-
-	return true;
-}
-
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropMulticast
---
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
---
--- DESIGNER: Michael Chimick
---
--- PROGRAMMER: Michael Chimick
---
--- INTERFACE: void DropMulticast()
---
--- RETURNS: void
---
--- NOTES:
--- Drops the multicast session, and stops multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
-bool DropMulticast()
-{
-	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
-	{
-		cerr << "Multicast: drop membership error (" << WSAGetLastError() << ")" << endl;
-		return false;
-	}
-
-	closesocket(socketInfo->socket);
-
-	if (TerminateThread(multiThread, 0) == 0)
-	{
-		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
-	}
-
-	waveOutUnprepareHeader(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
-	waveOutUnprepareHeader(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
-	waveOutUnprepareHeader(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
-	waveOutClose(buffers->waveout);
-
-	delete buffers->buf;
-	delete buffers->primary->lpData;
-	delete buffers->secondary->lpData;
-	delete buffers->tertiary->lpData;
-	delete buffers;
-
-	delete socketInfo->datagram.buf;
-	delete socketInfo;
-
-	buffers = NULL;
-	socketInfo = NULL;
 
 	return true;
 }
