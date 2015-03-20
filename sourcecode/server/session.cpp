@@ -1,5 +1,6 @@
 #include "session.h"
 
+
 std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
 using namespace std;
@@ -91,10 +92,22 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
-    DWORD RecvBytes, result, flags;
+    DWORD RecvBytes, result, flags, handles;
+    handles = 3;
+    HANDLE waitHandles[handles];
 
     flags = 0;
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
+
+    waitHandles[0] = userChangeSem;
+    waitHandles[1] = newSongSem;
+    waitHandles[2] = m->sendCompleteSem;
+
+    // post send call with song list
+
+    // post send call with other users
+
+
     //post rcv call waiting for data
     if ( WSARecv( m->control.Socket, &(m->control.DataBuf), 1, &RecvBytes, &flags, &(m->control.Overlapped), controlRoutine ) == SOCKET_ERROR)
       {
@@ -108,12 +121,26 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     // get into alertable state
     while(1)
     {
-        result = SleepEx(INFINITE, TRUE);
-
-         if (result!= WAIT_IO_COMPLETION)
+        result = WaitForMultipleObjectsEx(handles, waitHandles, FALSE, INFINITE, TRUE);
+         if (result == WAIT_IO_COMPLETION)
          {
-            printf("error on control socket for session %d", m->control.Socket);
-            break;
+            continue;
+         }
+
+         switch(result -  WAIT_OBJECT_0)
+         {
+            case 0:
+                 // change in user list, access the list and send it
+                 break;
+            case 1:
+                 //new multicast song, send name of new song
+                 break;
+            case 2:
+                 //finished sending unicast to this client
+                 break;
+         default:
+                //error of somekind, clean up sessions and exit
+                return FALSE;
          }
     }
 
@@ -129,7 +156,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
    DWORD Flags;
    string message_rcv;
    LPMUSIC_SESSION m;
-   vector<string> incoming;
+   ctrlMessage ctrl;
 
 
    // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
@@ -164,33 +191,34 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
       SI->BytesSEND = 0;
       //rcv = true;
       message_rcv.assign(SI->Buffer);
-      Split(message_rcv, incoming);
-
-      if(incoming.empty() || incoming[0].size() != 1) // not a control char
+      parseControlString(message_rcv, &ctrl);
+      switch(ctrl.type)
       {
-          string str("x");
-          incoming.insert(incoming.begin(), str); // so default switch will run
-      }
+          //someone wants to make a mic chat with this client
+          case MIC_CONNECTION:
+          {
+              break;
+          }
+          //song has been requested for unicast send to this client
+          case SONG_REQUEST:
+          {
+              m->mode = 'u';
+              startSend(m, ctrl.msgData[0]);
+              break;
+          }
 
-      switch ( incoming.at(0).at(0) ) // first char in first string
-      {
-        case 't':
-            //call tcp setup function(open socket in tcp, need to know session
+          //song has been requested for tcp send to this client
+          case SAVE_SONG:
+          {
             m->mode = 't';
-            if( !( incoming.size() > 1 && startSend(m, incoming.at(1)) ) )
-                strcpy_s(SI->Buffer, DENY);
-            break;
-        case 'u':
-            m->mode = 'u';
-            if( !( incoming.size() > 1 && startSend(m, incoming.at(1)) ) )
-                strcpy_s(SI->Buffer, DENY);
-            break;
-        case 'f':
-            // cleanup session
-            break;
-        default:
-            strcpy_s(SI->Buffer, DENY);
-            // clean up session... after send happens....
+            startSend(m, ctrl.msgData[0]);
+              break;
+          }
+          case END_CONNECTION:
+          default:
+              {
+
+              }
       }
 
        SI->bytesToSend = BytesTransferred; // send back same size, that is what they're expecting
@@ -279,6 +307,7 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
    if (Error != 0 || BytesTransferred == 0)
    {
       deleteSocketInfo(SI);
+      m->sending = false;
       return;
    }
 
@@ -287,7 +316,8 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
    if (SI->bytesToSend > 0) // send or continue sending
    {
-        getIP_Addr(&client, m->ip, CLIENT_TCP_PORT);
+       int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+        getIP_Addr(&client, m->ip, port);
 
       // Post another WSASend() request.
       // Since WSASend() is not gauranteed to send all of the bytes requested,
@@ -303,6 +333,7 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
             printf("WSASend() failed with error %d\n", WSAGetLastError());
+            m->sending = false;
             return;
             }
         }
@@ -323,10 +354,8 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
     sockaddr_in client;
     SOCKET temp;
 
-    //memcpy(&client, &(m->ip), sizeof(m->ip));
-    //client.sin_port = htons(CLIENT_TCP_PORT);
-    //client.sin_family = AF_INET;
-    getIP_Addr(&client, m->ip, CLIENT_TCP_PORT);
+    int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+    getIP_Addr(&client, m->ip, port);
     printIP(client);
 
     while(1)
@@ -348,8 +377,11 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
                     return FALSE;
             }
         }
-
-        long totalSent = 0;
+        else
+        {
+            temp = createUDPSOCKET();
+            createSocketInfo(&(m->send), temp);
+        }
 
         ifstream input;
         unsigned long size;
@@ -384,6 +416,7 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
             printf("WSASend() failed with error %d\n", WSAGetLastError());
+            delete [] m->fileToSend;
             return FALSE;
             }
         }
@@ -396,12 +429,14 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
              if (result!= WAIT_IO_COMPLETION)
              {
                 printf("error on tcp send for session %d", m->control.Socket);
+                delete [] m->fileToSend;
                 break;
              }
 
              if( !m->sending )
              {
                  deleteSocketInfo(&(m->send));
+                 delete [] m->fileToSend;
 
              }
         }
@@ -443,6 +478,12 @@ bool startSend(LPMUSIC_SESSION m, string filename)
 bool createSems(LPMUSIC_SESSION m)
 {
     if( (m->sendSem = CreateSemaphore(NULL, 0, 1, NULL)) == NULL )
+    {
+        printf("error creating semaphores");
+        return false;
+    }
+
+    if( (m->sendCompleteSem = CreateSemaphore(NULL, 0, 1, NULL)) == NULL )
     {
         printf("error creating semaphores");
         return false;

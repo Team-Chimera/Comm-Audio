@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include "helper.h"
+#include "../client/controlMessage.h"
 
 #include <string>
 #include <map>
@@ -13,6 +14,7 @@
 #define FILE_PATH 64
 #define SERVER_TCP_LISTEN_PORT 9874
 
+#define MAX_SESSIONS 2000
 
 typedef struct _MUSIC_SESSION {
 
@@ -30,12 +32,22 @@ typedef struct _MUSIC_SESSION {
     HANDLE send_thr; // sends udp or tcp files, both won't happen at same time
 
     HANDLE sendSem;
+    HANDLE sendCompleteSem;
 
     char* fileToSend;
     char filename[FILE_PATH];
     char mode;
     bool sending;
 } MUSIC_SESSION, * LPMUSIC_SESSION;
+
+
+static HANDLE newSongSem;
+static HANDLE songAccessSem;
+static std::string multicastSong;
+
+static HANDLE userChangeSem;
+static HANDLE userAccessSem;
+static std::vector<std::string> userList;
 
 static HANDLE sessionsSem;
 extern std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;

@@ -19,8 +19,7 @@ SOURCES += main.cpp\
 mainwindow.cpp \
 network.cpp \
 session.cpp \
-helper.cpp \
-    controlChannel.cpp
+helper.cpp
 
 HEADERS += mainwindow.h \
 network.h \

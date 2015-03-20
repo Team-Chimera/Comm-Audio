@@ -16,11 +16,26 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
+#ifndef VOICECHAT_H
+#define VOICECHAT_H
+
 #include "client.h"
 
-struct BufControl
-{
-	char buffer[BUFFER];  // buffer for data REMEMBER TO CHANGE THIS FROM CHAR
-	int put;              // pointer to the current insertion point in the buffer
-	int use;              // pointer to the current removal point in the buffer
-};
+bool StartVoiceChat(in_addr dest);
+bool EndVoiceChat();
+
+DWORD WINAPI StartRecvVoice(LPVOID parameter);
+bool StartWaveOut();
+
+DWORD WINAPI StartSendVoice(LPVOID parameter);
+bool StartWaveIn();
+
+DWORD WINAPI RecvVoiceThread(LPVOID parameter);
+void CALLBACK RecvVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
+void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
+
+DWORD WINAPI SendVoiceThread(LPVOID parameter);
+void CALLBACK SendVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
+void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
+
+#endif

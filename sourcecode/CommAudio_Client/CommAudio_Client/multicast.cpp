@@ -26,11 +26,13 @@ using std::cerr;
 using std::endl;
 
 SOCKET_INFORMATION * socketInfo;
-Semaphores * semaphores;
-HANDLE threads[2];
+TRIPLE_BUFFER * buffers;
+HANDLE multiThread;
+HANDLE multiParentThread;
+
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: InitializeMulticastData
+-- FUNCTION: DropMulticast
 --
 -- DATE: March 12, 2015
 --
@@ -40,63 +42,33 @@ HANDLE threads[2];
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void InitializeMulticastData()
+-- INTERFACE: void DropMulticast()
 --
 -- RETURNS: void
 --
 -- NOTES:
--- Initializes data needed for multicasting
+-- Drops the multicast session, and stops multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void InitMulticastData()
+bool StartMulticast(in_addr group)
 {
-	socketInfo = new SOCKET_INFORMATION;
-	socketInfo->cBuffer = new CircularBuffer(BUFFER);
-	socketInfo->datagram.buf = new char[DATAGRAM];
-	socketInfo->datagram.len = DATAGRAM;
+	DWORD thread;
 
-	semaphores = new Semaphores;
-}
+	multiParentThread = CreateThread(NULL, 0, JoinMulticast, NULL, 0, &thread);
+	if (multiParentThread == NULL)
+	{
+		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinMulticast
---
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
---
--- DESIGNER: Michael Chimick
---
--- PROGRAMMER: Michael Chimick
---
--- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
---
--- RETURNS: void
---
--- NOTES:
--- Joins the multicast session, and starts multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
-void JoinMulticast(SOCKET s, OVERLAPPED o, in_addr group, in_addr local)
-{
-	DWORD recvThread;
-	DWORD playThread;
+	GetExitCodeThread(multiParentThread, &thread);
+	if (thread != STILL_ACTIVE)
+	{
+		cerr << "VoiceChat: Parent start error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
 
-	if (socketInfo == NULL) return;
-
-	semaphores->semaBuf = CreateSemaphoreEx(NULL, BUFFER / DATAGRAM, BUFFER / DATAGRAM, NULL, 0, SEMAPHORE_MODIFY_STATE);
-	semaphores->semaIn = CreateSemaphoreEx(NULL, 1, 1, NULL, 0, SEMAPHORE_MODIFY_STATE);
-	semaphores->semaOut = CreateSemaphoreEx(NULL, 0, 1, NULL, 0, SEMAPHORE_MODIFY_STATE);
-
-	socketInfo->socket = s;
-	socketInfo->overlapped = o;
-
-	socketInfo->addr.imr_multiaddr = group;
-	socketInfo->addr.imr_interface = local;
-	setsockopt(socketInfo->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr));
-
-	threads[0] = CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
-	threads[1] = CreateThread(NULL, 0, PlayMultiThread, NULL, 0, &playThread);
+	return true;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -118,16 +90,199 @@ void JoinMulticast(SOCKET s, OVERLAPPED o, in_addr group, in_addr local)
 -- Drops the multicast session, and stops multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void DropMulticast()
+bool DropMulticast()
 {
-	TerminateThread(threads[0], 0);
-	TerminateThread(threads[1], 0);
+	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: drop membership error (" << WSAGetLastError() << ")" << endl;
+		return false;
+	}
 
-	CloseHandle(semaphores->semaBuf);
-	CloseHandle(semaphores->semaIn);
-	CloseHandle(semaphores->semaOut);
+	closesocket(socketInfo->socket);
 
-	setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr));
+	if (TerminateThread(multiThread, 0) == 0)
+	{
+		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+	}
+
+	if (TerminateThread(multiParentThread, 0) == 0)
+	{
+		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+	}
+
+	waveOutUnprepareHeader(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
+	waveOutUnprepareHeader(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
+	waveOutUnprepareHeader(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+	waveOutClose(buffers->waveout);
+
+	delete buffers->buf;
+	delete buffers->primary->lpData;
+	delete buffers->secondary->lpData;
+	delete buffers->tertiary->lpData;
+	delete buffers;
+
+	delete socketInfo->datagram.buf;
+	delete socketInfo;
+
+	buffers = NULL;
+	socketInfo = NULL;
+
+	return true;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: JoinMulticast
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+--
+-- RETURNS: void
+--
+-- NOTES:
+-- Joins the multicast session, and starts multicast processing
+--
+----------------------------------------------------------------------------------------------------------------------*/
+DWORD WINAPI JoinMulticast(LPVOID parameter)
+{
+	DWORD recvThread;
+
+	BOOL flag = true;
+
+	in_addr * group = (in_addr *)parameter;
+
+	if (socketInfo != NULL) return -1;
+
+	if (StartWaveOut() == false) return -1;
+
+	socketInfo->socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (socketInfo->socket == INVALID_SOCKET)
+	{
+		cerr << "Multicast: Socket creation failure (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	if (setsockopt(socketInfo->socket, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: Socket options set err (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	socketInfo->sockAddr.sin_family = AF_INET;
+	socketInfo->sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	socketInfo->sockAddr.sin_port = htons(MULTICAST_PORT);
+	if (bind(socketInfo->socket, (struct sockaddr*)&(socketInfo->sockAddr), sizeof(socketInfo->sockAddr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: Bind error (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	socketInfo->addr.imr_multiaddr = *group;
+	socketInfo->addr.imr_interface.S_un.S_addr = INADDR_ANY;
+
+	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
+	{
+		cerr << "Multicast: add membership error (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	multiThread = CreateThread(NULL, 0, RecvMultiThread, NULL, 0, &recvThread);
+	if (multiThread == NULL)
+	{
+		cerr << "Multicast: Thread creation error (" << WSAGetLastError() << ")" << endl;
+		return -1;
+	}
+
+	while (true)
+	{
+		WaitForSingleObjectEx(multiThread, INFINITE, FALSE);
+		GetExitCodeThread(multiThread, &recvThread);
+		if (recvThread != STILL_ACTIVE) break;
+	}
+
+	return true;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: JoinMulticast
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+--
+-- RETURNS: void
+--
+-- NOTES:
+-- Joins the multicast session, and starts multicast processing
+--
+----------------------------------------------------------------------------------------------------------------------*/
+bool StartWaveOut()
+{
+	MMRESULT result;
+
+	WAVEFORMATEX wfx;
+	wfx.nChannels = CHANNELS;
+	wfx.nSamplesPerSec = SAMPLES_PER_SECOND;
+	wfx.wFormatTag = WAVE_FORMAT_PCM;
+	wfx.wBitsPerSample = BITS_PER_SAMPLE;
+	wfx.cbSize = 0;
+	wfx.nBlockAlign = wfx.nChannels * wfx.wBitsPerSample / 8;
+	wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.wBitsPerSample / 8;
+
+	result = waveOutOpen(&(buffers->waveout), WAVE_MAPPER, &wfx, (DWORD)MultiWaveCallback, NULL, CALLBACK_FUNCTION);
+	if ((result != MMSYSERR_NOERROR) || (buffers->waveout == NULL))
+	{
+		cerr << "Multicast: Open waveout error (" << result << ")" << endl;
+	}
+
+	socketInfo->datagram.buf = new char[DATAGRAM];
+	socketInfo->datagram.len = DATAGRAM;
+	
+	buffers->primary = new WAVEHDR;
+	buffers->secondary = new WAVEHDR;
+	buffers->tertiary = new WAVEHDR;
+
+	buffers->buf = new char[BUFFER];
+
+	buffers->primary->lpData = buffers->buf;
+	buffers->primary->dwBufferLength = BUFFER;
+
+	memcpy_s(buffers->secondary, sizeof(*(buffers->secondary)), \
+		buffers->primary, sizeof(*(buffers->primary)));
+	memcpy_s(buffers->tertiary, sizeof(*(buffers->tertiary)), \
+		buffers->primary, sizeof(*(buffers->primary)));
+
+	result = waveOutPrepareHeader(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
+	result = waveOutPrepareHeader(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
+	result = waveOutPrepareHeader(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+	if (result != MMSYSERR_NOERROR)
+	{
+		cerr << "Multicast: Error preparing headers (" << result << ")" << endl;
+		return false;
+	}
+
+	result = waveOutWrite(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
+	result = waveOutWrite(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
+	result = waveOutWrite(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+	if (result != MMSYSERR_NOERROR)
+	{
+		cerr << "Multicast: Error preparing headers (" << result << ")" << endl;
+		return false;
+	}
+
+	return true;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -181,92 +336,18 @@ DWORD WINAPI RecvMultiThread(LPVOID parameter)
 ----------------------------------------------------------------------------------------------------------------------*/
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags)
 {
-	// wait for semaBuf
-	WaitForSingleObjectEx(semaphores->semaBuf, INFINITE, TRUE);
-	// wait for semaIn
-	WaitForSingleObjectEx(semaphores->semaIn, INFINITE, TRUE);
+	unsigned int spaceLeft;
 
-	// In data into buffer
-	if (socketInfo->cBuffer->In((byte*)socketInfo->datagram.buf, DATAGRAM) == false)
-		cerr << "RecvMulti: buffer insertion error" << endl;
-	else
-		cout << "RecvMulti: buffer insertion success" << endl;
-
-	// signal semaIn
-	ReleaseSemaphore(semaphores->semaIn, 1, NULL);
-	// signal semaOut
-	ReleaseSemaphore(semaphores->semaOut, 1, NULL);
-}
-
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: PlayMultiThread
---
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
---
--- DESIGNER: Michael Chimick
---
--- PROGRAMMER: Michael Chimick
---
--- INTERFACE: DWORD WINAPI PlayMultiThread(LPVOID parameter)
---
--- RETURNS: DWORD
---
--- NOTES:
---
---
-----------------------------------------------------------------------------------------------------------------------*/
-DWORD WINAPI PlayMultiThread(LPVOID parameter)
-{
-	while (true)
+	spaceLeft = (BUFFER - buffers->pos);
+	if (socketInfo->bytesRECV > spaceLeft)
 	{
-		PlayMulti();
+		memcpy(buffers->buf + buffers->pos, socketInfo->datagram.buf, spaceLeft);
+		buffers->pos = 0;
+		socketInfo->bytesRECV -= spaceLeft;
+		socketInfo->datagram.buf += spaceLeft;
 	}
-
-	return 0;
-}
-
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: PlayMulti
---
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
---
--- DESIGNER: Michael Chimick
---
--- PROGRAMMER: Michael Chimick
---
--- INTERFACE: void PlayMulti(BufControl * bCont)
---
--- RETURNS: void
---
--- NOTES:
---
---
-----------------------------------------------------------------------------------------------------------------------*/
-void PlayMulti()
-{
-	byte datagram[DATAGRAM];
-
-	// wait for semaOut
-	WaitForSingleObjectEx(semaphores->semaOut, INFINITE, TRUE);
-	// wait for semaIn
-	WaitForSingleObjectEx(semaphores->semaIn, INFINITE, TRUE);
-
-	// pull data from buffer
-	if (socketInfo->cBuffer->Out(datagram, DATAGRAM) == false)
-		cerr << "PlayMulti: buffer removal error" << endl;
-	else
-		cout << "PlayMulti: buffer removal success" << endl;
-
-	// signal semaIn
-	ReleaseSemaphore(semaphores->semaIn, 1, NULL);
-	// signal semaBuf
-	ReleaseSemaphore(semaphores->semaBuf, 1, NULL);
-
-	OutputSpeakers(datagram, DATAGRAM);
+	memcpy(buffers->buf + buffers->pos, socketInfo->datagram.buf, socketInfo->bytesRECV);
+	buffers->pos += socketInfo->bytesRECV;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -288,7 +369,15 @@ void PlayMulti()
 --
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-void OutputSpeakers(byte data[], int size)
+
+void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	// out the local speakers
+	MMRESULT result;
+
+	if (uMsg == WOM_DONE)
+	{
+		result = waveOutWrite(buffers->waveout, (LPWAVEHDR)dw1, sizeof(*((LPWAVEHDR)dw1)));
+		if (result != MMSYSERR_NOERROR)
+			cout << "Multicast: playing buffer error (" << result << ")" << endl;
+	}
 }
