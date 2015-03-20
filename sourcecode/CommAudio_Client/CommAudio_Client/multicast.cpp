@@ -90,7 +90,7 @@ bool StartMulticast(in_addr group)
 -- Drops the multicast session, and stops multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-bool DropMulticast()
+bool EndMulticast()
 {
 	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
 	{
