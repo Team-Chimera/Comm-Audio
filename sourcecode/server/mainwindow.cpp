@@ -53,11 +53,29 @@ void MainWindow::openFile()
         }
     }
 }
-
+/*******************************************************************
+** Function: MainWindow::initialConnect()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool MainWindow::initialConnect()
+**
+**
+** Returns:
+**			true on success
+**
+** Notes:
+*******************************************************************/
 bool MainWindow::initialConnect()
 {
     initWSA(&wsadata);
-    createWorkerThread(AcceptThread, &acceptThread, 0);
-
-    return true;
+    return createWorkerThread(AcceptThread, &acceptThread, 0);
 }

@@ -6,13 +6,14 @@
 
 #define SERVER_TCP_LISTEN_PORT 9874
 #define CLIENT_TCP_PORT 6678
+#define CLIENT_UDP_PORT 6698
 #define BUFFERSIZE 512
 
 using namespace std;
 
 SOCKET Control, Accept, Receive;
 string IP = "127.0.0.1";
-string START = "t:bible.txt:";
+string START = "u:bible.txt:";
 sockaddr peer;
 int peer_len;
 
@@ -41,15 +42,36 @@ int main(void)
 	peer_len = sizeof(peer);
 	ZeroMemory(&peer, peer_len);
 	printf("waiting to accept a connection...\n\n");
-	Receive = accept(Accept, &peer, &peer_len);
-	char* buf = new char[BUFFERSIZE+1];
-	int n;
-	printf("connection accepted, receiving data...\n\n");
-	while(1)
+	//Receive = accept(Accept, &peer, &peer_len);
+	Receive = WSASocket(AF_INET, SOCK_DGRAM, 0, NULL, 0,
+		WSA_FLAG_OVERLAPPED);
+
+	struct sockaddr_in server;
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(CLIENT_UDP_PORT);
+
+	//Bind
+	if (bind(Receive, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
 	{
-		n = recv(Receive, buf, BUFFERSIZE, 0);
+		printf("Bind failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	} 
+	char* buf = new char[64000];
+	int n, d;
+	sockaddr dada;
+	d = sizeof(dada);
+	printf("connection accepted, receiving data...\n\n");
+	for (int i = 0; i < 3; i++)
+	{
+		n = recvfrom(Receive, buf, BUFFERSIZE, 0, (struct sockaddr *)&dada, &d);
+		if (n == -1)
+		{
+			printf("recvfrom error %d\n", WSAGetLastError());
+			break;
+		}
 		buf[n] = '\0';
-		printf("%s", buf);
+		printf("%s\n", buf);
 		if(buf[0] == 0x011)
 			break;
 	}
