@@ -30,7 +30,6 @@ TRIPLE_BUFFER * buffers;
 HANDLE multiThread;
 HANDLE multiParentThread;
 
-
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
 --
@@ -54,7 +53,7 @@ bool StartMulticast(in_addr group)
 {
 	DWORD thread;
 
-	multiParentThread = CreateThread(NULL, 0, JoinMulticast, NULL, 0, &thread);
+	multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void*)&group, 0, &thread);
 	if (multiParentThread == NULL)
 	{
 		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
@@ -90,7 +89,7 @@ bool StartMulticast(in_addr group)
 -- Drops the multicast session, and stops multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-bool DropMulticast()
+bool EndMulticast()
 {
 	if (setsockopt(socketInfo->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo->addr), sizeof(socketInfo->addr)) == SOCKET_ERROR)
 	{

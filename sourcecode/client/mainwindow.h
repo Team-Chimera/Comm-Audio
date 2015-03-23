@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ public slots:
     bool initialConnect();
     void clearListeners();
     void updateListeners(std::string);
+    void updateNowPlaying(std::vector<std::string>);
 
 private:
     Ui::MainWindow *ui;
