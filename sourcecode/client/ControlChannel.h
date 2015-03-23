@@ -1,5 +1,6 @@
 #ifndef CONTROLCHANNEL
 #define CONTROLCHANNEL
+#define NOMINMAX
 
 
 #define BUFFER_SIZE 1024
