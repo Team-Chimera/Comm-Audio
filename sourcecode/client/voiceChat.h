@@ -19,8 +19,6 @@
 #ifndef VOICECHAT_H
 #define VOICECHAT_H
 
-#include "client.h"
-
 bool StartVoiceChat(in_addr dest);
 bool EndVoiceChat();
 

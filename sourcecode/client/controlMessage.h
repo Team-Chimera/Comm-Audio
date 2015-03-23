@@ -1,7 +1,6 @@
 #ifndef CONTROLMESSAGE
 #define CONTROLMESSAGE
 
-#include <iostream>
 #include <vector>
 #include <string>
 
