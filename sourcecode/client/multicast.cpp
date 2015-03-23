@@ -18,8 +18,15 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
-#include "multicast.h"
+#define WIN32_LEAN_AND_MEAN
 #include <iostream>
+#include <WinSock2.h>/*
+#include <WS2tcpip.h>
+#include <winnetwk.h>
+#include <ws2spi.h>
+#include <wtsapi32.h>*/
+#include "client.h"
+#include "multicast.h"
 
 using std::cout;
 using std::cerr;

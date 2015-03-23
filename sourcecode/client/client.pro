@@ -15,12 +15,13 @@ TARGET = client
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
+SOURCES += main.cpp \
         mainwindow.cpp \
-    multicast.cpp \
-    voiceChat.cpp \
-    ControlChannel.cpp \
-    unicastSong.cpp
+        multicast.cpp \
+        voiceChat.cpp \
+        controLChannel.cpp \
+        dialog.cpp \
+        unicastSong.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
@@ -28,9 +29,11 @@ HEADERS  += mainwindow.h \
     voiceChat.h \
     ControlChannel.h \
     controlMessage.h \
-    unicastSong.h
+    unicastSong.h \
+    dialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    dialog.ui
 
 
 INSTALLS += install_it
