@@ -29,5 +29,6 @@ void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
 
 /** GUI editors **/
 void updateListeners(std::vector<std::string>);
+void updateNowPlaying(std::vector<std::string> msgData);
 
 #endif // CONTROLCHANNEL

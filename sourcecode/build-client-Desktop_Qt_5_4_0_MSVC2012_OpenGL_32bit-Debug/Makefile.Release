@@ -419,8 +419,8 @@ release\main.obj: ..\client\main.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qdesktopwidget.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qguiapplication.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qinputmethod.h \
-		..\client\ControlChannel.h \
-		..\client\controlMessage.h
+		..\client\multicast.h \
+		..\client\client.h
 
 release\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QMainWindow \
@@ -561,10 +561,9 @@ release\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qrubberband.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLabel \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlabel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QListView \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlistview.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QListWidget \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlistwidget.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlistview.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QMenuBar \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmenubar.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmenu.h \
@@ -573,7 +572,16 @@ release\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractbutton.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QSlider \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QTabWidget \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QTextEdit \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtextedit.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextdocument.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextoption.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextcursor.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextformat.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpen.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QWidget \
+		..\client\multicast.h \
+		..\client\client.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgets \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgetsDepends \
 		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QtCore \
@@ -752,17 +760,12 @@ release\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpagesize.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpaintengine.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpainter.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextoption.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpen.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpdfwriter.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qabstracttextdocumentlayout.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextlayout.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextformat.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qglyphrun.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qrawfont.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qfontdatabase.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextcursor.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextdocument.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qstatictext.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qsyntaxhighlighter.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextobject.h \
@@ -871,7 +874,6 @@ release\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmdiarea.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmdisubwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qplaintextedit.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtextedit.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qprogressbar.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qradiobutton.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qscrollbar.h \
@@ -891,11 +893,117 @@ release\multicast.obj: ..\client\multicast.cpp ..\client\multicast.h \
 		..\client\client.h
 
 release\voiceChat.obj: ..\client\voiceChat.cpp ..\client\voiceChat.h \
-		..\client\client.h
+		..\client\client.h \
+		..\client\privateVoiceChat.h
 
-release\ControlChannel.obj: ..\client\ControlChannel.cpp ..\client\ControlChannel.h \
-		..\client\controlMessage.h \
-		..\client\unicastSong.h
+release\ControlChannel.obj: ..\client\ControlChannel.cpp ..\client\controlMessage.h \
+		..\client\ControlChannel.h \
+		..\client\mainwindow.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QMainWindow \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmainwindow.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qwidget.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qwindowdefs.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qglobal.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qconfig.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qfeatures.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qsystemdetection.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qprocessordetection.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcompilerdetection.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qtypeinfo.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qtypetraits.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qsysinfo.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qlogging.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qflags.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qbasicatomic.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_bootstrap.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qgenericatomic.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_msvc.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_armv7.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_armv6.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_armv5.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_ia64.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_mips.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_x86.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_cxx11.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_gcc.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qatomic_unix.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qglobalstatic.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qmutex.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qnumeric.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qobjectdefs.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qnamespace.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qobjectdefs_impl.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qwindowdefs_win.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qobject.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qstring.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qchar.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qbytearray.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qrefcount.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qarraydata.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qstringbuilder.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qlist.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qalgorithms.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qiterator.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qbytearraylist.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcoreevent.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qscopedpointer.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qmetatype.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qvarlengtharray.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcontainerfwd.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qisenum.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qobject_impl.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qmargins.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpaintdevice.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qrect.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qsize.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qpoint.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpalette.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qcolor.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qrgb.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qstringlist.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qdatastream.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qiodevice.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qpair.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qregexp.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qstringmatcher.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qbrush.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qvector.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qmatrix.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpolygon.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qregion.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qline.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtransform.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpainterpath.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qimage.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpixelformat.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpixmap.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qsharedpointer.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qshareddata.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qhash.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qsharedpointer_impl.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qfont.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qfontmetrics.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qfontinfo.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qsizepolicy.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qcursor.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qkeysequence.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qevent.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qvariant.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qmap.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qdebug.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qtextstream.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qlocale.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qset.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcontiguouscache.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qurl.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qurlquery.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qfile.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qfiledevice.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvector2d.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtouchdevice.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabwidget.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qicon.h
 
 release\unicastSong.obj: ..\client\unicastSong.cpp ..\client\controlMessage.h \
 		..\client\controlChannel.h

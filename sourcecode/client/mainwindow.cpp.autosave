@@ -39,7 +39,7 @@ void MainWindow::setupConnections()
 bool MainWindow::initialConnect()
 {
     //star the multicast
-
+    
     //StartMulticast();
 
     return true;

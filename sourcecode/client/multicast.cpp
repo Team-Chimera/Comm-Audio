@@ -53,7 +53,8 @@ bool StartMulticast(in_addr group)
 {
 	DWORD thread;
 
-	multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void*)&group, 0, &thread);
+    multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void *) &group, 0, &thread);
+
 	if (multiParentThread == NULL)
 	{
 		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
