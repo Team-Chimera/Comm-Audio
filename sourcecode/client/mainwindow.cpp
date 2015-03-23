@@ -1,7 +1,12 @@
+
+#define WIN32_LEAN_AND_MEAN
+#include <QtWidgets>
+#include <WinSock2.h>
+#include <WS2tcpip.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "dialog.h"
 #include "multicast.h"
-#include <QtWidgets>
 
 using std::string;
 using std::vector;
@@ -23,8 +28,8 @@ MainWindow::~MainWindow()
 void MainWindow::setupConnections()
 {
     //add the connect button function push
-    QAction *connectButton = ui->menuBar->addAction("Connect");
-    connect(connectButton, SIGNAL(triggered()), this, SLOT(initialConnect()));
+    //QAction *connectButton = ui->menuBar->addAction("Connect");
+    //connect(connectButton, SIGNAL(triggered()), this, SLOT(initialConnect()));
 
 
     //make now playing fields read only
@@ -33,16 +38,11 @@ void MainWindow::setupConnections()
 
     ui->songName->setFocusPolicy(Qt::NoFocus);
     ui->songName->setReadOnly(true);
-}
 
+    //create the dialog box for the launch
+     Dialog initializeMessage(this);
+     initializeMessage.exec();
 
-bool MainWindow::initialConnect()
-{
-    //star the multicast
-
-    //StartMulticast();
-
-    return true;
 }
 
 

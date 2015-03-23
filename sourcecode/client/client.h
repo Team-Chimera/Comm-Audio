@@ -21,14 +21,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#pragma comment (lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
-
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <winnetwk.h>
-#include <ws2spi.h>
-#include <wtsapi32.h>
 
 #define BUFFER 65536
 #define DATAGRAM 4096
@@ -38,6 +31,9 @@
 #define CHANNELS 2
 
 #define MULTICAST_PORT 9001
+
+#include <mmsystem.h>
+#include <Ws2tcpip.h>
 
 struct TRIPLE_BUFFER
 {

@@ -22,7 +22,7 @@ public:
     void setupConnections();
 
 public slots:
-    bool initialConnect();
+   // bool initialConnect();
     void clearListeners();
     void updateListeners(std::string);
     void updateNowPlaying(std::vector<std::string>);

@@ -19,8 +19,7 @@
 #ifndef MULTICAST_H
 #define MULTICAST_H
 
-#include "client.h"
-
+ #include <mmsystem.h>
 bool StartMulticast(in_addr group);
 bool EndMulticast();
 
