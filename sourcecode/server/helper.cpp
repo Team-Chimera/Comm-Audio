@@ -1,6 +1,27 @@
 #include "helper.h"
 
 using namespace std;
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: createWorkerThread
+--
+-- DATE: January 18, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags)
+--  routine: function this thread will start in
+    hTHread: out param, handle value for this thread
+    param: void* to pass to thread
+    flats: any flags for thread creation
+--
+-- RETURNS: false on failure to create thread, else true
+--
+-- NOTES:
+----------------------------------------------------------------------------------------------------------------------*/
 
 bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags)
 {
