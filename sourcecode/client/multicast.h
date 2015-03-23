@@ -22,7 +22,7 @@
 #include "client.h"
 
 bool StartMulticast(in_addr group);
-bool DropMulticast();
+bool EndMulticast();
 
 DWORD WINAPI JoinMulticast(LPVOID parameter);
 bool StartWaveOut();
