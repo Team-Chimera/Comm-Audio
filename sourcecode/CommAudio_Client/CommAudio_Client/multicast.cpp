@@ -30,7 +30,6 @@ TRIPLE_BUFFER * buffers;
 HANDLE multiThread;
 HANDLE multiParentThread;
 
-
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
 --

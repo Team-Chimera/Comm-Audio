@@ -12,7 +12,7 @@
 -- PROGRAMMER: Michael Chimick
 --
 -- NOTES:
---
+-- This file is what the control logic should use to access the voice chat functionality
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
@@ -23,19 +23,5 @@
 
 bool StartVoiceChat(in_addr dest);
 bool EndVoiceChat();
-
-DWORD WINAPI StartRecvVoice(LPVOID parameter);
-bool StartWaveOut();
-
-DWORD WINAPI StartSendVoice(LPVOID parameter);
-bool StartWaveIn();
-
-DWORD WINAPI RecvVoiceThread(LPVOID parameter);
-void CALLBACK RecvVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
-void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
-
-DWORD WINAPI SendVoiceThread(LPVOID parameter);
-void CALLBACK SendVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
-void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 #endif
