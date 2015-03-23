@@ -1,7 +1,56 @@
+/*---------------------------------------------------------------------------------------------
+-- SOURCE FILE: network.cpp -
+--
+-- PROGRAM:
+--
+-- DATE: March 22, 2015
+--
+-- Interface:
+        SOCKET createTCPSOCKET();
+        SOCKET createUDPSOCKET();
+        bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr);
+        bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s);
+        void deleteSocketInfo(LPSOCKET_INFORMATION si);
+
+        bool initWSA(WSADATA* wsaData);
+        bool openListenSocket(SOCKET* s, int port);
+        bool setAcceptEvent(WSAEVENT* a);
+
+        bool getIP_Addr(sockaddr_in* addr, char* host, int port);
+        void printIP(sockaddr_in& addr);
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+--------------------------------------------------------------------------------------------*/
+
 #include "network.h"
 
 const char* DENY = "NO!";
-
+/*******************************************************************
+** Function: createTCPSOCKET()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			SOCKET createTCPSOCKET()
+**
+**
+** Returns:
+**			socket value, -1 on failure
+**
+** Notes:
+*******************************************************************/
 SOCKET createTCPSOCKET()
 {
     SOCKET s;
@@ -13,6 +62,27 @@ SOCKET createTCPSOCKET()
     }
     return s;
 }
+/*******************************************************************
+** Function: createUDPSOCKET()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			SOCKET createUDPSOCKET()
+**
+**
+** Returns:
+**			socket value, -1 on failure
+**
+** Notes:
+*******************************************************************/
 SOCKET createUDPSOCKET()
 {
     SOCKET s;
@@ -24,7 +94,29 @@ SOCKET createUDPSOCKET()
     }
     return s;
 }
-
+/*******************************************************************
+** Function: connectTCPSOCKET()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr)
+**          s:  socket to connect
+**          addr: structure with ip and port to connect to
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes:
+*******************************************************************/
 bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr)
 {
 
@@ -36,14 +128,56 @@ bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr)
     }
     return true;
 }
-
+/*******************************************************************
+** Function: printIP()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void printIP(sockaddr_in& peer)
+**
+**
+** Returns:
+**			void
+**
+** Notes: prints the ip address from a sockaddr_in structure
+*******************************************************************/
 void printIP(sockaddr_in& peer)
 {
     char* temp_addr = inet_ntoa( peer.sin_addr );
     printf("IP address is %s\n", temp_addr);
 
 }
-
+/*******************************************************************
+** Function: createSocketInfo()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun based on code from Aman Abdulla
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s)
+**          si:     pointer to socket information to populate
+**          s:      socket to use for this socket info
+**
+**
+** Returns:
+**			true on success
+**
+** Notes: sets default values for a SOCKET_INFORMATION
+*******************************************************************/
 bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s)
 {
     ZeroMemory(si, sizeof(SOCKET_INFORMATION));
@@ -58,7 +192,28 @@ bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s)
 
       return true;
 }
-
+/*******************************************************************
+** Function: deleteSocketInfo()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void deleteSocketInfo(LPSOCKET_INFORMATION si)
+**          si:     pointer to socket information to populate
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+*******************************************************************/
 void deleteSocketInfo(LPSOCKET_INFORMATION si)
 {
     if (closesocket(si->Socket) == SOCKET_ERROR)
@@ -118,7 +273,28 @@ bool openListenSocket(SOCKET* s, int port)
 
    return true;
 }
-
+/*******************************************************************
+** Function: initWSA()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool initWSA(WSADATA* wsaData)
+**          wsaData: pointer to WSADATA to initialize
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes:
+*******************************************************************/
 bool initWSA(WSADATA* wsaData)
 {
     int Ret;
@@ -160,7 +336,30 @@ bool setAcceptEvent(WSAEVENT* a)
     }
     return true;
 }
-
+/*******************************************************************
+** Function: getIP_Addr()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool getIP_Addr(sockaddr_in* addr, char* host, int port)
+**          addr:   out param, will be filled with host and port
+**          host:   pointer to char for host name
+**          port:   port to use
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes:
+*******************************************************************/
 bool getIP_Addr(sockaddr_in* addr, char* host, int port)
 {
     struct hostent	*hp;

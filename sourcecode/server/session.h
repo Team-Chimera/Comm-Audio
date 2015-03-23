@@ -14,6 +14,9 @@
 #define FILE_PATH 64
 #define SERVER_TCP_LISTEN_PORT 9874
 
+#define SERVER_MIC_IN 9977
+#define SERVER_MIC_OUT 7799
+
 #define MAX_SESSIONS 2000
 
 typedef struct _MUSIC_SESSION {
@@ -31,7 +34,10 @@ typedef struct _MUSIC_SESSION {
     HANDLE mic_rcv_thr;
     HANDLE send_thr; // sends udp or tcp files, both won't happen at same time
 
+    //tells send semaphore when to begin
     HANDLE sendSem;
+    // tells control when send is completed so control
+    // can send proper finished message.
     HANDLE sendCompleteSem;
 
     char* fileToSend;
@@ -40,11 +46,27 @@ typedef struct _MUSIC_SESSION {
     bool sending;
 } MUSIC_SESSION, * LPMUSIC_SESSION;
 
-
+/*
+ *  new song sem tells control sockets to send the name of
+ * the new song to the clients.  It should have a high max,
+ * and when there is a new song, it can let all the songs in
+ * simultaneously.
+ *
+ * Song access is a binary semaphore so that song name isn't
+ * changed while other threads are reading it
+ * */
 static HANDLE newSongSem;
 static HANDLE songAccessSem;
 static std::string multicastSong;
 
+/*
+ *  These semaphores are for when users are added or dropped.
+ * The list each client has needs to be updated, so the control
+ * thread for each client needs to be updated.  userChange should
+ * let all the client control threads in at once.  userAccess
+ * is binary.
+ *
+ * */
 static HANDLE userChangeSem;
 static HANDLE userAccessSem;
 static std::vector<std::string> userList;
@@ -67,12 +89,10 @@ DWORD WINAPI controlThread(LPVOID lpParameter);
 DWORD WINAPI AcceptThread(LPVOID lpParameter);
 
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-// should be able to handle tcp and udp, just use sendTo and throw in the ip each time
 void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
 bool startSend(LPMUSIC_SESSION m, std::string filename);
-
-// need to clean threads and sockets
+void sessionCleanUp(LPMUSIC_SESSION m);
 
 
 #endif
