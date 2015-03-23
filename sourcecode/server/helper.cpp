@@ -2,6 +2,46 @@
 
 using namespace std;
 /*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: loadFile
+--
+-- DATE: March 23, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: long loadFile(const char* file_name, char** file_out)
+        file_name: pointer to null terminated char* with file path and name
+        file_out: will contain double pointer to contents of the file
+--
+-- RETURNS: -1 on failure, else the size of *fileout
+--
+-- NOTES:
+----------------------------------------------------------------------------------------------------------------------*/
+long loadFile(const char* file_name, char** file_out)
+{
+    long size;
+    ifstream input;
+
+    input.open( file_name, ios::binary | ifstream::ate );
+    if(!input.is_open())
+    {
+        printf("Error opening in put file %s, aborting send", file_name);
+        return -1;
+    }
+
+    size = input.tellg();
+    input.seekg(ios_base::beg);
+
+    *file_out = new char[size];
+    input.read(*file_out, size);
+    return size;
+}
+
+using namespace std;
+/*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: createWorkerThread
 --
 -- DATE: January 18, 2015
