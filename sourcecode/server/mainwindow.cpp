@@ -77,5 +77,6 @@ void MainWindow::openFile()
 bool MainWindow::initialConnect()
 {
     initWSA(&wsadata);
+    // Julian's multicast...
     return createWorkerThread(AcceptThread, &acceptThread, 0);
 }
