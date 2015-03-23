@@ -36,8 +36,11 @@
 #define SAMPLES_PER_SECOND 44100
 #define CHANNELS 2
 
+#define MULTICAST_PORT 9001
+
 struct TRIPLE_BUFFER
 {
+	HWAVEIN wavein;
 	HWAVEOUT waveout;
 	LPWAVEHDR primary;
 	LPWAVEHDR secondary;
@@ -53,6 +56,7 @@ struct SOCKET_INFORMATION
 	DWORD bytesRECV;
 	DWORD bytesSEND;
 	struct ip_mreq addr;
+	SOCKADDR_IN sockAddr;
 	OVERLAPPED overlapped;
 };
 

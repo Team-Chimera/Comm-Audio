@@ -21,13 +21,14 @@
 
 #include "client.h"
 
-bool JoinMulticast(in_addr group);
-bool StartWaveOut();
+bool StartMulticast(in_addr group);
 bool DropMulticast();
+
+DWORD WINAPI JoinMulticast(LPVOID parameter);
+bool StartWaveOut();
 
 DWORD WINAPI RecvMultiThread(LPVOID parameter);
 void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
-
 void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 #endif
