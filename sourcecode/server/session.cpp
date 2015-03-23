@@ -1,10 +1,65 @@
+/*---------------------------------------------------------------------------------------------
+-- SOURCE FILE: session.cpp -
+--
+-- PROGRAM:
+--
+-- DATE: March 22, 2015
+--
+-- Interface:
+        bool createSession(SOCKET c, char* a);
+        LPMUSIC_SESSION getSession(SOCKET s);
+        bool createSems(LPMUSIC_SESSION m);
+        bool createThreads(LPMUSIC_SESSION m);
+        bool initSockets(LPMUSIC_SESSION m, SOCKET control);
+
+        DWORD WINAPI micSendThread(LPVOID lpParameter);
+        DWORD WINAPI micRcvThread(LPVOID lpParameter);
+        DWORD WINAPI sendFileThread(LPVOID lpParameter);
+        DWORD WINAPI controlThread(LPVOID lpParameter);
+        DWORD WINAPI AcceptThread(LPVOID lpParameter);
+
+        void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+        void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+        bool startSend(LPMUSIC_SESSION m, std::string filename);
+        void sessionCleanUp(LPMUSIC_SESSION m);
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+--------------------------------------------------------------------------------------------*/
+
 #include "session.h"
 
 
 std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
 using namespace std;
-
+/*******************************************************************
+** Function: createSession()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool createSession(SOCKET c, char* a)
+**          c: control socket for this session
+**          a: ip address of client
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes: Creates the threads and semaphores specific to this session
+*******************************************************************/
 bool createSession(SOCKET c, char* a)
 {
     LPMUSIC_SESSION m;
@@ -35,16 +90,59 @@ bool createSession(SOCKET c, char* a)
     return true;
 }
 
-/*
-    probably open a socket for mic both ways, and set up the si for that
-
-    might be better to do them on the fly though?? after a request has been made
-*/
+/*******************************************************************
+** Function: initSockets()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool initSockets(LPMUSIC_SESSION m, SOCKET control)
+**          m: this music session struct
+**          control: the control socket for this structure
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes: initializes sockets for the mic and file sending
+*******************************************************************/
 bool initSockets(LPMUSIC_SESSION m, SOCKET control)
 {
-    return createSocketInfo(&(m->control), control);
+    SOCKET mic_out = createUDPSOCKET();
+    SOCKET mic_in = createUDPSOCKET();
+    return createSocketInfo(&(m->control), control)
+            && createSocketInfo(&(m->mic_rcv), mic_in)
+            && createSocketInfo(&(m->mic_send), mic_out);
 }
-
+/*******************************************************************
+** Function: createThreads()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool createThreads(LPMUSIC_SESSION m)
+**          m: this music session struct
+**
+**
+** Returns:
+**			false on failure
+**
+** Notes: creates threads for this session
+*******************************************************************/
 bool createThreads(LPMUSIC_SESSION m)
 {
     return createWorkerThread(controlThread, &(m->control_thr), m, CREATE_SUSPENDED)
@@ -52,7 +150,28 @@ bool createThreads(LPMUSIC_SESSION m)
         && createWorkerThread(micRcvThread, &(m->mic_rcv_thr), m, CREATE_SUSPENDED)
         && createWorkerThread(sendFileThread, &(m->send_thr), m, CREATE_SUSPENDED);
 }
-
+/*******************************************************************
+** Function:  AcceptThread()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			DWORD WINAPI AcceptThread(LPVOID lpParameter)
+**          param unused
+**
+**
+** Returns:
+**			FALSE on failure
+**
+** Notes: thread that listens and waits for incoming connections
+*******************************************************************/
 DWORD WINAPI AcceptThread(LPVOID lpParameter)
 {
     SOCKET Accept, temp;
@@ -89,7 +208,28 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
     return TRUE;
 }
 
-
+/*******************************************************************
+** Function:  controlThread()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			DWORD WINAPI controlThread(LPVOID lpParameter)
+**
+**
+** Returns:
+**			FALSE on failure
+**
+** Notes: each session has its own control thread.  This is used
+**  to coordinate other threads and activities
+*******************************************************************/
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
@@ -114,7 +254,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
          if (WSAGetLastError() != WSA_IO_PENDING)
          {
             printf("WSARecv() failed with error %d\n", WSAGetLastError());
-            return FALSE;
+            sessionCleanUp(m);
          }
       }
 
@@ -122,7 +262,13 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     while(1)
     {
         result = WaitForMultipleObjectsEx(handles, waitHandles, FALSE, INFINITE, TRUE);
-         if (result == WAIT_IO_COMPLETION)
+        if(result == WAIT_FAILED)
+        {
+            perror("error waiting for multiple objects");
+            sessionCleanUp(m);
+        }
+
+        if (result == WAIT_IO_COMPLETION)
          {
             continue;
          }
@@ -140,13 +286,37 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
                  break;
          default:
                 //error of somekind, clean up sessions and exit
-                return FALSE;
+                sessionCleanUp(m);
          }
     }
 
     return FALSE;
 }
-
+/*******************************************************************
+** Function:  controlRoutine()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
+**          Error: error flags
+**          BytesTransferred: the number of bytes transfered in or out by this call
+**          Overlapped: the overlapped object for this socket
+**          InFlags: flags passed in
+**
+** Returns:
+**			void
+**
+** Notes: callback function for control thread completion routine.
+** responds to data received or send as appropriate.
+*******************************************************************/
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
 {
     //do like control in other one, if send make sure all is sent, if rcv, do based on thing recieved action
@@ -175,10 +345,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
    if (Error != 0 || BytesTransferred == 0)
    {
-      closesocket(SI->Socket);
-      GlobalFree(SI);
-      // closeSession
-      return;
+      sessionCleanUp(m);
    }
 
    // Check to see if the BytesRECV field equals zero. If this is so, then
@@ -277,7 +444,33 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
    }
 }
 
-// should be able to handle tcp and udp, just use sendTo and throw in the ip each time
+/*******************************************************************
+** Function:  sendFileRoutine()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
+**          Error: error flags
+**          BytesTransferred: the number of bytes transfered in or out by this call
+**          Overlapped: the overlapped object for this socket
+**          InFlags: flags passed in
+**
+**
+** Returns:
+**			void
+**
+** Notes: callback function for sendFile thread completion routine.
+** calls send until whole file has been sent.  Works for both
+** TCP and UDP
+*******************************************************************/
 void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
 {
     // adjust data pointers
@@ -286,7 +479,6 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
 
     DWORD SendBytes;
-    string message_rcv;
     LPMUSIC_SESSION m;
     sockaddr_in client;
 
@@ -346,7 +538,30 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
 }
 
-// needs pointer to file to send probably
+/*******************************************************************
+** Function:  sendFileThread()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			DWORD WINAPI sendFileThread(LPVOID lpParameter)
+**          lpParameter is a pointer to the session object this send is for
+**
+**
+** Returns:
+**			void
+**
+** Notes: starting point for sendFile Thread. Waits for signal from
+** control thread, then loads the file and makes the initial
+** WSA send call.
+*******************************************************************/
 DWORD WINAPI sendFileThread(LPVOID lpParameter)
 {
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
@@ -437,14 +652,37 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
              {
                  deleteSocketInfo(&(m->send));
                  delete [] m->fileToSend;
-
+                 ReleaseSemaphore(m->sendCompleteSem, 1, NULL);
              }
         }
     }
 
     return TRUE;
 }
-
+/*******************************************************************
+** Function:  getSession()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			LPMUSIC_SESSION getSession(SOCKET s)
+**          s: socket to find a session for
+**
+**
+** Returns:
+**			void
+**
+** Notes: returns a session struct that the given socket belongs to.
+** Looks in the SESSIONS map.
+**  return nullptr on failure
+*******************************************************************/
 LPMUSIC_SESSION getSession(SOCKET s)
 {
     LPMUSIC_SESSION m;
@@ -464,7 +702,30 @@ LPMUSIC_SESSION getSession(SOCKET s)
     ReleaseSemaphore(sessionsSem, 1, 0);
     return nullptr;
 }
-
+/*******************************************************************
+** Function:  startSend()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool startSend(LPMUSIC_SESSION m, string filename)
+**          m: this session struct
+**          filename: name of file to send
+**
+**
+** Returns:
+**			void
+**
+** Notes: control thread signals to sendFile thread to start sending
+** this file
+*******************************************************************/
 bool startSend(LPMUSIC_SESSION m, string filename)
 {
     //verify file is on the list, if not return false
@@ -474,7 +735,28 @@ bool startSend(LPMUSIC_SESSION m, string filename)
 
      return true;
 }
-
+/*******************************************************************
+** Function:  createSems()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool createSems(LPMUSIC_SESSION m)
+**          m: session struct to create semaphores for
+**
+**
+** Returns:
+**		 true on success
+**
+** Notes: creates the semaphores used by this session
+*******************************************************************/
 bool createSems(LPMUSIC_SESSION m)
 {
     if( (m->sendSem = CreateSemaphore(NULL, 0, 1, NULL)) == NULL )
@@ -489,6 +771,61 @@ bool createSems(LPMUSIC_SESSION m)
         return false;
     }
     return true;
+}
+/*******************************************************************
+** Function:  sessionCleanUp()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void sessionCleanUp(LPMUSIC_SESSION m)
+**          m: session struct to create semaphores for
+**
+**
+** Returns:
+**		 void
+**
+** Notes: closes threads, SOCKET_INFORMATIONS, and semaphores of
+** the input session.
+*******************************************************************/
+void sessionCleanUp(LPMUSIC_SESSION m)
+{
+    SOCKET c = m->control.Socket;
+    printf("closing thread for control socket %d\n", c);
+
+    // close all socket infos
+    deleteSocketInfo(&(m->control));
+    deleteSocketInfo(&(m->mic_rcv));
+    deleteSocketInfo(&(m->mic_send));
+    deleteSocketInfo(&(m->send));
+
+    // close semaphores
+    CloseHandle(m->sendSem);
+    CloseHandle(m->sendCompleteSem);
+
+    // close threads
+    TerminateThread(m->mic_rcv_thr, 0);
+    TerminateThread(m->mic_send_thr, 0);
+    TerminateThread(m->send_thr, 0);
+
+    CloseHandle(m->mic_rcv_thr);
+    CloseHandle(m->mic_send_thr);
+    CloseHandle(m->send_thr);
+
+    //delete session from map
+    WaitForSingleObject(sessionsSem, INFINITE);
+    SESSIONS.erase(c);
+    ReleaseSemaphore(sessionsSem, 1, NULL);
+
+    //close this thread
+    ExitThread(0);
 }
 
 DWORD WINAPI micSendThread(LPVOID lpParameter)
