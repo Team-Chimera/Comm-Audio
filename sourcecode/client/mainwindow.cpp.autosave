@@ -38,10 +38,9 @@ void MainWindow::setupConnections()
 
 bool MainWindow::initialConnect()
 {
-    //do later, i assume will call a socket connect function
-    // to get stuff out of the GUI land.
-    //Please don't write socket stuff in the GUI!!!
-   
+    //star the multicast
+    
+    //StartMulticast();
 
     return true;
 }

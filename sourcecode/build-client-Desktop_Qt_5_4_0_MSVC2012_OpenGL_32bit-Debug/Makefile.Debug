@@ -592,6 +592,8 @@ debug\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextformat.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpen.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QWidget \
+		..\client\multicast.h \
+		..\client\client.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgets \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgetsDepends \
 		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QtCore \
@@ -902,7 +904,9 @@ debug\mainwindow.obj: ..\client\mainwindow.cpp ..\client\mainwindow.h \
 debug\multicast.obj: ..\client\multicast.cpp ..\client\multicast.h \
 		..\client\client.h
 
-debug\voiceChat.obj: ..\client\voiceChat.cpp 
+debug\voiceChat.obj: ..\client\voiceChat.cpp ..\client\voiceChat.h \
+		..\client\client.h \
+		..\client\privateVoiceChat.h
 
 debug\ControlChannel.obj: ..\client\ControlChannel.cpp ..\client\controlMessage.h \
 		..\client\ControlChannel.h \
