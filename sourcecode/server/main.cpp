@@ -106,4 +106,6 @@ bool makeSharedSems()
         printf("error creating sessionSem\n");
         return false;
     }
+
+    return true;
 }

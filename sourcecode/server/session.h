@@ -14,6 +14,9 @@
 #define FILE_PATH 64
 #define SERVER_TCP_LISTEN_PORT 9874
 
+#define SERVER_MIC_IN 9977
+#define SERVER_MIC_OUT 7799
+
 #define MAX_SESSIONS 2000
 
 typedef struct _MUSIC_SESSION {
@@ -86,12 +89,9 @@ DWORD WINAPI controlThread(LPVOID lpParameter);
 DWORD WINAPI AcceptThread(LPVOID lpParameter);
 
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-// should be able to handle tcp and udp, just use sendTo and throw in the ip each time
 void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
 bool startSend(LPMUSIC_SESSION m, std::string filename);
-
-// need to clean threads and sockets and semaphores
 void sessionCleanUp(LPMUSIC_SESSION m);
 
 
