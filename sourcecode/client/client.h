@@ -17,6 +17,7 @@
 ----------------------------------------------------------------------------------------------------------------------*/
 #ifndef CLIENT_H
 #define CLIENT_H
+#define NOMINMAX
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
