@@ -29,11 +29,7 @@
 #include <list>
 #include <iostream>
 #include <vector>
-#include <WinSock2.h>/*
-#include <WS2tcpip.h>
-#include <winnetwk.h>
-#include <ws2spi.h>
-#include <wtsapi32.h>*/
+#include <WinSock2.h>
 #include "ControlChannel.h"
 #include "mainwindow.h"
 
@@ -88,13 +84,14 @@ int setupControlChannel(hostent *hp)
     memcpy((char *) &server.sin_addr, hp->h_addr, hp->h_length);
 
     //create the control socket
-    if ( ( control = socket( AF_INET, SOCK_STREAM, 0 ) ) == INVALID_SOCKET )
+    if ((control = socket( AF_INET, SOCK_STREAM, 0 ) ) == INVALID_SOCKET)
     {
         cout << "Cannot create control Socket.", "Error";
         return -1;
     }
+
     // Connecting to the server
-    if ( connect( control, ( sockaddr * )&server, sizeof( server ) ) == -1 )
+    if (connect(control, ( sockaddr * )&server, sizeof( server ) ) == -1)
     {
         cout << "Cannot connect to the server. Please try again.", "Error";
         return -1;
@@ -128,10 +125,13 @@ DWORD WINAPI read(LPVOID arg)
 
     ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
 
+
     //read infinitely from the server
     while(true)
     {
 
+        cout << "Sleepy time." << endl;
+        cout.flush();
         if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)

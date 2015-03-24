@@ -73,7 +73,7 @@ public:
 
     void retranslateUi(QDialog *Dialog)
     {
-        Dialog->setWindowTitle(QApplication::translate("Dialog", "Chat++ Connector", 0));
+        Dialog->setWindowTitle(QApplication::translate("Dialog", "Comm Audio", 0));
         addressField->setPlaceholderText(QString());
         address->setText(QApplication::translate("Dialog", "Server", 0));
         title->setText(QApplication::translate("Dialog", "Audio Streamer", 0));
