@@ -19,6 +19,10 @@
 #ifndef VOICECHAT_H
 #define VOICECHAT_H
 
+#ifndef QT_PRO
+#include "client.h"
+#endif
+
 bool StartVoiceChat(in_addr dest);
 bool EndVoiceChat();
 

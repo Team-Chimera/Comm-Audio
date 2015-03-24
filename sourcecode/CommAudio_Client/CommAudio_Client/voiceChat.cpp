@@ -18,8 +18,20 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
+#ifndef QT_PRO
 #include "voiceChat.h"
 #include "privateVoiceChat.h"
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <winnetwk.h>
+#include <ws2spi.h>
+#include <wtsapi32.h>
+#include "client.h"
+#include "voiceChat.h"
+#include "privateVoiceChat.h"
+#endif
 
 SOCKET_INFORMATION * recvSocketInfo;
 TRIPLE_BUFFER * outBuffers;
@@ -589,7 +601,6 @@ bool StartVoiceIn()
 void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
 	MMRESULT result;
-	DWORD sendThread;
 
 	if (uMsg == WIM_DATA)
 	{
@@ -629,14 +640,14 @@ void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1
 --
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-bool SendVoice(char * buffer)
+bool SendVoice()
 {
-	int numGrams = sizeof(buffer) / DATAGRAM;
+	int numGrams = sizeof(inBuffers->buf) / DATAGRAM;
 	LPWSABUF datagrams = new WSABUF[numGrams];
 	DWORD flags;
 	DWORD result;
 
-	if (sizeof(buffer) != BUFFER)
+	if (sizeof(inBuffers->buf) != BUFFER)
 	{
 		cerr << "VoiceChat: buffer wrong size" << endl;
 		return false;
@@ -646,8 +657,8 @@ bool SendVoice(char * buffer)
 	{
 		datagrams[i].buf = new char[DATAGRAM];
 		datagrams[i].len = DATAGRAM;
-		memcpy_s(datagrams[i].buf, DATAGRAM, buffer, DATAGRAM);
-		buffer += DATAGRAM;
+		memcpy_s(datagrams[i].buf, DATAGRAM, inBuffers->buf, DATAGRAM);
+		inBuffers->buf += DATAGRAM;
 	}
 
 	if ((result = WSASend(sendSocketInfo->socket, datagrams, numGrams, NULL, flags, &(sendSocketInfo->overlapped), SentVoice)) == SOCKET_ERROR)

@@ -18,6 +18,10 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
+#ifndef QT_PRO
+#include "voiceChat.h"
+#include "privateVoiceChat.h"
+#else
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -27,6 +31,7 @@
 #include "client.h"
 #include "voiceChat.h"
 #include "privateVoiceChat.h"
+#endif
 
 SOCKET_INFORMATION * recvSocketInfo;
 TRIPLE_BUFFER * outBuffers;
@@ -117,11 +122,6 @@ bool EndVoiceChat()
 	closesocket(recvSocketInfo->socket);
 
 	if (TerminateThread(recvVoiceThread, 0) == 0)
-	{
-		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
-	}
-
-	if (TerminateThread(sendVoiceThread, 0) == 0)
 	{
 		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
 	}
@@ -487,19 +487,12 @@ DWORD WINAPI StartSendVoice(LPVOID parameter)
 		cerr << "VoiceChat: add membership error (" << WSAGetLastError() << ")" << endl;
 	}
 
-	/*sendVoiceThread = CreateThread(NULL, 0, SendVoiceThread, NULL, 0, &sendThread);
-	if (sendVoiceThread == NULL)
-	{
-		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
-		return false;
-	}
-
 	while (true)
 	{
-		WaitForSingleObjectEx(sendVoiceThread, INFINITE, FALSE);
-		GetExitCodeThread(sendVoiceThread, &sendThread);
+		SleepEx(INFINITE, TRUE);
+		GetExitCodeThread(sendParentThread, &sendThread);
 		if (sendThread != STILL_ACTIVE) break;
-	}*/
+	}
 
 	return true;
 }
@@ -551,13 +544,12 @@ bool StartVoiceIn()
 
 	inBuffers->buf = new char[BUFFER];
 
-	inBuffers->primary->lpData = outBuffers->buf;
+	inBuffers->primary->lpData = new char[BUFFER];
 	inBuffers->primary->dwBufferLength = BUFFER;
-
-	memcpy_s(inBuffers->secondary, sizeof(*(inBuffers->secondary)), \
-		inBuffers->primary, sizeof(*(inBuffers->primary)));
-	memcpy_s(inBuffers->tertiary, sizeof(*(inBuffers->tertiary)), \
-		inBuffers->primary, sizeof(*(inBuffers->primary)));
+	inBuffers->secondary->lpData = new char[BUFFER];
+	inBuffers->secondary->dwBufferLength = BUFFER;
+	inBuffers->tertiary->lpData = new char[BUFFER];
+	inBuffers->tertiary->dwBufferLength = BUFFER;
 
 	result = waveInPrepareHeader(inBuffers->wavein, inBuffers->primary, sizeof(*(inBuffers->primary)));
 	result = waveInPrepareHeader(inBuffers->wavein, inBuffers->secondary, sizeof(*(inBuffers->secondary)));
@@ -608,5 +600,99 @@ bool StartVoiceIn()
 ----------------------------------------------------------------------------------------------------------------------*/
 void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	//
+	MMRESULT result;
+
+	if (uMsg == WIM_DATA)
+	{
+		if (memcpy_s(inBuffers->buf, BUFFER, ((LPWAVEHDR)dw1)->lpData, ((LPWAVEHDR)dw1)->dwBufferLength) != 0)
+		{
+			cerr << "VoiceChat: memory copy error" << endl;
+			return;
+		}
+
+		result = waveInAddBuffer(inBuffers->wavein, (LPWAVEHDR)dw1, sizeof(*((LPWAVEHDR)dw1)));
+		if (result != MMSYSERR_NOERROR)
+			cerr << "VoiceChat: Error adding buffers (" << result << ")" << endl;
+
+		if (SendVoice() == false)
+		{
+			cerr << "VoiceChat: send error" << endl;
+		}
+	}
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE:
+--
+-- RETURNS:
+--
+-- NOTES:
+--
+--
+----------------------------------------------------------------------------------------------------------------------*/
+bool SendVoice()
+{
+	int numGrams = sizeof(inBuffers->buf) / DATAGRAM;
+	LPWSABUF datagrams = new WSABUF[numGrams];
+	DWORD flags;
+	DWORD result;
+
+	if (sizeof(inBuffers->buf) != BUFFER)
+	{
+		cerr << "VoiceChat: buffer wrong size" << endl;
+		return false;
+	}
+
+	for (int i = 0; i < numGrams; i++)
+	{
+		datagrams[i].buf = new char[DATAGRAM];
+		datagrams[i].len = DATAGRAM;
+		memcpy_s(datagrams[i].buf, DATAGRAM, inBuffers->buf, DATAGRAM);
+		inBuffers->buf += DATAGRAM;
+	}
+
+	if ((result = WSASend(sendSocketInfo->socket, datagrams, numGrams, NULL, flags, &(sendSocketInfo->overlapped), SentVoice)) == SOCKET_ERROR)
+	{
+		if (result != WSA_IO_PENDING)
+		{
+			cerr << "VoiceChat: send voice failure" << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION:
+--
+-- DATE: March 12, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE:
+--
+-- RETURNS:
+--
+-- NOTES:
+--
+--
+----------------------------------------------------------------------------------------------------------------------*/
+void CALLBACK SentVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags)
+{
+	cout << "VoiceChat: buffer sent (" << bytesTransferred << "B)" << endl;
 }
