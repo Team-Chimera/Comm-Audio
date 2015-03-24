@@ -598,27 +598,13 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
             createSocketInfo(&(m->send), temp);
         }
 
-        ifstream input;
-        unsigned long size;
-
-        input.open( m->filename, std::ios::binary | ifstream::ate );
-        if(!input.is_open())
+        unsigned long size = loadFile(m->filename, &(m->fileToSend));
+        if(size == -1)
         {
-            printf("Error opening in put file %s, aborting send", m->filename);
-            deleteSocketInfo(&(m->send));
-
-            // perhaps send error message to client
-
             m->sending = false;
+            deleteSocketInfo(&(m->send));
             continue;
         }
-        size = input.tellg();
-        input.seekg(ios_base::beg);
-
-        char* holder = new char[size];
-        input.read(holder, size);
-
-        m->fileToSend = holder;
 
         m->send.bytesToSend = size;
         m->send.BytesSEND = 0;

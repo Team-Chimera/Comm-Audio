@@ -1,7 +1,7 @@
 /*******************************************************************************
 ** Source File: ControlChannel.cpp -- Control channel of Client comm audio
 **
-** Program: Protocol Analysis
+** Program: Comm Audio
 **
 ** Functions:
 **
@@ -18,9 +18,25 @@
 **
 **
 *****************************************************************************/
-#include "controlMessage.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sstream>
+#include <string>
+#include <iomanip>
+#include <list>
+#include <iostream>
+#include <vector>
+#include <WinSock2.h>/*
+#include <WS2tcpip.h>
+#include <winnetwk.h>
+#include <ws2spi.h>
+#include <wtsapi32.h>*/
 #include "ControlChannel.h"
 #include "mainwindow.h"
+
 
 using namespace std;
 
@@ -61,12 +77,12 @@ MainWindow *GUI;
 ** Called to create the control channel connect on the client
 **
 *******************************************************************/
-int setupControlChannel(int port, hostent *hp)
+int setupControlChannel(hostent *hp)
 {
     sockaddr_in server;
     SOCKET control;
     server.sin_family = AF_INET;
-    server.sin_port = htons (port);
+    server.sin_port = htons(CONTROL_PORT);
 
     //copy the server address from the resolved host
     memcpy((char *) &server.sin_addr, hp->h_addr, hp->h_length);
@@ -282,6 +298,7 @@ void handleControlMessage(ctrlMessage *cMessage)
         //new song is playing
         case NOW_PLAYING:
         {
+            updateNowPlaying(cMessage->msgData);
             break;
         }
 
@@ -310,4 +327,24 @@ void updateListeners(vector<string> data)
     {
         GUI->updateListeners(data[i]);
     }
+}
+
+void updateNowPlaying(vector<string> msgData)
+{
+    //fetch the song
+    string nowPlaying = msgData[0];
+    vector<string> songData;
+
+    //begin parsing out the song information into a vector
+    while(nowPlaying.length() > 0)
+    {
+        int endSection = nowPlaying.find('^');
+        songData.push_back(nowPlaying.substr(0, endSection));
+
+        //chop off that section
+        nowPlaying = nowPlaying.substr(endSection + 1, nowPlaying.length());
+    }
+
+    GUI->updateNowPlaying(songData);
+
 }

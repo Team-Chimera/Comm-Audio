@@ -496,7 +496,7 @@
      <enum>QTabWidget::Triangular</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="Multicast">
      <property name="autoFillBackground">
@@ -542,6 +542,26 @@
       </property>
       <property name="text">
        <string>Artist:</string>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="songName">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>40</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="artistName">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>90</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
       </property>
      </widget>
     </widget>
