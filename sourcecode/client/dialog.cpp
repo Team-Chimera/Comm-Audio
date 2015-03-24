@@ -22,11 +22,8 @@
 *************************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>/*
+#include <WinSock2.h>
 #include <WS2tcpip.h>
-#include <winnetwk.h>
-#include <ws2spi.h>
-#include <wtsapi32.h>*/
 #include <iostream>
 #include <QMessageBox>
 #include "dialog.h"
@@ -199,10 +196,20 @@ bool Dialog::initialConnect(QString address)
      if ((he = gethostbyname(IP.c_str())) == NULL)
      {
          //error getting the host
+         cerr << "Failed to retrieve host" << endl;
          exit(1);
      }
 
-    setupControlChannel(he);
+     //create the control channel
+    if (!setupControlChannel(he))
+    {
+        cerr << "Unable to open control channel." << endl;
+        exit(1);
+    }
+
+    struct in_addr ia;
+    memcpy((void*)he->h_addr,(void*)&ia, he->h_length);
+    //StartMulticast(ia);
 
 
 }

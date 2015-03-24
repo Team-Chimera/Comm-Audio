@@ -19,7 +19,7 @@ SOURCES += main.cpp \
         mainwindow.cpp \
         multicast.cpp \
         voiceChat.cpp \
-        controLChannel.cpp \
+        controlChannel.cpp \
         dialog.cpp \
         unicastSong.cpp
 
