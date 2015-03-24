@@ -1,3 +1,23 @@
+/*******************************************************************************
+** Source File: mainWindow.cpp -- main GUI for comm audio
+**
+** Program: Comm Audio
+**
+** Functions:
+**
+**
+** Date: March 14th, 2015
+**
+** Revisions: N/A
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Notes:
+**
+**
+*****************************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
 #include <QtWidgets>

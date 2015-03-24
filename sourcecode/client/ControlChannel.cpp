@@ -91,7 +91,7 @@ int setupControlChannel(hostent *hp)
     }
 
     // Connecting to the server
-    if (connect(control, ( sockaddr * )&server, sizeof( server ) ) == -1)
+    if (connect(control, (sockaddr *)&server, sizeof(server)) == -1)
     {
         cout << "Cannot connect to the server. Please try again.", "Error";
         return -1;
@@ -124,7 +124,6 @@ DWORD WINAPI read(LPVOID arg)
 
 
     ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
-
 
     //read infinitely from the server
     while(true)
@@ -317,6 +316,30 @@ void handleControlMessage(ctrlMessage *cMessage)
     }
 }
 
+
+/*******************************************************************
+** Function: updateListeners
+**
+** Date: March 14th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateListeners(vector<string> data)
+**              vector<string> data --clients to be added
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** Updates the current listeners.
+*******************************************************************/
 void updateListeners(vector<string> data)
 {
     //clear the list of listeners
@@ -329,6 +352,30 @@ void updateListeners(vector<string> data)
     }
 }
 
+
+/*******************************************************************
+** Function: updateNowPlaying
+**
+** Date: March 14th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateNowPlaying(vector<string> msgData)
+**              vector<string> msgData -- Song data
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** Updates the now playing tab with the information from the server.
+*******************************************************************/
 void updateNowPlaying(vector<string> msgData)
 {
     //fetch the song
