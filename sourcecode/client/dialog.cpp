@@ -209,7 +209,7 @@ bool Dialog::initialConnect(QString address)
 
     struct in_addr ia;
     memcpy((void*)he->h_addr,(void*)&ia, he->h_length);
-    StartMulticast(ia);
+    //StartMulticast(ia);
 
 
 }
