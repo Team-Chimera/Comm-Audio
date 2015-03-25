@@ -214,7 +214,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinMulticast
+-- FUNCTION: StarWaveOut
 --
 -- DATE: March 12, 2015
 --
@@ -224,7 +224,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+-- INTERFACE: bool StartWaveOut()
 --
 -- RETURNS: void
 --

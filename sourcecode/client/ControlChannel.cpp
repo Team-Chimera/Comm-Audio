@@ -83,6 +83,7 @@ int setupControlChannel(hostent *hp)
     //copy the server address from the resolved host
     memcpy((char *) &server.sin_addr, hp->h_addr, hp->h_length);
 
+
     //create the control socket
     if ((control = socket( AF_INET, SOCK_STREAM, 0 ) ) == INVALID_SOCKET)
     {
@@ -108,9 +109,6 @@ int setupControlChannel(hostent *hp)
         cerr << "Unable to create accept thread";
         return -1;
     }
-
-    cout << "Client Control thread now alive now ready";
-
     return 0;
 }
 
@@ -122,15 +120,11 @@ DWORD WINAPI read(LPVOID arg)
     DWORD RecvBytes;
     DWORD Flags = 0;
 
-
     ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
 
-    //read infinitely from the server
-    while(true)
+    while (true)
     {
-
-        cout << "Sleepy time." << endl;
-        cout.flush();
+        //read from the server
         if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
@@ -139,30 +133,89 @@ DWORD WINAPI read(LPVOID arg)
                 return -1;
             }
         }
-
-        //sleep until we get an event
-        SleepEx(INFINITE, true);
+        SleepEx(INFINITE, TRUE);
     }
 
     return 0;
 }
 
-void CALLBACK ReadRoutine(DWORD Error, DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+
+/*******************************************************************
+** Function: readRoutine
+**
+** Date: March 24th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void CALLBACK ReadRoutine(DWORD Error,
+**                  DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+**              int port -- Control channel port
+**              hostent *hp -- IP of the server
+**
+** Returns:
+**			int
+**
+** Notes:
+** Called to create the control channel connect on the client
+**
+*******************************************************************/
+void CALLBACK ReadRoutine(DWORD Error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
 {
     DWORD SendBytes, RecvBytes;
     DWORD Flags;
 
-    if (Error != 0 ||bytesReceived == 0)
+    LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION) Overlapped;
+
+    if (Error != 0 || bytesTransferred == 0)
     {
         closesocket(controlSocket);
         return;
     }
 
-    Flags = 0;
+    // Check to see if the BytesRECV field equals zero. If this is so, then
+    // this means a WSARecv call just completed so update the BytesRECV field
+    // with the BytesTransferred value from the completed WSARecv() call.
+    if ( SI->BytesRECV == 0)
+    {
+        SI->BytesRECV = bytesTransferred;
+        SI->BytesSEND = 0;
 
-    //Data received successfully; post another request
-    //so we can get another.
-    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
+        ctrlMessage received;
+        string receivedMessage;
+
+        receivedMessage.assign(SI->Buffer);
+        parseControlString(receivedMessage, &received);
+        handleControlMessage(&received);
+
+        GUI->updateListeners(receivedMessage);
+    }
+      SI->BytesRECV = 0;
+      SI->bytesToSend = 0; // just in case it got negative somehow.....
+
+      // Now that there are no more bytes to send post another WSARecv() request.
+
+      Flags = 0;
+      ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
+      ZeroMemory(&(SI->Buffer), sizeof(DATA_BUFSIZE));
+
+      SI->DataBuf.len = DATA_BUFSIZE;
+      SI->DataBuf.buf = SI->Buffer; // should this be zeroed??
+
+      if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
+         &(SI->Overlapped), ReadRoutine) == SOCKET_ERROR)
+      {
+         if (WSAGetLastError() != WSA_IO_PENDING )
+         {
+            printf("WSARecv() failed with error %d\n", WSAGetLastError());
+            return;
+         }
+      }
 
 }
 
@@ -394,4 +447,9 @@ void updateNowPlaying(vector<string> msgData)
 
     GUI->updateNowPlaying(songData);
 
+}
+
+void establishGUIConnector(void *gui)
+{
+    GUI = (MainWindow *)gui;
 }

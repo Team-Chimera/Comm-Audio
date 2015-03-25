@@ -2,6 +2,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include "mainwindow.h"
+#include "ControlChannel.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
@@ -22,6 +23,7 @@ int main(int argc, char *argv[])
 
     GUI.setupConnections();
     GUI.show();
+    establishGUIConnector(&GUI);
 
     return a.exec();
 }
