@@ -25,7 +25,6 @@ HEADERS += mainwindow.h \
 network.h \
 session.h \
 helper.h \
-    controlChannel.h
 
 FORMS    += mainwindow.ui
 

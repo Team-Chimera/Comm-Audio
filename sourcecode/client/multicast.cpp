@@ -18,16 +18,12 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
-#ifndef QT_PRO
-#include "multicast.h"
-#include <iostream>
-#else
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 #include "client.h"
 #include "multicast.h"
-#endif
 
 using std::cout;
 using std::cerr;
@@ -61,7 +57,8 @@ bool StartMulticast(in_addr group)
 {
 	DWORD thread;
 
-	multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void*)&group, 0, &thread);
+    multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void *) &group, 0, &thread);
+
 	if (multiParentThread == NULL)
 	{
 		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
@@ -217,7 +214,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinMulticast
+-- FUNCTION: StarWaveOut
 --
 -- DATE: March 12, 2015
 --
@@ -227,7 +224,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+-- INTERFACE: bool StartWaveOut()
 --
 -- RETURNS: void
 --
