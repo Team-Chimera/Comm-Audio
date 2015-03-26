@@ -48,6 +48,7 @@ int controlSocket;
 //GUI Connector
 MainWindow *GUI;
 
+SOCKET_INFORMATION socketInfo;
 
 /*******************************************************************
 ** Function: setupControlChannel
@@ -114,26 +115,44 @@ int setupControlChannel(hostent *hp)
 
 DWORD WINAPI read(LPVOID arg)
 {
-    //make the overlapped structure
-    WSAOVERLAPPED Overlapped;
-    WSABUF DataBuf;
-    DWORD RecvBytes;
-    DWORD Flags = 0;
+    DWORD bytesReceived = 0;
+    int index;
+    DWORD flags = 0;
+    WSAEVENT eventArray[1];
 
-    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
+    //set the socket structure
+    //socketInfo.overlapped = {};
+    ZeroMemory(&(socketInfo.overlapped), sizeof(WSAOVERLAPPED));
+    socketInfo.DataBuf.len = DATA_BUFSIZE;
+    socketInfo.DataBuf.buf = socketInfo.Buffer;
 
-    while (true)
+    while(true)
     {
-        //read from the server
-        if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
+        if (WSARecv(controlSocket, &(socketInfo.DataBuf), 1, &bytesReceived, &flags, &(socketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
-                cerr << "WSARecv() failed";
+                cerr << "WSARecv() failed. Error " << WSAGetLastError() << endl;
                 return -1;
             }
         }
-        SleepEx(INFINITE, TRUE);
+
+        eventArray[0] = WSACreateEvent();
+
+        while(TRUE)
+        {
+          index = WSAWaitForMultipleEvents(1, eventArray, FALSE, WSA_INFINITE, TRUE);
+
+          if (index == WAIT_IO_COMPLETION)
+          {
+              break;
+          }
+          else
+          {
+             cerr << "WSAWaitForMultipleEvents failed" << WSAGetLastError() << endl;
+              return -1;
+          }
+        }
     }
 
     return 0;
@@ -165,57 +184,37 @@ DWORD WINAPI read(LPVOID arg)
 ** Called to create the control channel connect on the client
 **
 *******************************************************************/
-void CALLBACK ReadRoutine(DWORD Error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
 {
-    DWORD SendBytes, RecvBytes;
-    DWORD Flags;
+    DWORD recvBytes;
+    DWORD flags;
 
-    LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION) Overlapped;
+    ctrlMessage message;
+    SOCKET_INFORMATION * sockInfo = (SOCKET_INFORMATION *) Overlapped;
 
-    if (Error != 0 || bytesTransferred == 0)
+    if (error != 0)
+    {
+        cerr << "I/O Operation failed" << endl;
+    }
+
+    if (bytesTransferred == 0)
+    {
+        cerr << "Closing socket." << endl;
+    }
+
+    if (error != 0 || bytesTransferred == 0)
     {
         closesocket(controlSocket);
         return;
     }
 
-    // Check to see if the BytesRECV field equals zero. If this is so, then
-    // this means a WSARecv call just completed so update the BytesRECV field
-    // with the BytesTransferred value from the completed WSARecv() call.
-    if ( SI->BytesRECV == 0)
-    {
-        SI->BytesRECV = bytesTransferred;
-        SI->BytesSEND = 0;
+    parseControlString(sockInfo->Buffer, &message);
+    handleControlMessage(&message);
 
-        ctrlMessage received;
-        string receivedMessage;
+    cout << "Received: " << sockInfo->Buffer;
+    cout.flush();
+    Sleep(1000);
 
-        receivedMessage.assign(SI->Buffer);
-        parseControlString(receivedMessage, &received);
-        handleControlMessage(&received);
-
-        GUI->updateListeners(receivedMessage);
-    }
-      SI->BytesRECV = 0;
-      SI->bytesToSend = 0; // just in case it got negative somehow.....
-
-      // Now that there are no more bytes to send post another WSARecv() request.
-
-      Flags = 0;
-      ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
-      ZeroMemory(&(SI->Buffer), sizeof(DATA_BUFSIZE));
-
-      SI->DataBuf.len = DATA_BUFSIZE;
-      SI->DataBuf.buf = SI->Buffer; // should this be zeroed??
-
-      if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
-         &(SI->Overlapped), ReadRoutine) == SOCKET_ERROR)
-      {
-         if (WSAGetLastError() != WSA_IO_PENDING )
-         {
-            printf("WSARecv() failed with error %d\n", WSAGetLastError());
-            return;
-         }
-      }
 
 }
 

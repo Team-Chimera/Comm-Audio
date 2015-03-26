@@ -20,7 +20,7 @@
 /** Structure for Completion Routines **/
 typedef struct _SOCKET_INFORMATION
 {
-   OVERLAPPED Overlapped;
+   OVERLAPPED overlapped;
    SOCKET Socket;
    CHAR Buffer[DATA_BUFSIZE]; // used for general data, not sending whole music files.
    WSABUF DataBuf;
