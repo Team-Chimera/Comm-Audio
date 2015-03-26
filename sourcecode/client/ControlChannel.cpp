@@ -48,6 +48,7 @@ int controlSocket;
 //GUI Connector
 MainWindow *GUI;
 
+SOCKET_INFORMATION socketInfo;
 
 /*******************************************************************
 ** Function: setupControlChannel
@@ -83,6 +84,7 @@ int setupControlChannel(hostent *hp)
     //copy the server address from the resolved host
     memcpy((char *) &server.sin_addr, hp->h_addr, hp->h_length);
 
+
     //create the control socket
     if ((control = socket( AF_INET, SOCK_STREAM, 0 ) ) == INVALID_SOCKET)
     {
@@ -108,61 +110,111 @@ int setupControlChannel(hostent *hp)
         cerr << "Unable to create accept thread";
         return -1;
     }
-
-    cout << "Client Control thread now alive now ready";
-
     return 0;
 }
 
 DWORD WINAPI read(LPVOID arg)
 {
-    //make the overlapped structure
-    WSAOVERLAPPED Overlapped;
-    WSABUF DataBuf;
-    DWORD RecvBytes;
-    DWORD Flags = 0;
+    DWORD bytesReceived = 0;
+    int index;
+    DWORD flags = 0;
+    WSAEVENT eventArray[1];
 
+    //set the socket structure
+    //socketInfo.overlapped = {};
+    ZeroMemory(&(socketInfo.overlapped), sizeof(WSAOVERLAPPED));
+    socketInfo.DataBuf.len = DATA_BUFSIZE;
+    socketInfo.DataBuf.buf = socketInfo.Buffer;
 
-    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
-
-    //read infinitely from the server
     while(true)
     {
-
-        cout << "Sleepy time." << endl;
-        cout.flush();
-        if(WSARecv(controlSocket, &DataBuf, 1, &RecvBytes, &Flags, &Overlapped, ReadRoutine) == SOCKET_ERROR)
+        if (WSARecv(controlSocket, &(socketInfo.DataBuf), 1, &bytesReceived, &flags, &(socketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
-                cerr << "WSARecv() failed";
+                cerr << "WSARecv() failed. Error " << WSAGetLastError() << endl;
                 return -1;
             }
         }
 
-        //sleep until we get an event
-        SleepEx(INFINITE, true);
+        eventArray[0] = WSACreateEvent();
+
+        while(TRUE)
+        {
+          index = WSAWaitForMultipleEvents(1, eventArray, FALSE, WSA_INFINITE, TRUE);
+
+          if (index == WAIT_IO_COMPLETION)
+          {
+              break;
+          }
+          else
+          {
+             cerr << "WSAWaitForMultipleEvents failed" << WSAGetLastError() << endl;
+              return -1;
+          }
+        }
     }
 
     return 0;
 }
 
-void CALLBACK ReadRoutine(DWORD Error, DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
-{
-    DWORD SendBytes, RecvBytes;
-    DWORD Flags;
 
-    if (Error != 0 ||bytesReceived == 0)
+/*******************************************************************
+** Function: readRoutine
+**
+** Date: March 24th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void CALLBACK ReadRoutine(DWORD Error,
+**                  DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+**              int port -- Control channel port
+**              hostent *hp -- IP of the server
+**
+** Returns:
+**			int
+**
+** Notes:
+** Called to create the control channel connect on the client
+**
+*******************************************************************/
+void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
+{
+    DWORD recvBytes;
+    DWORD flags;
+
+    ctrlMessage message;
+    SOCKET_INFORMATION * sockInfo = (SOCKET_INFORMATION *) Overlapped;
+
+    if (error != 0)
+    {
+        cerr << "I/O Operation failed" << endl;
+    }
+
+    if (bytesTransferred == 0)
+    {
+        cerr << "Closing socket." << endl;
+    }
+
+    if (error != 0 || bytesTransferred == 0)
     {
         closesocket(controlSocket);
         return;
     }
 
-    Flags = 0;
+    parseControlString(sockInfo->Buffer, &message);
+    handleControlMessage(&message);
 
-    //Data received successfully; post another request
-    //so we can get another.
-    ZeroMemory(&Overlapped, sizeof(WSAOVERLAPPED));
+    cout << "Received: " << sockInfo->Buffer;
+    cout.flush();
+    Sleep(1000);
+
 
 }
 
@@ -394,4 +446,9 @@ void updateNowPlaying(vector<string> msgData)
 
     GUI->updateNowPlaying(songData);
 
+}
+
+void establishGUIConnector(void *gui)
+{
+    GUI = (MainWindow *)gui;
 }

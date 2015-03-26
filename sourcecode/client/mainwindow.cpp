@@ -27,6 +27,7 @@
 #include "ui_mainwindow.h"
 #include "dialog.h"
 #include "multicast.h"
+#include "ControlChannel.h"
 
 using std::string;
 using std::vector;
