@@ -539,6 +539,8 @@ debug\main.obj: ..\client\main.cpp ..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtouchdevice.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabwidget.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qicon.h \
+		..\client\ControlChannel.h \
+		..\client\controlMessage.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplication \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qapplication.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcoreapplication.h \
@@ -1013,7 +1015,9 @@ debug\mainwindow.obj: ..\client\mainwindow.cpp C:\Qt\5.4\msvc2012_opengl\include
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QTextEdit \
 		..\client\dialog.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QDialog \
-		..\client\multicast.h
+		..\client\multicast.h \
+		..\client\ControlChannel.h \
+		..\client\controlMessage.h
 
 debug\multicast.obj: ..\client\multicast.cpp ..\client\client.h \
 		..\client\multicast.h
