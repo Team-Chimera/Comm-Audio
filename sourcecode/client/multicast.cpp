@@ -57,6 +57,9 @@ bool StartMulticast(in_addr group)
 {
 	DWORD thread;
 
+    //create the socket info
+    socketInfo = new SOCKET_INFORMATION;
+
     multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void *) &group, 0, &thread);
 
 	if (multiParentThread == NULL)
@@ -161,9 +164,10 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 
 	in_addr * group = (in_addr *)parameter;
 
-	if (socketInfo != NULL) return -1;
-
-	if (StartWaveOut() == false) return -1;
+    if (StartWaveOut() == false)
+    {
+        return -1;
+    }
 
 	socketInfo->socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (socketInfo->socket == INVALID_SOCKET)
@@ -214,7 +218,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: StarWaveOut
+-- FUNCTION: StartWaveOut
 --
 -- DATE: March 12, 2015
 --
@@ -229,11 +233,13 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 -- RETURNS: void
 --
 -- NOTES:
--- Joins the multicast session, and starts multicast processing
+-- Begins outputting data
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 bool StartWaveOut()
 {
+    //create the buffer
+    buffers = new TRIPLE_BUFFER;
 	MMRESULT result;
 
 	WAVEFORMATEX wfx;
@@ -242,9 +248,10 @@ bool StartWaveOut()
 	wfx.wFormatTag = WAVE_FORMAT_PCM;
 	wfx.wBitsPerSample = BITS_PER_SAMPLE;
 	wfx.cbSize = 0;
-	wfx.nBlockAlign = wfx.nChannels * wfx.wBitsPerSample / 8;
-	wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.wBitsPerSample / 8;
+    wfx.nBlockAlign = wfx.nChannels * wfx.wBitsPerSample / 8;
+    wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.wBitsPerSample / 8;
 
+    //error here :( write access violation
 	result = waveOutOpen(&(buffers->waveout), WAVE_MAPPER, &wfx, (DWORD)MultiWaveCallback, NULL, CALLBACK_FUNCTION);
 	if ((result != MMSYSERR_NOERROR) || (buffers->waveout == NULL))
 	{
@@ -254,7 +261,9 @@ bool StartWaveOut()
 	socketInfo->datagram.buf = new char[DATAGRAM];
 	socketInfo->datagram.len = DATAGRAM;
 	
+    //create the headers
 	buffers->primary = new WAVEHDR;
+    ZeroMemory(buffers->primary, sizeof(WAVEHDR));
 	buffers->secondary = new WAVEHDR;
 	buffers->tertiary = new WAVEHDR;
 
@@ -263,23 +272,23 @@ bool StartWaveOut()
 	buffers->primary->lpData = buffers->buf;
 	buffers->primary->dwBufferLength = BUFFER;
 
-	memcpy_s(buffers->secondary, sizeof(*(buffers->secondary)), \
-		buffers->primary, sizeof(*(buffers->primary)));
-	memcpy_s(buffers->tertiary, sizeof(*(buffers->tertiary)), \
-		buffers->primary, sizeof(*(buffers->primary)));
+    memcpy_s(buffers->secondary, sizeof(WAVEHDR), \
+        buffers->primary, sizeof(WAVEHDR));
+    memcpy_s(buffers->tertiary, sizeof(WAVEHDR), \
+        buffers->primary, sizeof(WAVEHDR));
 
-	result = waveOutPrepareHeader(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
-	result = waveOutPrepareHeader(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
-	result = waveOutPrepareHeader(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+    result = waveOutPrepareHeader(buffers->waveout, buffers->primary, sizeof(WAVEHDR));
+    result = waveOutPrepareHeader(buffers->waveout, buffers->secondary, sizeof(WAVEHDR));
+    result = waveOutPrepareHeader(buffers->waveout, buffers->tertiary, sizeof(WAVEHDR));
 	if (result != MMSYSERR_NOERROR)
 	{
 		cerr << "Multicast: Error preparing headers (" << result << ")" << endl;
 		return false;
 	}
 
-	result = waveOutWrite(buffers->waveout, buffers->primary, sizeof(*(buffers->primary)));
-	result = waveOutWrite(buffers->waveout, buffers->secondary, sizeof(*(buffers->secondary)));
-	result = waveOutWrite(buffers->waveout, buffers->tertiary, sizeof(*(buffers->tertiary)));
+    result = waveOutWrite(buffers->waveout, buffers->primary, sizeof(WAVEHDR));
+    result = waveOutWrite(buffers->waveout, buffers->secondary, sizeof(WAVEHDR));
+    result = waveOutWrite(buffers->waveout, buffers->tertiary, sizeof(WAVEHDR));
 	if (result != MMSYSERR_NOERROR)
 	{
 		cerr << "Multicast: Error preparing headers (" << result << ")" << endl;
