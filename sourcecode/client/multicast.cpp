@@ -214,7 +214,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: StarWaveOut
+-- FUNCTION: StartWaveOut
 --
 -- DATE: March 12, 2015
 --
@@ -229,7 +229,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 -- RETURNS: void
 --
 -- NOTES:
--- Joins the multicast session, and starts multicast processing
+-- Begins outputting data
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 bool StartWaveOut()
@@ -245,6 +245,7 @@ bool StartWaveOut()
 	wfx.nBlockAlign = wfx.nChannels * wfx.wBitsPerSample / 8;
 	wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.wBitsPerSample / 8;
 
+    //error here :( write access violation
 	result = waveOutOpen(&(buffers->waveout), WAVE_MAPPER, &wfx, (DWORD)MultiWaveCallback, NULL, CALLBACK_FUNCTION);
 	if ((result != MMSYSERR_NOERROR) || (buffers->waveout == NULL))
 	{
