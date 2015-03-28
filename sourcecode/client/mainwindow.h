@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <iostream>
 #include <vector>
+#include <QListWidgetItem>
 
 using namespace std;
 
@@ -21,12 +22,14 @@ public:
     ~MainWindow();
     void setupConnections();
     void addClient(std::string);
+    void addSongToLibrary(std:: string);
 
 public slots:
    // bool initialConnect();
     void clearListeners();
     void updateListeners(std::string);
     void updateNowPlaying(std::vector<std::string>);
+    void openSongMenu(QListWidgetItem *);
 
 private:
     Ui::MainWindow *ui;

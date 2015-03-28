@@ -28,7 +28,7 @@
 #include <QMessageBox>
 #include "dialog.h"
 #include "ui_dialog.h"
-#include "ControlChannel.h"
+#include "controlChannel.h"
 #include "multicast.h"
 
 using namespace std;

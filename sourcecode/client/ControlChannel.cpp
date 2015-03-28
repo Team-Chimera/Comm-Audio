@@ -30,7 +30,7 @@
 #include <iostream>
 #include <vector>
 #include <WinSock2.h>
-#include "ControlChannel.h"
+#include "controlChannel.h"
 #include "mainwindow.h"
 
 
@@ -448,7 +448,59 @@ void updateNowPlaying(vector<string> msgData)
 
 }
 
+/*******************************************************************
+** Function: establishGUIConnector
+**
+** Date: March 14th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void establishGUIConnector(void *gui)
+**              void *gui -- Pointer to the main GUI
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** Grabs a pointer to the main GUI for the control channel to manipulate
+**********************************************************************/
 void establishGUIConnector(void *gui)
 {
     GUI = (MainWindow *)gui;
+}
+
+
+/*******************************************************************
+** Function: downloadSong
+**
+** Date: March 27th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			bool downloadSong(string song)
+**              string song -- Song that is being requested
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** requests a song for downloading from the server
+**********************************************************************/
+bool downloadSong(string song)
+{
+    return true;
 }

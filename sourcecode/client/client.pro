@@ -21,19 +21,22 @@ SOURCES += main.cpp \
         voiceChat.cpp \
         controlChannel.cpp \
         dialog.cpp \
-        unicastSong.cpp
+        unicastSong.cpp \
+    unicastdialog.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
     multicast.h \
     voiceChat.h \
-    ControlChannel.h \
     controlMessage.h \
     unicastSong.h \
-    dialog.h
+    dialog.h \
+    unicastdialog.h \
+    controlChannel.h
 
 FORMS    += mainwindow.ui \
-    dialog.ui
+    dialog.ui \
+    unicastdialog.ui
 
 
 INSTALLS += install_it

@@ -2,7 +2,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include "mainwindow.h"
-#include "ControlChannel.h"
+#include "controlChannel.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

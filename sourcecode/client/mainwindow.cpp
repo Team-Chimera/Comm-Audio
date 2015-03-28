@@ -24,10 +24,11 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include "mainwindow.h"
+#include "unicastdialog.h"
 #include "ui_mainwindow.h"
 #include "dialog.h"
 #include "multicast.h"
-#include "ControlChannel.h"
+#include "controlChannel.h"
 
 using std::string;
 using std::vector;
@@ -60,9 +61,14 @@ void MainWindow::setupConnections()
     ui->songName->setFocusPolicy(Qt::NoFocus);
     ui->songName->setReadOnly(true);
 
+    //make the songs in the library clickable
+    connect(ui->songs, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openSongMenu(QListWidgetItem *)));
+
     //create the dialog box for the launch
      Dialog initializeMessage(this);
      initializeMessage.exec();
+
+     addSongToLibrary("ChriIsSexyMmmmm.wav");
 
 }
 
@@ -81,4 +87,17 @@ void MainWindow::updateNowPlaying(vector<string> songInfo)
 {
     ui->songName->append(QString::fromStdString(songInfo[0]));
     ui->artistName->append(QString::fromStdString(songInfo[1]));
+}
+
+void MainWindow::addSongToLibrary(string song)
+{
+    ui->songs->addItem(QString::fromStdString(song));
+}
+
+void MainWindow::openSongMenu(QListWidgetItem *it)
+{
+    //create the dialog box for the song
+     unicastDialog songMenu (this);
+     songMenu.setSongName(it->text().toStdString());
+     songMenu.exec();
 }

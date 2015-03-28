@@ -35,6 +35,7 @@ int setupControlChannel(hostent *);
 void parseControlString(std::string, ctrlMessage *);
 DWORD WINAPI read(LPVOID);
 void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
+bool downloadSong(std::string);
 
 /** GUI editors **/
 void updateListeners(std::vector<std::string>);
