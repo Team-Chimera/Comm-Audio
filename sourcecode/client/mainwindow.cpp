@@ -33,6 +33,29 @@
 using std::string;
 using std::vector;
 
+/*****************************************************************
+** Function: MainWindow
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			MainWindow(QWidget *parent)
+**              QWidget *parent -- parent widget
+**
+** Returns:
+**          N/A (Constructor)
+**
+** Notes:
+** Main window's GUI constructor
+**
+*******************************************************************/
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -41,12 +64,56 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 }
 
+
+/*****************************************************************
+** Function: ~MainWindow (Destructor)
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			~MainWindow()
+**
+** Returns:
+**          N/A (Destructor)
+**
+** Notes:
+** Destructs the main window object
+**
+*******************************************************************/
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
 
+/*****************************************************************
+** Function: setupConnections
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void setupConnections()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Sets up all on-click listeners and GUI attributes.
+*******************************************************************/
 void MainWindow::setupConnections()
 {
     //add the connect button function push
@@ -68,32 +135,146 @@ void MainWindow::setupConnections()
      Dialog initializeMessage(this);
      initializeMessage.exec();
 
-     addSongToLibrary("ChriIsSexyMmmmm.wav");
+     //add song to the library list
+     addSongToLibrary("IAmAHardCodedTest.mp3");
 
 }
 
 
+/*****************************************************************
+** Function: clearListeners
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void clearListeners()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Clears the list of listeners
+*******************************************************************/
 void MainWindow::clearListeners()
 {
     ui->listeners->clear();
 }
 
+
+/*****************************************************************
+** Function: updateListeners
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateListeners(string listener)
+**              string listener -- listener to be added
+**
+** Returns:
+**          void
+**
+** Notes:
+** Adds a listener to the list of listeners
+*******************************************************************/
 void MainWindow::updateListeners(string listener)
 {
     ui->listeners->addItem(QString::fromStdString(listener));
 }
 
+
+/*****************************************************************
+** Function: updateNowPlaying
+**
+** Date: March 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateNowPlaying(vector<string> songInfo)
+**              vector<string> song -- information on the current song
+**
+** Returns:
+**          void
+**
+** Notes:
+** Updates the now playing tab with current song information
+*******************************************************************/
 void MainWindow::updateNowPlaying(vector<string> songInfo)
 {
     ui->songName->append(QString::fromStdString(songInfo[0]));
     ui->artistName->append(QString::fromStdString(songInfo[1]));
 }
 
+
+/*****************************************************************
+** Function: addSongToLibrary
+**
+** Date: March 24th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void addSongToLibrary(string song)
+**              string song --the song to be added
+**
+** Returns:
+**          void
+**
+** Notes:
+** Adds a song to the library list
+*******************************************************************/
 void MainWindow::addSongToLibrary(string song)
 {
     ui->songs->addItem(QString::fromStdString(song));
 }
 
+
+/*****************************************************************
+** Function: openSongMenu
+**
+** Date: March 24th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void openSongMenu(QListWidgetItem *it)
+**              QListWidgetItem *it -- Item that was clicked on
+**
+** Returns:
+**          void
+**
+** Notes:
+** Opens a small context menu when each library item is clicked
+*******************************************************************/
 void MainWindow::openSongMenu(QListWidgetItem *it)
 {
     //create the dialog box for the song

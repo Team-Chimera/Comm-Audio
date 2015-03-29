@@ -40,8 +40,9 @@ public:
         DownloadSong->setGeometry(QRect(220, 30, 111, 31));
         song = new QLabel(unicastDialog);
         song->setObjectName(QStringLiteral("song"));
-        song->setGeometry(QRect(160, 0, 91, 21));
+        song->setGeometry(QRect(10, 0, 391, 21));
         song->setStyleSheet(QStringLiteral("font-weight: bold;"));
+        song->setAlignment(Qt::AlignCenter);
 
         retranslateUi(unicastDialog);
 

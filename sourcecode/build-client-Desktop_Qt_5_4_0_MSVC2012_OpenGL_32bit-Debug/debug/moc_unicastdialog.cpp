@@ -20,7 +20,7 @@
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_unicastDialog_t {
     QByteArrayData data[4];
-    char stringdata[43];
+    char stringdata[40];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -30,12 +30,12 @@ struct qt_meta_stringdata_unicastDialog_t {
 static const qt_meta_stringdata_unicastDialog_t qt_meta_stringdata_unicastDialog = {
     {
 QT_MOC_LITERAL(0, 0, 13), // "unicastDialog"
-QT_MOC_LITERAL(1, 14, 11), // "requestSong"
+QT_MOC_LITERAL(1, 14, 11), // "unicastSong"
 QT_MOC_LITERAL(2, 26, 0), // ""
-QT_MOC_LITERAL(3, 27, 15) // "requestDownload"
+QT_MOC_LITERAL(3, 27, 12) // "downloadSong"
 
     },
-    "unicastDialog\0requestSong\0\0requestDownload"
+    "unicastDialog\0unicastSong\0\0downloadSong"
 };
 #undef QT_MOC_LITERAL
 
@@ -68,8 +68,8 @@ void unicastDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
     if (_c == QMetaObject::InvokeMetaMethod) {
         unicastDialog *_t = static_cast<unicastDialog *>(_o);
         switch (_id) {
-        case 0: _t->requestSong(); break;
-        case 1: _t->requestDownload(); break;
+        case 0: _t->unicastSong(); break;
+        case 1: _t->downloadSong(); break;
         default: ;
         }
     }

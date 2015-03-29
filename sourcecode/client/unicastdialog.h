@@ -17,8 +17,8 @@ public:
     void setSongName(std::string);
 
 public slots:
-    void requestSong();
-    void requestDownload();
+    void unicastSong();
+    void downloadSong();
 
 private:
     Ui::unicastDialog *ui;

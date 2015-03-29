@@ -5,6 +5,31 @@
 #include "controlChannel.h"
 #include <QApplication>
 
+
+/*******************************************************************
+** Function: main
+**
+** Date: March 16th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			int main(int argc, char *argv[])
+**              int argc -- number of command line arguments
+**              char * argv[] -- Arguments
+**
+**
+** Returns:
+**			int
+**
+** Notes:
+** Driver of the client program.
+**********************************************************************/
 int main(int argc, char *argv[])
 {
 
