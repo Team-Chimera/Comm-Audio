@@ -30,7 +30,8 @@
 #include <iostream>
 #include <vector>
 #include <WinSock2.h>
-#include "ControlChannel.h"
+#include "controlChannel.h"
+#include "unicastSong.h"
 #include "mainwindow.h"
 
 
@@ -42,6 +43,7 @@ hostent *host;
 
 //reading thread
 HANDLE readThread = INVALID_HANDLE_VALUE;
+HANDLE unicastThread = INVALID_HANDLE_VALUE;
 
 int controlSocket;
 
@@ -63,12 +65,12 @@ SOCKET_INFORMATION socketInfo;
 ** Programmer: Rhea Lauzon
 **
 ** Interface:
-**			int createControlChannel(int port, hostent *hp)
-**              int port -- Control channel port
+**			int createControlChannel(hostent *hp)
 **              hostent *hp -- IP of the server
 **
 ** Returns:
-**			int
+**			int -- -1 on socket failure, 0 on successful
+**                  client connection
 **
 ** Notes:
 ** Called to create the control channel connect on the client
@@ -113,6 +115,30 @@ int setupControlChannel(hostent *hp)
     return 0;
 }
 
+
+/*******************************************************************
+** Function: setupControlChannel
+**
+** Date: March 14th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			DWORD WINAPI read(LPVOID arg)
+**              LPVOID arg -- Thread argument
+**
+** Returns:
+**			DWORD -- -1 on fail; 0 on success end of thread
+**
+** Notes:
+** The read thread of the control thread. Reads data on the
+** control channel.
+*******************************************************************/
 DWORD WINAPI read(LPVOID arg)
 {
     DWORD bytesReceived = 0;
@@ -242,7 +268,7 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
 ** Notes:
 ** Converts a control string structure to a string to send
 *******************************************************************/
-void createControlString(ctrlMessage &msg, string &str)
+void createControlString(ctrlMessage msg, string &str)
 {
     //add the type to the string
     stringstream ss;
@@ -448,7 +474,114 @@ void updateNowPlaying(vector<string> msgData)
 
 }
 
+/*******************************************************************
+** Function: establishGUIConnector
+**
+** Date: March 14th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void establishGUIConnector(void *gui)
+**              void *gui -- Pointer to the main GUI
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** Grabs a pointer to the main GUI for the control channel to manipulate
+**********************************************************************/
 void establishGUIConnector(void *gui)
 {
     GUI = (MainWindow *)gui;
 }
+
+
+/*******************************************************************
+** Function: downloadSong
+**
+** Date: March 27th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			bool downloadSong(string song)
+**              string song -- Song that is being requested
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** requests a song for downloading from the server
+**********************************************************************/
+bool downloadSong(string song)
+{
+    return true;
+}
+
+
+/*******************************************************************
+** Function: requestSong
+**
+** Date: March 27th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			bool requestSong(string song)
+**              string song -- Song that is being requested
+**
+**
+** Returns:
+**			bool -- True on success, false on failure
+**
+** Notes:
+** requests a song for streaming unicastly from the server
+**********************************************************************/
+bool requestSong(string song)
+{
+    //create a song request message for the control channel
+    ctrlMessage message;
+
+    message.type = SONG_REQUEST;
+    message.msgData.emplace_back(song);
+
+    string requestMessage;
+    createControlString(message, requestMessage);
+
+    //send the message to the server
+    if (send(controlSocket, requestMessage.c_str(), requestMessage.length(), 0) == -1 )
+    {
+        cerr << "Send Failed" << endl;
+        return false;
+    }
+
+    //create the unicast thread
+    DWORD threadId;
+    if ((unicastThread = CreateThread(NULL, 0, unicastSong, (LPVOID) host, 0, &threadId)) == NULL)
+    {
+        cerr << "Unable to create unicast thread";
+        return -1;
+    }
+
+
+    return true;
+}
+
