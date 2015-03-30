@@ -214,6 +214,10 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 ** Date: March 22th, 2015
 **
 ** Revisions:
+**      March 30th, 2015
+**      Julian Brandrick
+**          -> Changed line 239 for VS compiler:
+**                  HANDLE waitHandles[handles]; -> HANDLE waitHandles[3];
 **
 **
 ** Designer: Jeff Bayntun
@@ -234,7 +238,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
     handles = 3;
-    HANDLE waitHandles[handles];
+    HANDLE waitHandles[3];
 
     flags = 0;
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
