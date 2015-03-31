@@ -30,6 +30,7 @@
 #include <iostream>
 #include <vector>
 #include <WinSock2.h>
+#include "socketinfo.h"
 #include "controlChannel.h"
 #include "unicastSong.h"
 #include "mainwindow.h"
@@ -50,7 +51,7 @@ int controlSocket;
 //GUI Connector
 MainWindow *GUI;
 
-SOCKET_INFORMATION socketInfo;
+SOCKET_INFORMATION controlSocketInfo;
 
 /*******************************************************************
 ** Function: setupControlChannel
@@ -147,14 +148,13 @@ DWORD WINAPI read(LPVOID arg)
     WSAEVENT eventArray[1];
 
     //set the socket structure
-    //socketInfo.overlapped = {};
-    ZeroMemory(&(socketInfo.overlapped), sizeof(WSAOVERLAPPED));
-    socketInfo.DataBuf.len = DATA_BUFSIZE;
-    socketInfo.DataBuf.buf = socketInfo.Buffer;
+    ZeroMemory(&(controlSocketInfo.overlapped), sizeof(WSAOVERLAPPED));
+    controlSocketInfo.DataBuf.len = DATA_BUFSIZE;
+    controlSocketInfo.DataBuf.buf = controlSocketInfo.Buffer;
 
     while(true)
     {
-        if (WSARecv(controlSocket, &(socketInfo.DataBuf), 1, &bytesReceived, &flags, &(socketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
+        if (WSARecv(controlSocket, &(controlSocketInfo.DataBuf), 1, &bytesReceived, &flags, &(controlSocketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -234,13 +234,9 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
         return;
     }
 
-    parseControlString(sockInfo->Buffer, &message);
-    handleControlMessage(&message);
-
     cout << "Received: " << sockInfo->Buffer;
     cout.flush();
     Sleep(1000);
-
 
 }
 

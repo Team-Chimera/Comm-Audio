@@ -17,7 +17,7 @@ CXXFLAGS      = -nologo -Zm200 -Zc:wchar_t -O2 -MD -GR -W3 -w34100 -w34189 -EHsc
 INCPATH       = -I"C:\Qt\5.4\msvc2012_opengl\include" -I"C:\Qt\5.4\msvc2012_opengl\include\QtWidgets" -I"C:\Qt\5.4\msvc2012_opengl\include\QtGui" -I"C:\Qt\5.4\msvc2012_opengl\include\QtCore" -I"release" -I"." -I"." -I"C:\Qt\5.4\msvc2012_opengl\mkspecs\win32-msvc2012"
 LINKER        = link
 LFLAGS        = /NOLOGO /DYNAMICBASE /NXCOMPAT /INCREMENTAL:NO /SUBSYSTEM:WINDOWS "/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'"
-LIBS          = glu32.lib opengl32.lib gdi32.lib user32.lib /LIBPATH:C:\Qt\5.4\msvc2012_opengl\lib C:\Qt\5.4\msvc2012_opengl\lib\qtmain.lib shell32.lib ws2_32.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Widgets.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Gui.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Core.lib 
+LIBS          = glu32.lib opengl32.lib gdi32.lib user32.lib /LIBPATH:C:\Qt\5.4\msvc2012_opengl\lib C:\Qt\5.4\msvc2012_opengl\lib\qtmain.lib shell32.lib ws2_32.lib winmm.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Widgets.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Gui.lib C:\Qt\5.4\msvc2012_opengl\lib\Qt5Core.lib 
 QMAKE         = C:\Qt\5.4\msvc2012_opengl\bin\qmake.exe
 IDC           = idc
 IDL           = midl
@@ -74,7 +74,8 @@ DIST          =  ..\client\mainwindow.h \
 		..\client\dialog.h \
 		..\client\unicastdialog.h \
 		..\client\controlChannel.h \
-		..\client\music.h ..\client\main.cpp \
+		..\client\music.h \
+		..\client\socketinfo.h ..\client\main.cpp \
 		..\client\mainwindow.cpp \
 		..\client\multicast.cpp \
 		..\client\voiceChat.cpp \
@@ -1145,30 +1146,23 @@ release\mainwindow.obj: ..\client\mainwindow.cpp C:\Qt\5.4\msvc2012_opengl\inclu
 		..\client\unicastdialog.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QDialog \
 		ui_mainwindow.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QAction \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplication \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QButtonGroup \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QHeaderView \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLabel \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QListWidget \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QMenuBar \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QPushButton \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QSlider \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QTabWidget \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QTextEdit \
 		..\client\dialog.h \
 		..\client\multicast.h \
 		..\client\controlChannel.h \
 		..\client\controlMessage.h
 
-release\multicast.obj: ..\client\multicast.cpp ..\client\client.h \
+release\multicast.obj: ..\client\multicast.cpp ..\client\music.h \
+		..\client\socketinfo.h \
+		..\client\client.h \
 		..\client\multicast.h
 
-release\voiceChat.obj: ..\client\voiceChat.cpp ..\client\client.h \
+release\voiceChat.obj: ..\client\voiceChat.cpp ..\client\socketinfo.h \
+		..\client\client.h \
 		..\client\voiceChat.h \
 		..\client\privateVoiceChat.h
 
-release\controlChannel.obj: ..\client\controlChannel.cpp ..\client\controlChannel.h \
+release\controlChannel.obj: ..\client\controlChannel.cpp ..\client\socketinfo.h \
+		..\client\controlChannel.h \
 		..\client\controlMessage.h \
 		..\client\unicastSong.h \
 		..\client\mainwindow.h \
@@ -1403,56 +1397,14 @@ release\dialog.obj: ..\client\dialog.cpp C:\Qt\5.4\msvc2012_opengl\include\QtWid
 		..\client\dialog.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QDialog \
 		ui_dialog.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QVariant \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QAction \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qaction.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qicon.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qactiongroup.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplication \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcoreapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qeventloop.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qdesktopwidget.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qguiapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qinputmethod.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QButtonGroup \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qbuttongroup.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QHeaderView \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qheaderview.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemview.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractscrollarea.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qframe.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qabstractitemmodel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qitemselectionmodel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemdelegate.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyleoption.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractspinbox.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvalidator.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qregularexpression.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qslider.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractslider.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyle.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabbar.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabwidget.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qrubberband.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLabel \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlabel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLineEdit \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlineedit.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextcursor.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextformat.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qpen.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtextoption.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QPushButton \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qpushbutton.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractbutton.h \
 		..\client\controlChannel.h \
 		..\client\controlMessage.h \
 		..\client\unicastSong.h \
 		..\client\multicast.h
 
-release\unicastSong.obj: ..\client\unicastSong.cpp ..\client\unicastSong.h \
-		..\client\music.h
+release\unicastSong.obj: ..\client\unicastSong.cpp ..\client\music.h \
+		..\client\socketinfo.h \
+		..\client\unicastSong.h
 
 release\unicastdialog.obj: ..\client\unicastdialog.cpp ..\client\unicastdialog.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QDialog \
@@ -1559,43 +1511,6 @@ release\unicastdialog.obj: ..\client\unicastdialog.cpp ..\client\unicastdialog.h
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvector2d.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtouchdevice.h \
 		ui_unicastdialog.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QVariant \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QAction \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qaction.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qicon.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qactiongroup.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplication \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcoreapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qeventloop.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qdesktopwidget.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qguiapplication.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qinputmethod.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QButtonGroup \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qbuttongroup.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QHeaderView \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qheaderview.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemview.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractscrollarea.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qframe.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qabstractitemmodel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qitemselectionmodel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemdelegate.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyleoption.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractspinbox.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvalidator.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qregularexpression.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qslider.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractslider.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyle.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabbar.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabwidget.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qrubberband.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLabel \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlabel.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QPushButton \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qpushbutton.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractbutton.h \
 		..\client\controlChannel.h \
 		..\client\controlMessage.h
 

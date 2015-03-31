@@ -549,6 +549,7 @@ debug\mainwindow.obj: ..\server\mainwindow.cpp ..\server\mainwindow.h \
 		..\server\helper.h \
 		..\client\controlMessage.h \
 		ui_mainwindow.h \
+		..\server\multicast.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgets \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QtWidgetsDepends \
 		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QtCore \

@@ -34,6 +34,7 @@
 
 #include <mmsystem.h>
 #include <Ws2tcpip.h>
+#define DATA_BUFSIZE 1024
 
 struct TRIPLE_BUFFER
 {
@@ -46,15 +47,5 @@ struct TRIPLE_BUFFER
 	int pos;
 };
 
-struct SOCKET_INFORMATION
-{
-	SOCKET socket;
-	WSABUF datagram;
-	DWORD bytesRECV;
-	DWORD bytesSEND;
-	struct ip_mreq addr;
-	SOCKADDR_IN sockAddr;
-	OVERLAPPED overlapped;
-};
 
 #endif
