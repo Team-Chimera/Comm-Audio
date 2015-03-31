@@ -184,6 +184,7 @@ Makefile: ..\client\client.pro C:\Qt\5.4\msvc2013_64\mkspecs\win32-msvc2013\qmak
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\resolve_config.prf \
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\exclusive_builds_post.prf \
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\default_post.prf \
+		C:\Qt\5.4\msvc2013_64\mkspecs\features\c++11.prf \
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\win32\rtti.prf \
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\precompile_header.prf \
 		C:\Qt\5.4\msvc2013_64\mkspecs\features\warn_on.prf \
@@ -315,6 +316,7 @@ C:\Qt\5.4\msvc2013_64\mkspecs\features\win32\default_pre.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\resolve_config.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\exclusive_builds_post.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\default_post.prf:
+C:\Qt\5.4\msvc2013_64\mkspecs\features\c++11.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\win32\rtti.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\precompile_header.prf:
 C:\Qt\5.4\msvc2013_64\mkspecs\features\warn_on.prf:
