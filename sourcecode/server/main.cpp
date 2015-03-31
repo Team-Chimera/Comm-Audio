@@ -95,6 +95,12 @@ bool makeSharedSems()
         return false;
     }
 
+    if( (songListAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == NULL)
+    {
+        printf("error creating sessionSem\n");
+        return false;
+    }
+
     if( (newSongSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == NULL)
     {
         printf("error creating sessionSem\n");
@@ -102,6 +108,12 @@ bool makeSharedSems()
     }
 
     if( (userChangeSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == NULL)
+    {
+        printf("error creating sessionSem\n");
+        return false;
+    }
+
+    if( (updatedSongListSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == NULL)
     {
         printf("error creating sessionSem\n");
         return false;
