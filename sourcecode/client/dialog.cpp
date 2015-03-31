@@ -29,6 +29,7 @@
 #include "dialog.h"
 #include "ui_dialog.h"
 #include "controlChannel.h"
+#include "unicastSong.h"
 #include "multicast.h"
 
 using namespace std;
@@ -222,6 +223,7 @@ bool Dialog::initialConnect(QString address)
          cerr << "Failed to retrieve host" << endl;
          exit(1);
      }
+
 
      //create the control channel
     if (setupControlChannel(he) < 0)

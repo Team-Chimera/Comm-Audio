@@ -7,13 +7,6 @@
 #include <vlc/libvlc.h>
 #include "music.h"
 
-//function prototpes
-DWORD WINAPI playSong(LPVOID arg);
-void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
-void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size); 
-void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels, 
-				  unsigned int rate, unsigned int nb_samples, unsigned int bits_per_sample, size_t size, int64_t pts);
-
 //circular buffer
 CircularBuffer circBuf;
 
@@ -21,14 +14,53 @@ CircularBuffer circBuf;
 HWAVEOUT output;
 using namespace std;
 
+//VLC instance objects
+libvlc_instance_t *inst;
+libvlc_media_player_t *mediaPlayer;
+SOCKET sd;
+struct	sockaddr_in server;
+int	client_len;
+
 int main(int argc, char * argv[])
 {
+	//create UDP socket
+	WSADATA stWSAData;
+	WORD wVersionRequested = MAKEWORD (2,2);
+	
+	// Initialize the DLL with version Winsock 2.2
+	WSAStartup(wVersionRequested, &stWSAData ) ;
+
+	// Create a datagram socket
+	if ((sd = socket (PF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+		perror ("Can't create a socket");
+		exit(1);
+	}
+
+	    struct hostent *he;
+
+    //convert the QString to a string
+    string IP = "localhost";
+
+
+     /* resolve hostname */
+     if ((he = gethostbyname(IP.c_str())) == NULL)
+     {
+         //error getting the host
+         cerr << "Failed to retrieve host" << endl;
+         exit(1);
+     }
+
+	// Bind an address to the socket
+	memset ((char *)&server, 0, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(9003);
+  memcpy((char *) &server.sin_addr, he->h_addr, he->h_length);
+
+
 	//initialize the buffer position to 0
 	circBuf.pos = 0;
 
-	//create VLC instance objects
-	libvlc_instance_t *inst;
-	libvlc_media_player_t *mediaPlayer;
 	char memoryOptions[256];
 
 	//write the options ot the char array
@@ -70,19 +102,51 @@ int main(int argc, char * argv[])
 	libvlc_media_player_play(mediaPlayer);
 
 	// Create the output thread
-	CreateThread(NULL, 0, playSong, NULL, 0, NULL);
+	//aka receive
+	//CreateThread(NULL, 0, playSong, NULL, 0, NULL);
 
 	// Wait for any character to quit
 	getchar();
-	
-	libvlc_media_player_release(mediaPlayer);
-    libvlc_release(inst);
 
+	audioCleanup();
+
+	//clear socket
+	closesocket(sd);
+	WSACleanup();
+	
 	return 0;
 
 
 }
 
+/*****************************************************************
+** Function: audioCleanup
+**
+** Date: March 30th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void audioCleanup()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Removes the libVLC structures for sending data.
+**
+*******************************************************************/
+void audioCleanup()
+{
+	libvlc_media_player_release(mediaPlayer);
+    libvlc_release(inst);
+
+}
 
 /*****************************************************************
 ** Function: playSong
@@ -287,8 +351,18 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 		dataSize -= messageSize;
 		dataSent += messageSize;
 
+				//send over UDP
+		if(sendto(sd, buffer, MESSAGE_SIZE, 0,(struct sockaddr *)&server, sizeof(server)) <= 0)
+		{
+			perror ("sendto error");
+			closesocket(sd);
+			WSACleanup();
+			exit(0);
+		}
+
 		//remove the char array
 		delete [] buffer;
+
 	}
 
 	// Free the temporary stream buffer

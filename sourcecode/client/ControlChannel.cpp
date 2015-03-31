@@ -578,7 +578,7 @@ bool requestSong(string song)
     if ((unicastThread = CreateThread(NULL, 0, unicastSong, (LPVOID) host, 0, &threadId)) == NULL)
     {
         cerr << "Unable to create unicast thread";
-        return -1;
+        return false;
     }
 
 
