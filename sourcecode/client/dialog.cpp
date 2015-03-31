@@ -210,14 +210,24 @@ void Dialog::reject()
 **********************************************************************/
 bool Dialog::initialConnect(QString address)
 {
-    struct hostent        *he;
+    struct hostent *he;
+    struct hostent *multi;
 
     //convert the QString to a string
     string IP = address.toStdString();
+    string multicastIP = "234.5.6.7";
 
 
      /* resolve hostname */
      if ((he = gethostbyname(IP.c_str())) == NULL)
+     {
+         //error getting the host
+         cerr << "Failed to retrieve host" << endl;
+         exit(1);
+     }
+
+     //Resolve multicast
+     if ((multi = gethostbyname(multicast.c_str())) == NULL)
      {
          //error getting the host
          cerr << "Failed to retrieve host" << endl;
@@ -233,7 +243,7 @@ bool Dialog::initialConnect(QString address)
     }
 
     struct in_addr ia;
-    memcpy((void*)he->h_addr,(void*)&ia, he->h_length);
+    memcpy((void*)multi->h_addr,(void*)&ia, multi->h_length);
     StartMulticast(ia);
 
     return true;

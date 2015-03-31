@@ -1,4 +1,4 @@
-#define CLIENT_UNICAST_PORT 9003
+#define CLIENT_UNICAST_PORT 6698
 
 DWORD WINAPI unicastSong(LPVOID);
 void receiveData();

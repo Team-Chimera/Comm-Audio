@@ -30,7 +30,7 @@
 #define SAMPLES_PER_SECOND 44100
 #define CHANNELS 2
 
-#define MULTICAST_PORT 9001
+#define MULTICAST_PORT 8910
 
 #include <mmsystem.h>
 #include <Ws2tcpip.h>
