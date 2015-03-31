@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "multicast.h"
 
 #include <QtWidgets>
 
 WSAData wsadata;
 HANDLE acceptThread;
+HANDLE multicastThread;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
