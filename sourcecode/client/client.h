@@ -30,10 +30,11 @@
 #define SAMPLES_PER_SECOND 44100
 #define CHANNELS 2
 
-#define MULTICAST_PORT 9001
+#define MULTICAST_PORT 8910
 
 #include <mmsystem.h>
 #include <Ws2tcpip.h>
+#define DATA_BUFSIZE 1024
 
 struct TRIPLE_BUFFER
 {
@@ -46,15 +47,5 @@ struct TRIPLE_BUFFER
 	int pos;
 };
 
-struct SOCKET_INFORMATION
-{
-	SOCKET socket;
-	WSABUF datagram;
-	DWORD bytesRECV;
-	DWORD bytesSEND;
-	struct ip_mreq addr;
-	SOCKADDR_IN sockAddr;
-	OVERLAPPED overlapped;
-};
 
 #endif

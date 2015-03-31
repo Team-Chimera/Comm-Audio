@@ -22,12 +22,9 @@
  #include <mmsystem.h>
 bool StartMulticast(in_addr group);
 bool EndMulticast();
-
 DWORD WINAPI JoinMulticast(LPVOID parameter);
-bool StartWaveOut();
 
-DWORD WINAPI RecvMultiThread(LPVOID parameter);
-void CALLBACK RecvMulti(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
 void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
-
+void receiveMulticastData();
+DWORD WINAPI playMulticastSong(LPVOID arg);
 #endif

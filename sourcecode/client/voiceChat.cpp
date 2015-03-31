@@ -24,6 +24,7 @@
 #include <winnetwk.h>
 #include <ws2spi.h>
 #include <wtsapi32.h>
+#include "socketinfo.h"
 #include "client.h"
 #include "voiceChat.h"
 #include "privateVoiceChat.h"
