@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include <map>
 #include "session.h"
 
 using namespace std;
@@ -27,6 +28,7 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
+    std::map<std::string, std::string> SONGS;
 };
 
 #endif // MAINWINDOW_H

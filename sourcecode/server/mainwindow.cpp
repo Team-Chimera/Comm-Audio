@@ -40,6 +40,8 @@ void MainWindow::openFile()
                                      musicPaths.isEmpty() ? QDir::homePath() : musicPaths.first(),
                                      tr("WMA Files (*.wma);;All files (*.*)"));
 
+    WaitForSingleObject(songListAccessSem, INFINITE);
+
     //add the file names to the list if files were selected
     if (fileList.size() > 0)
     {
@@ -47,11 +49,15 @@ void MainWindow::openFile()
         {
             //fetch the file name
             QString filePathName = QFileInfo(fileList[i]).fileName();
-
+            SONGS.insert({ QFileInfo(fileList[i]).fileName().toStdString(), fileList[i].toStdString() });
             //add the song to the list
             ui->songs->addItem(filePathName);
         }
-    }
+    }   
+    ReleaseSemaphore(songListAccessSem, 1, 0);
+    // signal all the sessions that
+    ReleaseSemaphore(updatedSongListSem, SESSIONS.size(), 0);
+
 }
 /*******************************************************************
 ** Function: MainWindow::initialConnect()

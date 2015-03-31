@@ -233,7 +233,7 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
-    handles = 3;
+    handles = 4;
     HANDLE waitHandles[handles];
 
     flags = 0;
@@ -242,6 +242,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[0] = userChangeSem;
     waitHandles[1] = newSongSem;
     waitHandles[2] = m->sendCompleteSem;
+    waitHandles[3] = updatedSongListSem;
 
     // post send call with song list
 
@@ -284,6 +285,9 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
             case 2:
                  //finished sending unicast to this client
                  break;
+            case 3:
+                // new songlist to send, send it to users
+                break;
          default:
                 //error of somekind, clean up sessions and exit
                 sessionCleanUp(m);
