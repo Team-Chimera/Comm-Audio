@@ -1,6 +1,8 @@
 #ifndef NETWORK_H_
 #define NETWORK_H_
 
+#define NOMINMAX
+
 #define DATA_BUFSIZE 1024
 #define IP_SIZE 40
 

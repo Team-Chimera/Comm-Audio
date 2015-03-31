@@ -64,14 +64,14 @@ bool StartMulticast(in_addr group)
 
 	if (multiParentThread == NULL)
 	{
-		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
+        cerr << "Multicast: Thread creation error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 
 	GetExitCodeThread(multiParentThread, &thread);
 	if (thread != STILL_ACTIVE)
 	{
-		cerr << "VoiceChat: Parent start error (" << WSAGetLastError() << ")" << endl;
+        cerr << "Multicast: Parent start error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 

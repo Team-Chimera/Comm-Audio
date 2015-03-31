@@ -28,7 +28,8 @@
 #include <QMessageBox>
 #include "dialog.h"
 #include "ui_dialog.h"
-#include "ControlChannel.h"
+#include "controlChannel.h"
+#include "unicastSong.h"
 #include "multicast.h"
 
 using namespace std;
@@ -184,6 +185,29 @@ void Dialog::reject()
 }
 
 
+/*******************************************************************
+** Function: initialConnect
+**
+** Date: March 27th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			bool initialConnect(QString address)
+**              QString address -- Address to conect to
+**
+**
+** Returns:
+**			bool -- returns true on success and false on fail
+**
+** Notes:
+** Does the initial connection on program start.
+**********************************************************************/
 bool Dialog::initialConnect(QString address)
 {
     struct hostent        *he;
@@ -200,6 +224,7 @@ bool Dialog::initialConnect(QString address)
          exit(1);
      }
 
+
      //create the control channel
     if (setupControlChannel(he) < 0)
     {
@@ -211,5 +236,5 @@ bool Dialog::initialConnect(QString address)
     memcpy((void*)he->h_addr,(void*)&ia, he->h_length);
     StartMulticast(ia);
 
-
+    return true;
 }

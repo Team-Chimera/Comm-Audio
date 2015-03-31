@@ -30,11 +30,15 @@ typedef struct _SOCKET_INFORMATION
 } SOCKET_INFORMATION, * LPSOCKET_INFORMATION;
 
 /** FUNCTIONS **/
-void handleControlMessage(ctrlMessage *);
 int setupControlChannel(hostent *);
-void parseControlString(std::string, ctrlMessage *);
 DWORD WINAPI read(LPVOID);
 void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
+bool downloadSong(std::string);
+bool requestSong(std::string);
+
+void handleControlMessage(ctrlMessage *);
+void createControlString(ctrlMessage, std::string &);
+void parseControlString(std::string, ctrlMessage *);
 
 /** GUI editors **/
 void updateListeners(std::vector<std::string>);

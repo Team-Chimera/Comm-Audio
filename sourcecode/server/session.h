@@ -11,6 +11,7 @@
 #include <fstream>
 #include <vector>
 
+#define NOMINMAX
 #define FILE_PATH 64
 #define SERVER_TCP_LISTEN_PORT 9874
 

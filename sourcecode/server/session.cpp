@@ -214,6 +214,10 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 ** Date: March 22th, 2015
 **
 ** Revisions:
+**      March 30th, 2015
+**      Julian Brandrick
+**          -> Changed line 239 for VS compiler:
+**                  HANDLE waitHandles[handles]; -> HANDLE waitHandles[3];
 **
 **
 ** Designer: Jeff Bayntun
@@ -233,8 +237,8 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
-    handles = 4;
-    HANDLE waitHandles[handles];
+    handles = 3;
+    HANDLE waitHandles[3];
 
     flags = 0;
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
@@ -242,7 +246,6 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[0] = userChangeSem;
     waitHandles[1] = newSongSem;
     waitHandles[2] = m->sendCompleteSem;
-    waitHandles[3] = updatedSongListSem;
 
     // post send call with song list
 
@@ -285,9 +288,6 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
             case 2:
                  //finished sending unicast to this client
                  break;
-            case 3:
-                // new songlist to send, send it to users
-                break;
          default:
                 //error of somekind, clean up sessions and exit
                 sessionCleanUp(m);

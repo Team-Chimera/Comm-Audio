@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "multicast.h"
 
 #include <QtWidgets>
 
 WSAData wsadata;
 HANDLE acceptThread;
+HANDLE multicastThread;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -65,7 +67,9 @@ void MainWindow::openFile()
 ** Date: March 22th, 2015
 **
 ** Revisions:
-**
+**      March 31st, 2015
+**      Julian Brandrick
+**          -> Added multicast functionality
 **
 ** Designer: Jeff Bayntun
 **
@@ -84,5 +88,7 @@ bool MainWindow::initialConnect()
 {
     initWSA(&wsadata);
     // Julian's multicast...
+    startMulticastThread(&multicastThread);
+    
     return createWorkerThread(AcceptThread, &acceptThread, 0);
 }
