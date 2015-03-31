@@ -32,7 +32,8 @@ HEADERS  += mainwindow.h \
     unicastSong.h \
     dialog.h \
     unicastdialog.h \
-    controlChannel.h
+    controlChannel.h \
+    music.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \

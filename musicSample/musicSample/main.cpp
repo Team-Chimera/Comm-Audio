@@ -7,13 +7,6 @@
 #include <vlc/libvlc.h>
 #include "music.h"
 
-//function prototpes
-DWORD WINAPI playSong(LPVOID arg);
-void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
-void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size); 
-void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels, 
-				  unsigned int rate, unsigned int nb_samples, unsigned int bits_per_sample, size_t size, int64_t pts);
-
 //circular buffer
 CircularBuffer circBuf;
 
@@ -21,14 +14,15 @@ CircularBuffer circBuf;
 HWAVEOUT output;
 using namespace std;
 
+//VLC instance objects
+libvlc_instance_t *inst;
+libvlc_media_player_t *mediaPlayer;
+
 int main(int argc, char * argv[])
 {
 	//initialize the buffer position to 0
 	circBuf.pos = 0;
 
-	//create VLC instance objects
-	libvlc_instance_t *inst;
-	libvlc_media_player_t *mediaPlayer;
 	char memoryOptions[256];
 
 	//write the options ot the char array
@@ -70,19 +64,47 @@ int main(int argc, char * argv[])
 	libvlc_media_player_play(mediaPlayer);
 
 	// Create the output thread
+	//aka receive
 	CreateThread(NULL, 0, playSong, NULL, 0, NULL);
 
 	// Wait for any character to quit
 	getchar();
-	
-	libvlc_media_player_release(mediaPlayer);
-    libvlc_release(inst);
 
+	audioCleanup();
+	
 	return 0;
 
 
 }
 
+/*****************************************************************
+** Function: audioCleanup
+**
+** Date: March 30th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void audioCleanup()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Removes the libVLC structures for sending data.
+**
+*******************************************************************/
+void audioCleanup()
+{
+	libvlc_media_player_release(mediaPlayer);
+    libvlc_release(inst);
+
+}
 
 /*****************************************************************
 ** Function: playSong

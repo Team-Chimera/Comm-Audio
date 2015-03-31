@@ -73,7 +73,8 @@ DIST          =  ..\client\mainwindow.h \
 		..\client\unicastSong.h \
 		..\client\dialog.h \
 		..\client\unicastdialog.h \
-		..\client\controlChannel.h ..\client\main.cpp \
+		..\client\controlChannel.h \
+		..\client\music.h ..\client\main.cpp \
 		..\client\mainwindow.cpp \
 		..\client\multicast.cpp \
 		..\client\voiceChat.cpp \
@@ -1169,6 +1170,7 @@ release\voiceChat.obj: ..\client\voiceChat.cpp ..\client\client.h \
 
 release\controlChannel.obj: ..\client\controlChannel.cpp ..\client\controlChannel.h \
 		..\client\controlMessage.h \
+		..\client\unicastSong.h \
 		..\client\mainwindow.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QMainWindow \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qmainwindow.h \
@@ -1446,10 +1448,11 @@ release\dialog.obj: ..\client\dialog.cpp C:\Qt\5.4\msvc2012_opengl\include\QtWid
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractbutton.h \
 		..\client\controlChannel.h \
 		..\client\controlMessage.h \
+		..\client\unicastSong.h \
 		..\client\multicast.h
 
-release\unicastSong.obj: ..\client\unicastSong.cpp ..\client\controlMessage.h \
-		..\client\controlChannel.h
+release\unicastSong.obj: ..\client\unicastSong.cpp ..\client\unicastSong.h \
+		..\client\music.h
 
 release\unicastdialog.obj: ..\client\unicastdialog.cpp ..\client\unicastdialog.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QDialog \
@@ -1556,6 +1559,43 @@ release\unicastdialog.obj: ..\client\unicastdialog.cpp ..\client\unicastdialog.h
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvector2d.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qtouchdevice.h \
 		ui_unicastdialog.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QVariant \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QAction \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qaction.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qicon.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qactiongroup.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplication \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qapplication.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qcoreapplication.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qeventloop.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qdesktopwidget.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qguiapplication.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qinputmethod.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QButtonGroup \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qbuttongroup.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QHeaderView \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qheaderview.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemview.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractscrollarea.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qframe.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qabstractitemmodel.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qitemselectionmodel.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractitemdelegate.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyleoption.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractspinbox.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtGui\qvalidator.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\qregularexpression.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qslider.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractslider.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qstyle.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabbar.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qtabwidget.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qrubberband.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QLabel \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qlabel.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QPushButton \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qpushbutton.h \
+		C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\qabstractbutton.h \
 		..\client\controlChannel.h \
 		..\client\controlMessage.h
 
