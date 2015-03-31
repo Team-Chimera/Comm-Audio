@@ -224,7 +224,7 @@ bool Dialog::initialConnect(QString address)
          exit(1);
      }
 
-     /*
+
      //create the control channel
     if (setupControlChannel(he) < 0)
     {
@@ -235,11 +235,6 @@ bool Dialog::initialConnect(QString address)
     struct in_addr ia;
     memcpy((void*)he->h_addr,(void*)&ia, he->h_length);
     StartMulticast(ia);
-    */
-
-    //create the unicast thread
-    DWORD threadId;
-    CreateThread(NULL, 0, unicastSong, (LPVOID) he, 0, &threadId);
 
     return true;
 }

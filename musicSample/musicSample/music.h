@@ -4,7 +4,7 @@
 #define NUM_OUTPUT_BUFFERS 3
 
 /* The size of a message received from the socket */
-#define MESSAGE_SIZE 4096
+#define MESSAGE_SIZE 512
 
 /* The size of the circular audio buffer */
 #define BUFFER_SIZE (MESSAGE_SIZE * 10)

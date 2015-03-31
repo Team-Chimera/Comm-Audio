@@ -212,7 +212,7 @@ DWORD WINAPI playSong(LPVOID arg)
     cout << "I am ready to play music!" << endl;
 
     //wait until we have two messages worth of data; this avoids crackle
-    while(circBuf.pos < MESSAGE_SIZE * 2)
+    while(circBuf.pos < MESSAGE_SIZE * 5)
     {
         //wait for the buffer to be ready
     }

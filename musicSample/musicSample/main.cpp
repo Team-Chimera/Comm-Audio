@@ -17,9 +17,47 @@ using namespace std;
 //VLC instance objects
 libvlc_instance_t *inst;
 libvlc_media_player_t *mediaPlayer;
+SOCKET sd;
+struct	sockaddr_in server;
+int	client_len;
 
 int main(int argc, char * argv[])
 {
+	//create UDP socket
+	WSADATA stWSAData;
+	WORD wVersionRequested = MAKEWORD (2,2);
+	
+	// Initialize the DLL with version Winsock 2.2
+	WSAStartup(wVersionRequested, &stWSAData ) ;
+
+	// Create a datagram socket
+	if ((sd = socket (PF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+		perror ("Can't create a socket");
+		exit(1);
+	}
+
+	    struct hostent *he;
+
+    //convert the QString to a string
+    string IP = "localhost";
+
+
+     /* resolve hostname */
+     if ((he = gethostbyname(IP.c_str())) == NULL)
+     {
+         //error getting the host
+         cerr << "Failed to retrieve host" << endl;
+         exit(1);
+     }
+
+	// Bind an address to the socket
+	memset ((char *)&server, 0, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(9003);
+  memcpy((char *) &server.sin_addr, he->h_addr, he->h_length);
+
+
 	//initialize the buffer position to 0
 	circBuf.pos = 0;
 
@@ -65,12 +103,16 @@ int main(int argc, char * argv[])
 
 	// Create the output thread
 	//aka receive
-	CreateThread(NULL, 0, playSong, NULL, 0, NULL);
+	//CreateThread(NULL, 0, playSong, NULL, 0, NULL);
 
 	// Wait for any character to quit
 	getchar();
 
 	audioCleanup();
+
+	//clear socket
+	closesocket(sd);
+	WSACleanup();
 	
 	return 0;
 
@@ -309,8 +351,18 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 		dataSize -= messageSize;
 		dataSent += messageSize;
 
+				//send over UDP
+		if(sendto(sd, buffer, MESSAGE_SIZE, 0,(struct sockaddr *)&server, sizeof(server)) <= 0)
+		{
+			perror ("sendto error");
+			closesocket(sd);
+			WSACleanup();
+			exit(0);
+		}
+
 		//remove the char array
 		delete [] buffer;
+
 	}
 
 	// Free the temporary stream buffer

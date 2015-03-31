@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
+<<<<<<< HEAD
 <!-- Written by QtCreator 3.3.0, 2015-03-30T22:21:06. -->
+=======
+<!-- Written by QtCreator 3.3.0, 2015-03-31T09:00:06. -->
+>>>>>>> b436668c8f431e0e26cbafd3a82fa867fb268df7
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
-  <value type="QByteArray">{d888ddce-7913-4cbf-8401-9b3cdb58d350}</value>
+  <value type="QByteArray">{1a78ebcf-0816-4329-a869-cf2bece315a0}</value>
  </data>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -225,8 +229,8 @@
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">server</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:C:/Users/Rhea/Dropbox/School/COMP4985(Windows Data Comm)/comm-audio/sourcecode/server/server.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">server2</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:C:/Users/Julian/Documents/Term4/COMP4985/Assignments/CommAudio/Repo/Comm-Audio/sourcecode/server/server.pro</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments"></value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">server.pro</value>
     <value type="bool" key="Qt4ProjectManager.Qt4RunConfiguration.UseDyldImageSuffix">false</value>
