@@ -19,12 +19,14 @@ SOURCES += main.cpp\
 mainwindow.cpp \
 network.cpp \
 session.cpp \
-helper.cpp
+helper.cpp \
+    multicast.cpp
 
 HEADERS += mainwindow.h \
 network.h \
 session.h \
 helper.h \
+    multicast.h
 
 FORMS    += mainwindow.ui
 

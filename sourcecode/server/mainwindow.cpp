@@ -59,7 +59,9 @@ void MainWindow::openFile()
 ** Date: March 22th, 2015
 **
 ** Revisions:
-**
+**      March 31st, 2015
+**      Julian Brandrick
+**          -> Added multicast functionality
 **
 ** Designer: Jeff Bayntun
 **
@@ -78,5 +80,7 @@ bool MainWindow::initialConnect()
 {
     initWSA(&wsadata);
     // Julian's multicast...
+    startMulticastThread(&multicastThread);
+    
     return createWorkerThread(AcceptThread, &acceptThread, 0);
 }
