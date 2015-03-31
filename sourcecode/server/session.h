@@ -72,6 +72,9 @@ static HANDLE userChangeSem;
 static HANDLE userAccessSem;
 static std::vector<std::string> userList;
 
+static HANDLE songListAccessSem;
+static HANDLE updatedSongListSem;
+
 static HANDLE sessionsSem;
 extern std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 typedef std::pair<SOCKET, LPMUSIC_SESSION> SessionPair;
