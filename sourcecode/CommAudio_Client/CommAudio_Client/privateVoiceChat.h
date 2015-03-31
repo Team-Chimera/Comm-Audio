@@ -16,8 +16,8 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
-#ifndef PRIVATE_VOICECHAT_H
-#define PRIVATE_VOICECHAT_H
+#ifndef CONTROL_VOICECHAT_H
+#define CONTROL_VOICECHAT_H
 
 #include "client.h"
 #include "voiceChat.h"
@@ -30,15 +30,15 @@ using std::endl;
 DWORD WINAPI StartRecvVoice(LPVOID parameter);
 bool StartVoiceOut();
 
+DWORD WINAPI StartSendVoice(LPVOID parameter);
+bool StartVoiceIn();
+
 DWORD WINAPI RecvVoiceThread(LPVOID parameter);
 void CALLBACK RecvVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
 void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
-DWORD WINAPI StartSendVoice(LPVOID parameter);
-bool StartVoiceIn();
-
-bool SendVoice();
-void CALLBACK SentVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
+DWORD WINAPI SendVoiceThread(LPVOID parameter);
+void CALLBACK SendVoice(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED overlapped, DWORD flags);
 void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 #endif

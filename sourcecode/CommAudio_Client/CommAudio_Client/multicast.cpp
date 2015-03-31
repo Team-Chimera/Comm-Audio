@@ -18,16 +18,8 @@
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 
-#ifndef QT_PRO
 #include "multicast.h"
 #include <iostream>
-#else
-#define WIN32_LEAN_AND_MEAN
-#include <iostream>
-#include <WinSock2.h>
-#include "client.h"
-#include "multicast.h"
-#endif
 
 using std::cout;
 using std::cerr;

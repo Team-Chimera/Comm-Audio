@@ -19,12 +19,7 @@
 #ifndef MULTICAST_H
 #define MULTICAST_H
 
-#ifndef QT_PRO
-#include "client.h"
-#else
-#include <mmsystem.h>
-#endif
-
+ #include <mmsystem.h>
 bool StartMulticast(in_addr group);
 bool EndMulticast();
 DWORD WINAPI JoinMulticast(LPVOID parameter);

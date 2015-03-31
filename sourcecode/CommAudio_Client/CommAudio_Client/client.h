@@ -20,7 +20,6 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#ifndef QT_PRO
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
 
@@ -29,14 +28,6 @@
 #include <winnetwk.h>
 #include <ws2spi.h>
 #include <wtsapi32.h>
-
-#else
-#define NOMINMAX
-#pragma comment(lib, "winmm.lib")
-
-#include <mmsystem.h>
-#include <Ws2tcpip.h>
-#endif
 
 #define BUFFER 65536
 #define DATAGRAM 4096
