@@ -34,30 +34,40 @@ bool startMulticastThread(HANDLE *multicastThread)
     WORD wVersionRequested = MAKEWORD (2,2);
     WSAData wsaData;
     int loop;
+    u_char lTTL;
 
     WSAStartup(wVersionRequested, &wsaData);
 
-    if(lpMulticastInfo = (InitMulticastSocket()) == NULL)
+    if((lpMulticastInfo = initMulticastSocket()) == NULL)
     {
         return false;
     }
 
     lpMulticastInfo->StMreq.imr_multiaddr.s_addr = inet_addr(multicastAddr);
     lpMulticastInfo->StMreq.imr_interface.s_addr = INADDR_ANY;
-    if(setsockopt(socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&lpMulticastInfo->StMreq, sizeof(lpMulticastInfo->StMreq)) == SOCKET_ERROR)
+    if(setsockopt(lpMulticastInfo->Socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&lpMulticastInfo->StMreq, sizeof(lpMulticastInfo->StMreq)) == SOCKET_ERROR)
     {
-        DisplayError("setsockopt IP_ADD_MEMBERSHIP failed", WSAGetLastError());
+        displayError("setsockopt IP_ADD_MEMBERSHIP failed", WSAGetLastError());
+        return false;
+    }
+    
+    lTTL = TIMECAST_TTL;
+    if(setsockopt(lpMulticastInfo->Socket, IPPROTO_IP, IP_MULTICAST_TTL, (char *)&lTTL, sizeof(lTTL)) == SOCKET_ERROR)
+    {
+        displayError("setsockopt IP_MULTICAST_TTL failed", WSAGetLastError());
         return false;
     }
 
     loop = 0;
-    if(SocketOption(lpMulticastInfo->Socket, (char *)&loop, sizeof(loop)) == SOCKET_ERROR)
+    if(setsockopt(lpMulticastInfo->Socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loop, sizeof(loop)) == SOCKET_ERROR)
     {
-        DisplayError("setsockopt IP_MULTICAST_LOOP failed", WSAGetLastError());
+        displayError("setsockopt IP_MULTICAST_LOOP failed", WSAGetLastError());
         return false;
     }
 
-    return createWorkerThread(multicastSendLoop, multicastThread, lpMulticastInfo);
+    createWorkerThread(multicastSendLoop, multicastThread, lpMulticastInfo);
+
+    return 0;
 }
 
 /*******************************************************************
@@ -104,7 +114,7 @@ DWORD WINAPI multicastSendLoop(LPVOID lpParam)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
-                DisplayError("WSASendTo failed", WSAGetLastError()); 
+                displayError("WSASendTo failed", WSAGetLastError()); 
                 return -1;
             }
         }
@@ -120,7 +130,7 @@ DWORD WINAPI multicastSendLoop(LPVOID lpParam)
             }
             else
             {
-                DisplayError("WSAWaitForMultipleEvents failed", WSAGetLastError());
+                displayError("WSAWaitForMultipleEvents failed", WSAGetLastError());
                 return -1;
             }
         }
@@ -170,7 +180,7 @@ void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAP
 
     if (Error != 0 || BytesTransferred == 0)
     {
-        DisplayError("Routine error", Error);
+        displayError("Routine error", Error);
         closesocket(MI->Socket);
         GlobalFree(MI);
         return;
@@ -189,7 +199,7 @@ void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAP
     {
         if (WSAGetLastError() != WSA_IO_PENDING)
         {
-            DisplayError("WSASendTo failed", WSAGetLastError());
+            displayError("WSASendTo failed", WSAGetLastError());
             return;
         }
     }
@@ -223,18 +233,18 @@ void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAP
 *******************************************************************/
 LPMULTICAST_INFORMATION initMulticastSocket()
 {
-    LPMuLTICAST_INFORMATION lpMulticastInfo;
+    LPMULTICAST_INFORMATION lpMulticastInfo;
     SOCKADDR_IN server;
 
-    if ((lpMulticastInfo = (LPSOCKET_INFORMATION) GlobalAlloc(GPTR, sizeof(SOCKET_INFORMATION))) == NULL)
+    if ((lpMulticastInfo = (LPMULTICAST_INFORMATION) GlobalAlloc(GPTR, sizeof(MULTICAST_INFORMATION))) == NULL)
     {
-       DisplayError("GlobalAlloc failed", GetLastError());
-       return NULL;
+        displayError("GlobalAlloc failed", GetLastError());
+        return NULL;
     }
 
     if ((lpMulticastInfo->Socket = WSASocket(PF_INET, SOCK_DGRAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET)
     {
-        DisplayError("Socket error", WSAGetLastError());
+        displayError("Socket error", WSAGetLastError());
         return NULL;
     }
 
@@ -249,7 +259,7 @@ LPMULTICAST_INFORMATION initMulticastSocket()
 
     if (bind (lpMulticastInfo->Socket, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
-        DisplayError("Bind error", WSAGetLastError());
+        displayError("Bind error", WSAGetLastError());
         return NULL;
     }
 
