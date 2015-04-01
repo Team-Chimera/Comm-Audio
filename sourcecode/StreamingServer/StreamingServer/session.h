@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 #define NOMINMAX
 #define FILE_PATH 64
@@ -18,7 +19,7 @@
 #define SERVER_MIC_IN 9977
 #define SERVER_MIC_OUT 7799
 
-#define MAX_SESSIONS 2000
+#define MAX_SESSIONS 64
 
 typedef struct _MUSIC_SESSION {
 
@@ -56,8 +57,7 @@ typedef struct _MUSIC_SESSION {
  * Song access is a binary semaphore so that song name isn't
  * changed while other threads are reading it
  * */
-static HANDLE newSongSem;
-static HANDLE songAccessSem;
+
 static std::string multicastSong;
 
 /*
@@ -68,8 +68,10 @@ static std::string multicastSong;
  * is binary.
  *
  * */
-static HANDLE userChangeSem;
-static HANDLE userAccessSem;
+extern HANDLE newSongSem;
+extern HANDLE songAccessSem;
+extern HANDLE userChangeSem;
+extern HANDLE userAccessSem;
 static std::vector<std::string> userList;
 static std::vector<std::string> songList;
 

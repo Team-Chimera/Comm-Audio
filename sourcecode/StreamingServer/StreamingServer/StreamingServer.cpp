@@ -36,20 +36,21 @@ HANDLE multicastThread;
 *******************************************************************/
 int main(int argc, char *argv[])
 {
-	/*
+	
 	if(!makeSharedSems() || !loadSongList())
 	{
 		cout << "error making semaphores, aborting" << endl;
 		return 55;
 	}
-	*/
-
+	
+    cout << "Id of Main thread " << GetCurrentThreadId() << endl;
 
 	 initWSA(&wsadata);
     // Julian's multicast...
-    startMulticastThread(&multicastThread);
+    createWorkerThread(startMulticastThread, &multicastThread, 0, 0);
     
     AcceptThread();
+    while(1){};
 
     return 0;
 
@@ -80,27 +81,31 @@ int main(int argc, char *argv[])
 *******************************************************************/
 bool makeSharedSems()
 {
-    if( (userAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == NULL)
+    cout << endl << "Making shared semaphores" << endl;
+
+    if( (userAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == 0)
     {
-        printf("error creating sessionSem\n");
+        printf("error creating userAccessSem\n");
         return false;
     }
 
-    if( (songAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == NULL)
+    if( (songAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == 0)
     {
-        printf("error creating sessionSem\n");
+        printf("error creating songAccessSem\n");
         return false;
     }
 
-    if( (newSongSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == NULL)
+    
+
+    if( (userChangeSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == 0)
     {
-        printf("error creating sessionSem\n");
+        printf("error creating userChangeSem\n");
         return false;
     }
 
-    if( (userChangeSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == NULL)
+     if( (newSongSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == 0)
     {
-        printf("error creating sessionSem\n");
+        printf("error creating newSongSem\n");
         return false;
     }
 
@@ -109,6 +114,7 @@ bool makeSharedSems()
 
 bool loadSongList()
 {
+    cout << endl << "Loading Songs" << endl;
     HANDLE hFind;
     WIN32_FIND_DATA data;
     stringstream ss;
