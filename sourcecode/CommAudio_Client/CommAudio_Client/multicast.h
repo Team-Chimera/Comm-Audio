@@ -20,7 +20,7 @@
 #define MULTICAST_H
 
  #include <mmsystem.h>
-bool StartMulticast(in_addr group);
+bool StartMulticast();
 bool EndMulticast();
 DWORD WINAPI JoinMulticast(LPVOID parameter);
 

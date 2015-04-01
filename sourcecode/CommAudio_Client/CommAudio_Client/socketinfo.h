@@ -8,13 +8,12 @@
 typedef struct _SOCKET_INFORMATION
 {
     SOCKET socket;
-    WSABUF datagram;
     DWORD bytesRECV;
     DWORD bytesSEND;
     struct ip_mreq addr;
     SOCKADDR_IN sockAddr;
     OVERLAPPED overlapped;
-    WSABUF DataBuf;
+    WSABUF dataBuf;
 } SOCKET_INFORMATION, * LPSOCKET_INFORMATION;
 
 #endif // SOCKETINFO

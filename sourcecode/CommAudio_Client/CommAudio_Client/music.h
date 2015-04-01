@@ -8,9 +8,15 @@
 
 /* The size of a message received from the socket */
 #define MESSAGE_SIZE 4096
+#define PRE_BUFFER_SIZE (5 * MESSAGE_SIZE)
 
 /* The size of the circular audio buffer */
 #define MUSIC_BUFFER_SIZE (MESSAGE_SIZE * 20)
+
+/* The settings for wave format structs */
+#define SAMPLES_PER_SECOND 44100
+#define BITS_PER_SAMPLE    16
+#define CHANNELS           2
 
 typedef struct CircularBuffer
 {

@@ -24,9 +24,6 @@
     <ClInclude Include="client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="privateVoiceChat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ControlChannel.h">
       <Filter>Header Files</Filter>
     </ClInclude>

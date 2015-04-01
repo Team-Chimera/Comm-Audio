@@ -67,13 +67,11 @@ bool streaming = false;
 -- Drops the multicast session, and stops multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-bool StartMulticast(in_addr group)
+bool StartMulticast()
 {
 	DWORD thread;
 
-
-	multiParentThread = CreateThread(NULL, 0, JoinMulticast, (void *)&group, 0, &thread);
-
+	multiParentThread = CreateThread(NULL, 0, JoinMulticast, NULL, 0, &thread);
 	if (multiParentThread == NULL)
 	{
 		cerr << "Multicast: Thread creation error (" << WSAGetLastError() << ")" << endl;
@@ -171,11 +169,7 @@ bool EndMulticast()
 DWORD WINAPI JoinMulticast(LPVOID parameter)
 {
 	DWORD recvThread;
-
 	BOOL flag = true;
-
-	in_addr * group = (in_addr *)parameter;
-
 
 	socketInfo.socket = socket(AF_INET, SOCK_DGRAM, 0);
 	if (socketInfo.socket == INVALID_SOCKET)
@@ -199,8 +193,6 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 		return -1;
 	}
 
-	//socketInfo.addr.imr_multiaddr = *group;
-	//socketInfo.addr.imr_interface.S_un.S_addr = INADDR_ANY;
 	socketInfo.addr.imr_multiaddr.s_addr = inet_addr("234.5.6.7");
 	socketInfo.addr.imr_interface.s_addr = INADDR_ANY;
 
@@ -215,7 +207,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 	DWORD threadId;
 	if ((multiThread = CreateThread(NULL, 0, playMulticastSong, (LPVOID)multicastOutput, 0, &threadId)) == NULL)
 	{
-		cerr << "Unable to create unicast thread";
+		cerr << "Unable to create multicast thread";
 		return -1;
 	}
 
@@ -292,9 +284,9 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 	WAVEFORMATEX wavFormat;
 
 	//set up the format
-	wavFormat.nSamplesPerSec = 44100;
-	wavFormat.wBitsPerSample = 16;
-	wavFormat.nChannels = 2;
+	wavFormat.nSamplesPerSec = SAMPLES_PER_SECOND;
+	wavFormat.wBitsPerSample = BITS_PER_SAMPLE;
+	wavFormat.nChannels = CHANNELS;
 	wavFormat.cbSize = 0;
 	wavFormat.wFormatTag = WAVE_FORMAT_PCM;
 	wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
@@ -311,7 +303,7 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 	for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
 	{
 		//malloc and clear the memory
-		audioBuffers[i] = (LPWAVEHDR)malloc(sizeof(WAVEHDR));
+		audioBuffers[i] = new WAVEHDR();
 		ZeroMemory(audioBuffers[i], sizeof(WAVEHDR));
 
 		//update the their buffers to a position in the tripple buffer
@@ -330,7 +322,7 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 	cout << "I am ready to play music!" << endl;
 
 	//wait until we have two messages worth of data; this avoids crackle
-	while (multiBuffer.pos < MESSAGE_SIZE * 5)
+	while (multiBuffer.pos < PRE_BUFFER_SIZE)
 	{
 		//wait for the buffer to be ready
 	}

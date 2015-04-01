@@ -149,12 +149,12 @@ DWORD WINAPI read(LPVOID arg)
 
     //set the socket structure
     ZeroMemory(&(controlSocketInfo.overlapped), sizeof(WSAOVERLAPPED));
-    controlSocketInfo.DataBuf.len = DATA_BUFSIZE;
-    controlSocketInfo.DataBuf.buf = new char[DATA_BUFSIZE];
+    controlSocketInfo.dataBuf.len = DATA_BUFSIZE;
+    controlSocketInfo.dataBuf.buf = new char[DATA_BUFSIZE];
 
     while(true)
     {
-        if (WSARecv(controlSocket, &(controlSocketInfo.DataBuf), 1, &bytesReceived, &flags, &(controlSocketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
+        if (WSARecv(controlSocket, &(controlSocketInfo.dataBuf), 1, &bytesReceived, &flags, &(controlSocketInfo.overlapped), ReadRoutine) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -234,7 +234,7 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
         return;
     }
 
-    cout << "Received: " << sockInfo->Buffer;
+    cout << "Received: " << controlSocketInfo.dataBuf.buf;
     cout.flush();
     Sleep(1000);
 

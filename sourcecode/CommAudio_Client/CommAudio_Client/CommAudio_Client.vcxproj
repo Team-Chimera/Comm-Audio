@@ -68,7 +68,6 @@
     <ClInclude Include="ControlChannel.h" />
     <ClInclude Include="controlMessage.h" />
     <ClInclude Include="music.h" />
-    <ClInclude Include="privateVoiceChat.h" />
     <ClInclude Include="multicast.h" />
     <ClInclude Include="socketinfo.h" />
     <ClInclude Include="unicastSong.h" />
