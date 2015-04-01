@@ -195,6 +195,7 @@ DWORD WINAPI AcceptThread()
         return FALSE;
 
 
+    cout << "Id of Accepting thread " << GetCurrentThreadId() << endl;
         while(TRUE)
        {
            peer_len = sizeof(peer);
@@ -803,8 +804,8 @@ void sessionCleanUp(LPMUSIC_SESSION m)
 //    deleteSocketInfo(&(m->send));
 
     // close semaphores
-    CloseHandle(m->sendSem);
-    CloseHandle(m->sendCompleteSem);
+//    CloseHandle(m->sendSem);
+//    CloseHandle(m->sendCompleteSem);
 
     // close threads
     TerminateThread(m->mic_rcv_thr, 0);

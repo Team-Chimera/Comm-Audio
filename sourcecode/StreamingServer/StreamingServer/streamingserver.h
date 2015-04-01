@@ -12,8 +12,6 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-
-
 bool makeSharedSems();
 bool loadSongList();
 

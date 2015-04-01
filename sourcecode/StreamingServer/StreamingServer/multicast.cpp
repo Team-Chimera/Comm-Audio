@@ -33,7 +33,7 @@ using namespace std;
 ** Programmer: Julian Brandrick
 **
 ** Interface:
-**			bool startMulticastThread(HANLDE *multicastThread)
+**			DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 **
 ** Parameters:
 **          multicastThread - Pointer to a thread handle
@@ -46,13 +46,16 @@ using namespace std;
 **  The main function for the multicast session. It initializes the 
 **  multicast structure and starts sending in a separate thread.
 *******************************************************************/
-bool startMulticastThread(HANDLE *multicastThread)
+
+DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 {
     char multicastAddr[16] = TIMECAST_ADDR;
     WORD wVersionRequested = MAKEWORD (2,2);
     WSAData wsaData;
     int loop;
     u_char lTTL;
+
+   // cout << "Id of multicast thread " << GetCurrentThreadId() << endl;
 
     WSAStartup(wVersionRequested, &wsaData);
 
@@ -96,6 +99,7 @@ bool startMulticastThread(HANDLE *multicastThread)
 	}
 
 	//load a song from command line else the test song
+   // std::string song_to_play(song_dir + "test.mp3");
 	libvlc_media_t *song = libvlc_media_new_path(inst, "test.mp3");
 
 	//load the song
@@ -304,7 +308,7 @@ LPMULTICAST_INFORMATION initMulticastSocket()
     lpMulticastInfo->Client.sin_addr.s_addr = inet_addr(TIMECAST_ADDR);
     lpMulticastInfo->Client.sin_port        = htons(TIMECAST_PORT);
 
-    if (bind (lpMulticastInfo->Socket, (struct sockaddr *)&server, sizeof(server)) == -1)
+    if ( (lpMulticastInfo->Socket, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
         displayError("Bind error", WSAGetLastError());
         return NULL;
@@ -419,6 +423,8 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 	int messageSize;
 	int dataSent = 0;
 
+ 
+
 	// While we have data to write
 	while (dataSize > 0)
 	{
@@ -463,6 +469,7 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 			WSACleanup();
 			exit(0);
 		}
+        //   cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
 		
 
 		//remove the char array
@@ -505,6 +512,8 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 *******************************************************************/
 void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size)
 {
+
+  //  cout << "Id of prepare renderer " << GetCurrentThreadId() << endl;
 	// Allocate memory to the buffer
 	*pp_pcm_buffer = (uint8_t*) malloc(size);
 }

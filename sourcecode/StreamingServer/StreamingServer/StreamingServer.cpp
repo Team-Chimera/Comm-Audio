@@ -36,20 +36,21 @@ HANDLE multicastThread;
 *******************************************************************/
 int main(int argc, char *argv[])
 {
-	/*
+	
 	if(!makeSharedSems() || !loadSongList())
 	{
 		cout << "error making semaphores, aborting" << endl;
 		return 55;
 	}
-	*/
-
+	
+    cout << "Id of Main thread " << GetCurrentThreadId() << endl;
 
 	 initWSA(&wsadata);
     // Julian's multicast...
-    startMulticastThread(&multicastThread);
+    createWorkerThread(startMulticastThread, &multicastThread, 0, 0);
     
     AcceptThread();
+    while(1){};
 
     return 0;
 
