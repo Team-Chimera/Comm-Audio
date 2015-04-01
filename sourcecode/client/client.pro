@@ -33,7 +33,8 @@ HEADERS  += mainwindow.h \
     dialog.h \
     unicastdialog.h \
     controlChannel.h \
-    music.h
+    music.h \
+    socketinfo.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
@@ -42,5 +43,5 @@ FORMS    += mainwindow.ui \
 
 INSTALLS += install_it
 
-LIBS += -lws2_32
+LIBS += -lws2_32 -lwinmm
 CONFIG += c++11
