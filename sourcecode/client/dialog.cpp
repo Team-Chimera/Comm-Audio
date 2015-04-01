@@ -237,11 +237,13 @@ bool Dialog::initialConnect(QString address)
      }
 
      //create the control channel
+     /*
     if (setupControlChannel(he) < 0)
     {
         cerr << "Unable to open control channel." << endl;
         exit(1);
     }
+    */
 
 
     struct in_addr ia;
