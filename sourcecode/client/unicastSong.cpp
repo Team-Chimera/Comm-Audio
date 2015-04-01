@@ -30,7 +30,7 @@ sockaddr_in server;
 CircularBuffer circBuf;
 
 /*******************************************************************
-** Function: uncastSong
+** Function: unicastSong
 **
 ** Date: March 28th, 2015
 **
@@ -123,7 +123,7 @@ void receiveData()
        if ((numReceived = recvfrom(unicastSongSocket, tempBuffer, MESSAGE_SIZE,
        0, (struct sockaddr*) &server, &serverInfoSize)) < 0)
        {
-           cerr << "Error reading data from multicast socket." << endl;
+           cerr << "Error reading data from unicast socket." << endl;
            continue;
        }
        //place the data into the circular buffer
