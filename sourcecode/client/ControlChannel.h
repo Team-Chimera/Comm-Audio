@@ -5,7 +5,7 @@
 #include "controlMessage.h"
 
 #define BUFFER_SIZE 1024
-#define CONTROL_PORT 9002
+#define CONTROL_PORT 9874
 
 #define DATA_BUFSIZE 1024
 #define IP_SIZE 40
