@@ -12,7 +12,7 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-const LPCWSTR SONG_DIR = L"c:\\songs\\*.*";
+
 
 bool makeSharedSems();
 bool loadSongList();
