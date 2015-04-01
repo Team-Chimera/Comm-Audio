@@ -34,6 +34,7 @@
 #include "controlChannel.h"
 #include "unicastSong.h"
 #include "mainwindow.h"
+#include "downloadSong.h"
 
 
 using namespace std;
@@ -45,6 +46,7 @@ hostent *host;
 //reading thread
 HANDLE readThread = INVALID_HANDLE_VALUE;
 HANDLE unicastThread = INVALID_HANDLE_VALUE;
+HANDLE downloadThread = INVALID_HANDLE_VALUE;
 
 int controlSocket;
 
@@ -118,7 +120,7 @@ int setupControlChannel(hostent *hp)
 
 
 /*******************************************************************
-** Function: setupControlChannel
+** Function: read
 **
 ** Date: March 14th, 2015
 **
@@ -200,14 +202,17 @@ DWORD WINAPI read(LPVOID arg)
 ** Interface:
 **			void CALLBACK ReadRoutine(DWORD Error,
 **                  DWORD bytesReceived, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
-**              int port -- Control channel port
-**              hostent *hp -- IP of the server
+**              DWORD Error -- Errors occured during the routine
+**              DWORD bytesReceived -- Number of bytes received
+**              LPWSAOVERLAPPED -- Overlapped structure
+**              DWORD inFlags -- Flags
+**
 **
 ** Returns:
-**			int
+**			void
 **
 ** Notes:
-** Called to create the control channel connect on the client
+** read routine of the control channel
 **
 *******************************************************************/
 void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
@@ -524,6 +529,30 @@ void establishGUIConnector(void *gui)
 **********************************************************************/
 bool downloadSong(string song)
 {
+    //create a song request message for the control channel
+    ctrlMessage message;
+
+    message.type = SONG_REQUEST;
+    message.msgData.emplace_back(song);
+
+    string requestMessage;
+    createControlString(message, requestMessage);
+
+    //send the message to the server
+    if (send(controlSocket, requestMessage.c_str(), requestMessage.length(), 0) == -1 )
+    {
+        cerr << "Send Failed" << endl;
+        return false;
+    }
+
+    //create the download thread
+    DWORD threadId;
+    if ((downloadThread = CreateThread(NULL, 0, beginDownload, NULL, 0, &threadId)) == NULL)
+    {
+        cerr << "Unable to create unicast thread";
+        return false;
+    }
+
     return true;
 }
 
@@ -576,7 +605,6 @@ bool requestSong(string song)
         cerr << "Unable to create unicast thread";
         return false;
     }
-
 
     return true;
 }
