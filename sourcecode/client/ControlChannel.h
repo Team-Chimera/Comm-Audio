@@ -12,10 +12,6 @@
 #include <WinSock2.h>
 #include <stdio.h>
 
-#define CLIENT_TCP_PORT 6678
-#define CLIENT_UDP_PORT 6698
-
-
 /** FUNCTIONS **/
 int setupControlChannel(hostent *);
 DWORD WINAPI read(LPVOID);

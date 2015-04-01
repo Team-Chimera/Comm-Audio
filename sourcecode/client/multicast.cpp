@@ -246,7 +246,7 @@ void receiveMulticastData()
 }
 
 /*****************************************************************
-** Function: playSong
+** Function: playMulticastSong
 **
 ** Date: March 28th, 2015
 **
