@@ -795,23 +795,28 @@ bool createSems(LPMUSIC_SESSION m)
 void sessionCleanUp(LPMUSIC_SESSION m)
 {
     SOCKET c = m->control.Socket;
-    printf("closing thread for control socket %d\n", c);
-
-    // close all socket infos
-    deleteSocketInfo(&(m->control));
-    deleteSocketInfo(&(m->mic_rcv));
-    deleteSocketInfo(&(m->mic_send));
-//    deleteSocketInfo(&(m->send));
-
-    // close semaphores
-//    CloseHandle(m->sendSem);
-//    CloseHandle(m->sendCompleteSem);
+    printf("Session clean up for socket %d\n", c);
 
     // close threads
     TerminateThread(m->mic_rcv_thr, 0);
     TerminateThread(m->mic_send_thr, 0);
     TerminateThread(m->send_thr, 0);
 
+    // close all socket infos
+    if(&(m->control) == 0 )
+        deleteSocketInfo(&(m->control));
+    if(&(m->mic_rcv) == 0 )
+        deleteSocketInfo(&(m->mic_rcv));
+    if(&(m->mic_send) == 0 )
+        deleteSocketInfo(&(m->mic_send));
+    if(&(m->send) == 0 )
+        deleteSocketInfo(&(m->send));
+
+    // close semaphores
+    CloseHandle(m->sendSem);
+    CloseHandle(m->sendCompleteSem);
+
+    // close thread handles
     CloseHandle(m->mic_rcv_thr);
     CloseHandle(m->mic_send_thr);
     CloseHandle(m->send_thr);
