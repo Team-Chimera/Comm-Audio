@@ -26,7 +26,9 @@ long loadFile(const char* file_name, char** file_out)
     long size;
     ifstream input;
 
-    input.open( file_name, ios::binary | ifstream::ate );
+    string to_open = song_dir + file_name;
+
+    input.open( to_open, ios::binary | ifstream::ate );
     if(!input.is_open())
     {
         printf("Error opening in put file %s, aborting send", file_name);

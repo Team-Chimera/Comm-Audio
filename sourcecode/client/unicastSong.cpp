@@ -123,7 +123,7 @@ void receiveData()
        if ((numReceived = recvfrom(unicastSongSocket, tempBuffer, MESSAGE_SIZE,
        0, (struct sockaddr*) &server, &serverInfoSize)) < 0)
        {
-           cerr << "Error reading data from multicast socket." << endl;
+           cerr << "Error reading data from unicast socket." << endl;
            continue;
        }
        //place the data into the circular buffer

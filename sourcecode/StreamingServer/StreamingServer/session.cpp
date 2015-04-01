@@ -34,6 +34,12 @@
 #include "session.h"
 
 
+HANDLE newSongSem;
+HANDLE songAccessSem;
+HANDLE userChangeSem;
+HANDLE userAccessSem;
+using namespace std;
+
 std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
 using namespace std;
@@ -62,6 +68,7 @@ using namespace std;
 *******************************************************************/
 bool createSession(SOCKET c, char* a)
 {
+    cout << endl << "Creating a session for control socket " << c << " with ip " << a << endl;
     LPMUSIC_SESSION m;
     if ((m = (LPMUSIC_SESSION) GlobalAlloc(GPTR,
          sizeof(MUSIC_SESSION))) == NULL)
@@ -183,7 +190,7 @@ DWORD WINAPI AcceptThread()
         printf("error creating sessionSem\n");
         return FALSE;
     }
-
+    cout << endl << "Accepting Clients" << endl;
     if(!openListenSocket(&Accept, SERVER_TCP_LISTEN_PORT) )
         return FALSE;
 
@@ -237,7 +244,7 @@ DWORD WINAPI AcceptThread()
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
-    handles = 4;
+    handles = 3;
     HANDLE waitHandles[3];
 
     flags = 0;
@@ -572,10 +579,7 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
     DWORD result, SendBytes;
     sockaddr_in client;
     SOCKET temp;
-
-    int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
-    getIP_Addr(&client, m->ip, port);
-    printIP(client);
+    int port;
 
     while(1)
     {
@@ -585,6 +589,8 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
         // should check for error
 
         m->sending = true;
+        port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+        getIP_Addr(&client, m->ip, port);
 
         if(m->mode == 't')
         {
@@ -794,7 +800,7 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     deleteSocketInfo(&(m->control));
     deleteSocketInfo(&(m->mic_rcv));
     deleteSocketInfo(&(m->mic_send));
-    deleteSocketInfo(&(m->send));
+//    deleteSocketInfo(&(m->send));
 
     // close semaphores
     CloseHandle(m->sendSem);

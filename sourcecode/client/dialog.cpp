@@ -227,13 +227,13 @@ bool Dialog::initialConnect(QString address)
      }
 
      //Resolve multicast
-     if ((multi = gethostbyname(multicastIP.c_str())) == NULL)
+  /*   if ((multi = gethostbyname(multicastIP.c_str())) == NULL)
      {
          //error getting the host
          cerr << "Failed to retrieve host" << endl;
          exit(1);
      }
-
+*/
 
      //create the control channel
 
@@ -245,9 +245,9 @@ bool Dialog::initialConnect(QString address)
     }
 
 
-    struct in_addr ia;
+ /*   struct in_addr ia;
     memcpy((void*)multi->h_addr,(void*)&ia, multi->h_length);
-    StartMulticast(ia);
+    StartMulticast(ia); */
 
     return true;
 }
