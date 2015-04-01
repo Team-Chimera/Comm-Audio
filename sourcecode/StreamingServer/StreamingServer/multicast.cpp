@@ -99,8 +99,8 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 	}
 
 	//load a song from command line else the test song
-   // std::string song_to_play(song_dir + "test.mp3");
-	libvlc_media_t *song = libvlc_media_new_path(inst, "test.mp3");
+    std::string song_to_play(song_dir + "test.mp3");
+	libvlc_media_t *song = libvlc_media_new_path(inst, song_to_play.c_str());
 
 	//load the song
 	if (song == NULL)

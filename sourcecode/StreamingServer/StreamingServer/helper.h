@@ -12,8 +12,8 @@
 
 #include <vector>
 
-const LPCWSTR SONG_DIR = L"c:\\songs\\*.*";
-const std::string song_dir = "c:\\songs\\";
+const LPCWSTR SONG_DIR = L"..\\songs\\*.*";
+const std::string song_dir = "..\\songs\\";
 
 
 void parseControlString(std::string str, ctrlMessage *msg);

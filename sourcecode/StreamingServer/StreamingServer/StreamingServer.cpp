@@ -132,8 +132,9 @@ bool loadSongList()
   {
       if(count++ > 1)
       {
-        ss << data.cFileName;
-        songList.push_back(ss.str());
+       // ss << data.cFileName;
+        string temp = CW2A(data.cFileName);
+        songList.push_back(temp);
       }
   } while (FindNextFile(hFind, &data));
 
@@ -142,6 +143,11 @@ bool loadSongList()
   {
       cout << "no songs in song directory" << endl;
       return false;
+  }
+
+  for(string s : songList)
+  {
+      cout << s << endl;
   }
 
   return true;
