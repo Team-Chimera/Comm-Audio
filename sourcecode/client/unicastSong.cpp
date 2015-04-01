@@ -30,7 +30,7 @@ sockaddr_in server;
 CircularBuffer circBuf;
 
 /*******************************************************************
-** Function: uncastSong
+** Function: unicastSong
 **
 ** Date: March 28th, 2015
 **

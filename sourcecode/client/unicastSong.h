@@ -1,7 +1,6 @@
 #define CLIENT_UNICAST_PORT 6698
 
 #include <mmsystem.h>
-
 #include <stdint.h>
 
 DWORD WINAPI unicastSong(LPVOID);
