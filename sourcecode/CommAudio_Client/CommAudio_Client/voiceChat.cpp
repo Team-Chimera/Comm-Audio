@@ -29,6 +29,10 @@
 #include "voiceChat.h"
 #include "privateVoiceChat.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 SOCKET_INFORMATION * recvSocketInfo;
 TRIPLE_BUFFER * outBuffers;
 HANDLE recvVoiceThread;

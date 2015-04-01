@@ -150,7 +150,7 @@ DWORD WINAPI read(LPVOID arg)
     //set the socket structure
     ZeroMemory(&(controlSocketInfo.overlapped), sizeof(WSAOVERLAPPED));
     controlSocketInfo.DataBuf.len = DATA_BUFSIZE;
-    controlSocketInfo.DataBuf.buf = controlSocketInfo.Buffer;
+    controlSocketInfo.DataBuf.buf = new char[DATA_BUFSIZE];
 
     while(true)
     {

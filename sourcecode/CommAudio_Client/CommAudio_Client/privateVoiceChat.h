@@ -23,10 +23,6 @@
 #include "voiceChat.h"
 #include <iostream>
 
-using std::cout;
-using std::cerr;
-using std::endl;
-
 DWORD WINAPI StartRecvVoice(LPVOID parameter);
 bool StartVoiceOut();
 

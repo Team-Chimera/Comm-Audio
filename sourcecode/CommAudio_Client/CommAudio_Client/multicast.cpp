@@ -39,6 +39,9 @@ CircularBuffer multiBuffer;
 //media output device
 HWAVEOUT multicastOutput;
 
+//create a number of buffers; in this case 3
+LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
+
 //stream thread handle
 HANDLE multiThread = INVALID_HANDLE_VALUE;
 HANDLE multiParentThread = INVALID_HANDLE_VALUE;
@@ -128,7 +131,20 @@ bool EndMulticast()
 		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
 	}
 
-	waveOutClose(multicastOutput); // attempting to open it again will fail if it isn't closed
+	// Unprepare the wave headers
+	for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
+	{
+		if (waveOutPrepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+		{
+			cerr << "Failed to unprepare output header." << endl;
+			exit(1);
+		}
+
+		delete audioBuffers[i];
+	}
+
+	// Close the device
+	waveOutClose(multicastOutput);
 
 	return true;
 }
@@ -216,14 +232,14 @@ void receiveMulticastData()
 {
 	streaming = true;
 
+	//receive data from the server
+	int serverInfoSize = sizeof(socketInfo.sockAddr);
+	int numReceived = 0;
+	char tempBuffer[MESSAGE_SIZE];
+
 	while (streaming)
 	{
-		//receive data from the server
-		int serverInfoSize = sizeof(socketInfo.sockAddr);
-		int numReceived = 0;
-		char tempBuffer[MESSAGE_SIZE];
-
-		if ((numReceived = recvfrom(socketInfo.socket, tempBuffer, MESSAGE_SIZE,
+		if ((numReceived = recvfrom(socketInfo.socket, tempBuffer, MESSAGE_SIZE,\
 			0, (struct sockaddr*) &socketInfo.sockAddr, &serverInfoSize)) < 0)
 		{
 			cerr << "Error reading data from multicast socket." << endl;
@@ -274,9 +290,6 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 {
 	//create the wave header
 	WAVEFORMATEX wavFormat;
-
-	//create a number of buffers; in this case 3
-	LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
 
 	//set up the format
 	wavFormat.nSamplesPerSec = 44100;

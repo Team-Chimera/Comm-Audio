@@ -65,13 +65,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="client.h" />
+    <ClInclude Include="ControlChannel.h" />
+    <ClInclude Include="controlMessage.h" />
+    <ClInclude Include="music.h" />
     <ClInclude Include="privateVoiceChat.h" />
     <ClInclude Include="multicast.h" />
+    <ClInclude Include="socketinfo.h" />
+    <ClInclude Include="unicastSong.h" />
     <ClInclude Include="voiceChat.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ControlChannel.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="multicast.cpp" />
+    <ClCompile Include="unicastSong.cpp" />
     <ClCompile Include="voiceChat.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -14,7 +14,6 @@ typedef struct _SOCKET_INFORMATION
     struct ip_mreq addr;
     SOCKADDR_IN sockAddr;
     OVERLAPPED overlapped;
-    CHAR Buffer[DATA_BUFSIZE]; // used for general data, not sending whole music files.
     WSABUF DataBuf;
 } SOCKET_INFORMATION, * LPSOCKET_INFORMATION;
 
