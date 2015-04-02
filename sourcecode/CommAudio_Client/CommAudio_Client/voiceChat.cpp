@@ -1,31 +1,26 @@
-/*------------------------------------------------------------------------------------------------------------------
--- SOURCE FILE: voicecast.cpp
+/*-------------------------------------------------------------------------------------------------
+-- SOURCE FILE: voiceChat.cpp
 --
 -- PROGRAM: CommAudio_Client
 --
 -- FUNCTIONS:
+--            //
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
 -- NOTES:
---
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    //
+-------------------------------------------------------------------------------------------------*/
 
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <mmsystem.h>
-//#include <winnetwk.h>
-//#include <ws2spi.h>
-//#include <wtsapi32.h>
 #include "music.h"
 #include "socketinfo.h"
 #include "client.h"
@@ -39,53 +34,60 @@ SOCKET_INFORMATION recvSocketInfo;
 LPWAVEHDR recvBuffers[NUM_OUTPUT_BUFFERS];
 CircularBuffer recvCBuffer;
 HWAVEOUT voiceOutput;
-HANDLE recvVoiceThread;
+HANDLE recvThread;
 HANDLE recvParentThread;
 
 SOCKET_INFORMATION sendSocketInfo;
 LPWAVEHDR sendBuffers[NUM_OUTPUT_BUFFERS];
-CircularBuffer sendBuffer;
+CircularBuffer sendCBuffer;
 HWAVEIN voiceInput;
-HANDLE sendVoiceThread;
+HANDLE sendThread;
 HANDLE sendParentThread;
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinVoiceChat
+/******************************************************************************************************************************************
+*******************************************************************************************************************************************
+ *
+ * START AND END FUNCTIONS
+ *
+*******************************************************************************************************************************************
+******************************************************************************************************************************************/
+
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: StartVoiceChat
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinVoiceChat(SOCKET voicecast, in_addr group)
+-- INTERFACE: bool StartVoiceChat(hostent * dest)
+--                hostent * dest // valid ip for the server
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Joins the voicecast session, and starts voicecast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
-bool StartVoiceChat(in_addr dest) // valid ip for the server
+--    Starts receiving, playback, recording, and sending of voice chat data
+-------------------------------------------------------------------------------------------------*/
+bool StartVoiceChat(hostent * dest) // valid ip for the server
 {
 	DWORD thread;
 
-	recvParentThread = CreateThread(NULL, 0, StartRecvVoice, NULL, 0, &thread);
+	recvParentThread = CreateThread(NULL, 0, StartVoiceRecv, NULL, 0, &thread);
 	if (recvParentThread == NULL)
 	{
 		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 
-	sendParentThread = CreateThread(NULL, 0, StartSendVoice, NULL, 0, &thread);
+	sendParentThread = CreateThread(NULL, 0, StartVoiceSend, dest, 0, &thread);
 	if (sendParentThread == NULL)
 	{
 		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 
+	// these next two aren't strictly nessesary, but they protect against a specific occurrance
 	GetExitCodeThread(recvParentThread, &thread);
 	if (thread != STILL_ACTIVE)
 	{
@@ -103,52 +105,49 @@ bool StartVoiceChat(in_addr dest) // valid ip for the server
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropVoiceChat
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: EndVoiceChat
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void DropVoiceChat()
+-- INTERFACE: bool EndVoiceChat()
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Drops the voicecast session, and stops voicecast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Terminates the voice chat threads, and resets necessary variables
+-------------------------------------------------------------------------------------------------*/
 bool EndVoiceChat()
 {
 	closesocket(recvSocketInfo.socket);
 	closesocket(sendSocketInfo.socket);
 
-	if (TerminateThread(recvVoiceThread, 0) == 0)
+	if (TerminateThread(recvThread, 0) == 0)
 	{
 		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
-		exit(1);
+		return false;
 	}
 
-	if (TerminateThread(sendVoiceThread, 0) == 0)
+	if (TerminateThread(sendThread, 0) == 0)
 	{
 		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
-		exit(1);
+		return false;
 	}
 
 	if (TerminateThread(recvParentThread, 0) == 0)
 	{
 		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
-		exit(1);
+		return false;
 	}
 
 	if (TerminateThread(sendParentThread, 0) == 0)
 	{
 		cerr << "VoiceChat: terminate thread error (" << WSAGetLastError() << ")" << endl;
-		exit(1);
+		return false;
 	}
 
 	for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
@@ -156,7 +155,7 @@ bool EndVoiceChat()
 		if (waveOutUnprepareHeader(voiceOutput, recvBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_ERROR)
 		{
 			cerr << "VoiceChat: out unprepareheader error" << endl;
-			exit(1);
+			return false;
 		}
 
 		delete recvBuffers[i];
@@ -167,7 +166,7 @@ bool EndVoiceChat()
 		if (waveInUnprepareHeader(voiceInput, sendBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_ERROR)
 		{
 			cerr << "VoiceChat: in unprepareheader error" << endl;
-			exit(1);
+			return false;
 		}
 
 		delete recvBuffers[i];
@@ -179,34 +178,34 @@ bool EndVoiceChat()
 	return true;
 }
 
-// *******************************************************************************************************************************
+/******************************************************************************************************************************************
+*******************************************************************************************************************************************
+*
+* RECEIVE AND PLAY FUNCTIONS
+*
+*******************************************************************************************************************************************
+******************************************************************************************************************************************/
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinVoiceChat
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: StartVoiceRecv
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinVoiceChat(SOCKET voicecast, in_addr group)
+-- INTERFACE: DWORD WINAPI StartVoiceRecv(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
--- RETURNS: void
+-- RETURNS: DWORD // thread exit code
 --
 -- NOTES:
--- Joins the voicecast session, and starts voicecast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
-DWORD WINAPI StartRecvVoice(LPVOID parameter)
+--    Initializes variables and starts the receive and playback functions
+-------------------------------------------------------------------------------------------------*/
+DWORD WINAPI StartVoiceRecv(LPVOID parameter)
 {
-	DWORD recvThread;
 	BOOL flag = true;
-	in_addr * dest = (in_addr*)parameter;
-
-	if (StartVoiceOut() == false) return -1;
 
 	recvSocketInfo.socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (recvSocketInfo.socket == INVALID_SOCKET)
@@ -223,19 +222,17 @@ DWORD WINAPI StartRecvVoice(LPVOID parameter)
 
 	recvSocketInfo.sockAddr.sin_family = AF_INET;
 	recvSocketInfo.sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	recvSocketInfo.sockAddr.sin_port = htons(MULTICAST_PORT);
+	recvSocketInfo.sockAddr.sin_port = htons(VOICECHAT_PORT);
 	if (bind(recvSocketInfo.socket, (struct sockaddr*)&(recvSocketInfo.sockAddr), sizeof(recvSocketInfo.sockAddr)) == SOCKET_ERROR)
 	{
 		cerr << "VoiceChat: Bind error (" << WSAGetLastError() << ")" << endl;
 		return -1;
 	}
 
-	recvSocketInfo.addr.imr_multiaddr = *dest;
-	recvSocketInfo.addr.imr_interface.s_addr = INADDR_ANY;
-
-	if (setsockopt(recvSocketInfo.socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(recvSocketInfo.addr), sizeof(recvSocketInfo.addr)) == SOCKET_ERROR)
+	DWORD threadId;
+	if ((recvThread = CreateThread(NULL, 0, StartVoicePlayback, NULL, 0, &threadId)) == NULL)
 	{
-		cerr << "VoiceChat: add membership error (" << WSAGetLastError() << ")" << endl;
+		cerr << "VoiceChat: thread creation error" << endl;
 		return -1;
 	}
 
@@ -244,75 +241,23 @@ DWORD WINAPI StartRecvVoice(LPVOID parameter)
 	return 1;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: RecvVoiceThread
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: 
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: DWORD WINAPI RecvVoiceThread(LPVOID parameter)
---
--- RETURNS: DWORD
---
--- NOTES:
---
---
-----------------------------------------------------------------------------------------------------------------------*/
-void RecvVoiceData()
-{
-	int serverInfoSize = sizeof(recvSocketInfo.sockAddr);
-	int numReceived = 0;
-	char tempBuffer[MESSAGE_SIZE];
-
-	while (true)
-	{
-		if ((numReceived = recvfrom(recvSocketInfo.socket, tempBuffer, MESSAGE_SIZE, \
-			0, (struct sockaddr*)&recvSocketInfo.sockAddr, &serverInfoSize)) < 0)
-		{
-			cerr << "VoiceChat: recvfrom error" << endl;
-			continue;
-		}
-
-		for (int i = 0; i < numReceived; i++)
-		{
-			recvCBuffer.buf[recvCBuffer.pos] = tempBuffer[i];
-			if (recvCBuffer.pos == MUSIC_BUFFER_SIZE - 1)
-			{
-				recvCBuffer.pos = 0;
-			}
-			else
-			{
-				recvCBuffer.pos++;
-			}
-		}
-	}
-}
-
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinVoiceChat
---
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
---
--- DESIGNER: Michael Chimick
---
--- PROGRAMMER: Michael Chimick
---
--- INTERFACE: void JoinVoiceChat(SOCKET voicecast, in_addr group)
+-- INTERFACE: DWORD WINAPI StartVoicePlayback(LPVOID parameter)
 --
 -- RETURNS: void
 --
 -- NOTES:
--- Joins the voicecast session, and starts voicecast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
-DWORD WINAPI StartVoiceOut(LPVOID parameter)
+-- .
+-------------------------------------------------------------------------------------------------*/
+DWORD WINAPI StartVoicePlayback(LPVOID parameter)
 {
 	WAVEFORMATEX wavFormat;
 	wavFormat.nSamplesPerSec = SAMPLES_PER_SECOND;
@@ -358,10 +303,59 @@ DWORD WINAPI StartVoiceOut(LPVOID parameter)
 	return 0;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: RecvVoiceThread
+--
+-- DATE: April 1, 2015
+--
+-- REVISIONS: Created March 10, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: DWORD WINAPI RecvVoiceThread(LPVOID parameter)
+--
+-- RETURNS: DWORD
+--
+-- NOTES:
+--
+--
+-------------------------------------------------------------------------------------------------*/
+void RecvVoiceData()
+{
+	int serverInfoSize = sizeof(recvSocketInfo.sockAddr);
+	int numReceived = 0;
+	char tempBuffer[MESSAGE_SIZE];
+
+	while (true)
+	{
+		if ((numReceived = recvfrom(recvSocketInfo.socket, tempBuffer, MESSAGE_SIZE, \
+			0, (struct sockaddr*)&recvSocketInfo.sockAddr, &serverInfoSize)) < 0)
+		{
+			cerr << "VoiceChat: recvfrom error" << endl;
+			continue;
+		}
+
+		for (int i = 0; i < numReceived; i++)
+		{
+			recvCBuffer.buf[recvCBuffer.pos] = tempBuffer[i];
+			if (recvCBuffer.pos == MUSIC_BUFFER_SIZE - 1)
+			{
+				recvCBuffer.pos = 0;
+			}
+			else
+			{
+				recvCBuffer.pos++;
+			}
+		}
+	}
+}
+
+/*-------------------------------------------------------------------------------------------------
 -- FUNCTION:
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -376,7 +370,7 @@ DWORD WINAPI StartVoiceOut(LPVOID parameter)
 -- NOTES:
 --
 --
-----------------------------------------------------------------------------------------------------------------------*/
+-------------------------------------------------------------------------------------------------*/
 void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
 	if (uMsg == WOM_DONE)
@@ -389,12 +383,18 @@ void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw
 	}
 }
 
-// ***********************************************************************************************************************************************
+/******************************************************************************************************************************************
+*******************************************************************************************************************************************
+*
+* RECORD AND SEND FUNCTIONS
+*
+*******************************************************************************************************************************************
+******************************************************************************************************************************************/
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinVoiceChat
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: .
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -402,25 +402,18 @@ void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinVoiceChat(SOCKET voicecast, in_addr group)
+-- INTERFACE: .
 --
 -- RETURNS: void
 --
 -- NOTES:
--- Joins the voicecast session, and starts voicecast processing
+-- .
 --
-----------------------------------------------------------------------------------------------------------------------*/
-DWORD WINAPI StartSendVoice(LPVOID parameter)
+-------------------------------------------------------------------------------------------------*/
+DWORD WINAPI StartVoiceSend(LPVOID parameter)
 {
-	DWORD sendThread;
-
 	BOOL flag = true;
-
-	in_addr * dest = (in_addr*)parameter;
-
-	if (sendSocketInfo != NULL) return false;
-
-	if (StartVoiceIn() == false) return false;
+	hostent * dest = (hostent*)parameter;
 
 	sendSocketInfo.socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sendSocketInfo.socket == INVALID_SOCKET)
@@ -436,42 +429,27 @@ DWORD WINAPI StartSendVoice(LPVOID parameter)
 	}
 
 	sendSocketInfo.sockAddr.sin_family = AF_INET;
-	sendSocketInfo.sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	sendSocketInfo.sockAddr.sin_port = htons(MULTICAST_PORT);
+	sendSocketInfo.sockAddr.sin_port = htons(VOICECHAT_PORT);
+	memcpy((char *)&sendSocketInfo.sockAddr.sin_addr, dest->h_addr, dest->h_length);
+
 	if (bind(sendSocketInfo.socket, (struct sockaddr*)&(sendSocketInfo.sockAddr), sizeof(sendSocketInfo.sockAddr)) == SOCKET_ERROR)
 	{
 		cerr << "VoiceChat: Bind error (" << WSAGetLastError() << ")" << endl;
 	}
 
-	sendSocketInfo.addr.imr_multiaddr = *dest;
-	sendSocketInfo.addr.imr_interface.S_un.S_addr = INADDR_ANY;
-
-	if (setsockopt(sendSocketInfo.socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&(sendSocketInfo.addr), sizeof(sendSocketInfo.addr)) == SOCKET_ERROR)
+	DWORD threadID;
+	if ((sendThread = CreateThread(NULL, 0, StartVoiceRecord, NULL, 0, &threadID)) == NULL)
 	{
-		cerr << "VoiceChat: add membership error (" << WSAGetLastError() << ")" << endl;
+		cerr << "VoiceChat: thread creation error" << endl;
 	}
-
-	/*sendVoiceThread = CreateThread(NULL, 0, SendVoiceThread, NULL, 0, &sendThread);
-	if (sendVoiceThread == NULL)
-	{
-		cerr << "VoiceChat: Thread creation error (" << WSAGetLastError() << ")" << endl;
-		return false;
-	}
-
-	while (true)
-	{
-		WaitForSingleObjectEx(sendVoiceThread, INFINITE, FALSE);
-		GetExitCodeThread(sendVoiceThread, &sendThread);
-		if (sendThread != STILL_ACTIVE) break;
-	}*/
 
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: JoinVoiceChat
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: .
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -479,82 +457,65 @@ DWORD WINAPI StartSendVoice(LPVOID parameter)
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinVoiceChat(SOCKET voicecast, in_addr group)
+-- INTERFACE: .
 --
 -- RETURNS: void
 --
 -- NOTES:
--- Joins the voicecast session, and starts voicecast processing
+-- .
 --
-----------------------------------------------------------------------------------------------------------------------*/
-bool StartVoiceIn()
+-------------------------------------------------------------------------------------------------*/
+DWORD WINAPI StartVoiceRecord(LPVOID parameter)
 {
-	MMRESULT result;
-
 	WAVEFORMATEX wavFormat;
-	wavFormat.nChannels = CHANNELS;
 	wavFormat.nSamplesPerSec = SAMPLES_PER_SECOND;
-	wavFormat.wFormatTag = WAVE_FORMAT_PCM;
 	wavFormat.wBitsPerSample = BITS_PER_SAMPLE;
+	wavFormat.nChannels = CHANNELS;
 	wavFormat.cbSize = 0;
-	wavFormat.nBlockAlign = wavFormat.nChannels * wavFormat.wBitsPerSample / 8;
-	wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample / 8;
+	wavFormat.wFormatTag = WAVE_FORMAT_PCM;
+	wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
+	wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
 
-	result = waveOutOpen(&(outBuffers.waveout), WAVE_MAPPER, &wavFormat, (DWORD)VoiceOutCallback, NULL, CALLBACK_FUNCTION);
-	if ((result != MMSYSERR_NOERROR) || (outBuffers.waveout == NULL))
+	if (waveInOpen(&voiceInput, WAVE_MAPPER, &wavFormat, (DWORD)VoiceInCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
 	{
-		cerr << "VoiceChat: Open waveout error (" << result << ")" << endl;
+		cerr << "VoiceChat: Open wavein error" << endl;
+		return -1;
 	}
 
-	sendSocketInfo.datagram.buf = new char[DATAGRAM];
-	sendSocketInfo.datagram.len = DATAGRAM;
-
-	inBuffers.primary = new WAVEHDR;
-	inBuffers.secondary = new WAVEHDR;
-	inBuffers.tertiary = new WAVEHDR;
-
-	inBuffers.buf = new char[BUFFER];
-
-	inBuffers.primary.lpData = outBuffers.buf;
-	inBuffers.primary.dwBufferLength = BUFFER;
-
-	memcpy_s(inBuffers.secondary, sizeof(*(inBuffers.secondary)), \
-		inBuffers.primary, sizeof(*(inBuffers.primary)));
-	memcpy_s(inBuffers.tertiary, sizeof(*(inBuffers.tertiary)), \
-		inBuffers.primary, sizeof(*(inBuffers.primary)));
-
-	result = waveInPrepareHeader(inBuffers.wavein, inBuffers.primary, sizeof(*(inBuffers.primary)));
-	result = waveInPrepareHeader(inBuffers.wavein, inBuffers.secondary, sizeof(*(inBuffers.secondary)));
-	result = waveInPrepareHeader(inBuffers.wavein, inBuffers.tertiary, sizeof(*(inBuffers.tertiary)));
-	if (result != MMSYSERR_NOERROR)
+	for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
 	{
-		cerr << "VoiceChat: Error preparing headers (" << result << ")" << endl;
-		return false;
+		sendBuffers[i] = new WAVEHDR();
+		ZeroMemory(sendBuffers[i], sizeof(WAVEHDR));
+
+		sendBuffers[i]->lpData = sendCBuffer.buf;
+		sendBuffers[i]->dwBufferLength = MUSIC_BUFFER_SIZE;
+
+		if (waveInPrepareHeader(voiceInput, sendBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_ERROR)
+		{
+			cerr << "VoiceChat: error preparing in headers" << endl;
+			return -1;
+		}
+
+		if (waveInAddBuffer(voiceInput, sendBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_ERROR)
+		{
+			cerr << "VoiceChat: error adding in buffers to queue" << endl;
+			return -1;
+		}
 	}
 
-	result = waveInAddBuffer(inBuffers.wavein, inBuffers.primary, sizeof(*(inBuffers.primary)));
-	result = waveInAddBuffer(inBuffers.wavein, inBuffers.secondary, sizeof(*(inBuffers.secondary)));
-	result = waveInAddBuffer(inBuffers.wavein, inBuffers.tertiary, sizeof(*(inBuffers.tertiary)));
-	if (result != MMSYSERR_NOERROR)
+	if (waveInStart(voiceInput) != MMSYSERR_NOERROR)
 	{
-		cerr << "VoiceChat: Error adding buffers (" << result << ")" << endl;
-		return false;
-	}
-
-	result = waveInStart(inBuffers.wavein);
-	if (result != MMSYSERR_NOERROR)
-	{
-		cerr << "VoiceChat: Error starting recording (" << result << ")" << endl;
+		cerr << "VoiceChat: Error starting recording" << endl;
 		return false;
 	}
 
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 -- FUNCTION:
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -569,8 +530,24 @@ bool StartVoiceIn()
 -- NOTES:
 --
 --
-----------------------------------------------------------------------------------------------------------------------*/
+-------------------------------------------------------------------------------------------------*/
 void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	//
+	if (uMsg == WIM_DATA)
+	{
+		// send the data to the server
+		if (sendto(sendSocketInfo.socket, ((LPWAVEHDR)dw1)->lpData, ((LPWAVEHDR)dw1)->dwBufferLength, 0, \
+			(struct sockaddr *)&sendSocketInfo.sockAddr, sizeof(sendSocketInfo.sockAddr)) == SOCKET_ERROR)
+		{
+			cerr << "VoiceChat: send error (" << WSAGetLastError() << ")" << endl;
+			exit(1);
+		}
+
+		// add the buffer back onto the queue
+		if (waveInAddBuffer(voiceInput, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+		{
+			cout << "VoiceChat: error adding in buffer to queue" << endl;
+			exit(1);
+		}
+	}
 }

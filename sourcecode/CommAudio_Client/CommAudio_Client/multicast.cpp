@@ -5,7 +5,7 @@
 --
 -- FUNCTIONS:
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -51,7 +51,7 @@ bool streaming = false;
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -91,7 +91,7 @@ bool StartMulticast()
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -150,7 +150,7 @@ bool EndMulticast()
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: JoinMulticast
 --
--- DATE: March 12, 2015
+-- DATE: April 1, 2015
 --
 -- REVISIONS: Created March 10, 2015
 --
@@ -205,7 +205,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 
 	//begin streaming audio
 	DWORD threadId;
-	if ((multiThread = CreateThread(NULL, 0, playMulticastSong, (LPVOID)multicastOutput, 0, &threadId)) == NULL)
+	if ((multiThread = CreateThread(NULL, 0, playMulticastSong, NULL, 0, &threadId)) == NULL)
 	{
 		cerr << "Unable to create multicast thread";
 		return -1;

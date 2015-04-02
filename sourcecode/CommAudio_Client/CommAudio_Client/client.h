@@ -31,6 +31,7 @@
 #define CHANNELS 2
 
 #define MULTICAST_PORT 8910
+#define VOICECHAT_PORT 8910
 
 #include <mmsystem.h>
 #include <Ws2tcpip.h>
