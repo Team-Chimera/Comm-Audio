@@ -58,7 +58,7 @@ typedef struct _MUSIC_SESSION {
  * changed while other threads are reading it
  * */
 
-static std::string multicastSong;
+extern std::string multicastSong;
 
 /*
  *  These semaphores are for when users are added or dropped.
@@ -72,10 +72,10 @@ extern HANDLE newSongSem;
 extern HANDLE songAccessSem;
 extern HANDLE userChangeSem;
 extern HANDLE userAccessSem;
-static std::vector<std::string> userList;
-static std::vector<std::string> songList;
+extern std::vector<std::string> userList;
+extern std::vector<std::string> songList;
 
-static HANDLE sessionsSem;
+extern HANDLE sessionsSem;
 extern std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 typedef std::pair<SOCKET, LPMUSIC_SESSION> SessionPair;
 
@@ -85,12 +85,15 @@ bool createSems(LPMUSIC_SESSION m);
 bool createThreads(LPMUSIC_SESSION m);
 
 bool initSockets(LPMUSIC_SESSION m, SOCKET control);
+void sendSongList(LPMUSIC_SESSION m);
 
 DWORD WINAPI micSendThread(LPVOID lpParameter);
 DWORD WINAPI micRcvThread(LPVOID lpParameter);
 DWORD WINAPI sendFileThread(LPVOID lpParameter);
 DWORD WINAPI controlThread(LPVOID lpParameter);
-DWORD WINAPI AcceptThread();
+DWORD WINAPI AcceptThread(LPVOID lpParameter);
+void sendToAll(std::string message);
+void sendUserList(LPMUSIC_SESSION m);
 
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);

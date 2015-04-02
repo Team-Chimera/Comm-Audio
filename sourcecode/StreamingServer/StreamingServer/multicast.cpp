@@ -99,7 +99,7 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 	}
 
 	//load a song from command line else the test song
-    std::string song_to_play(song_dir + "test.mp3");
+    std::string song_to_play(song_dir + "unknown^test.mp3");
 	libvlc_media_t *song = libvlc_media_new_path(inst, song_to_play.c_str());
 
 	//load the song
@@ -469,7 +469,7 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 			WSACleanup();
 			exit(0);
 		}
-        //   cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
+           cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
 		
 
 		//remove the char array

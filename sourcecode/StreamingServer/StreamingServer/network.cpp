@@ -378,3 +378,41 @@ bool getIP_Addr(sockaddr_in* addr, char* host, int port)
 
    return true;
 }
+
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: sendTCPMessage
+--
+-- DATE: January 30, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: bool sendTCPMessage( SOCKET* s, std::string message, int size)
+-- s: pointer to SOCKET to send on
+-- message: message to send
+-- size: size of message, defaults to BUFSIZE
+--			
+-- RETURNS: false on failure, else true
+--
+-- NOTES:
+-------------------------------------------------------------------------------------------------*/
+int sendTCPMessage( SOCKET* s, std::string message, int size)
+{
+	int result;
+	int totalSent = 0;
+
+	while(message.size() > 0)
+	{
+		if( (result = send (*s, message.c_str(), size, 0)) == SOCKET_ERROR )
+		{
+			std::cout << "WSARecv() failed with error "  << WSAGetLastError()  << std::endl;
+			return -1;
+		}
+		totalSent += result;
+		message.erase( 0, result);
+	}
+	return totalSent;
+}
