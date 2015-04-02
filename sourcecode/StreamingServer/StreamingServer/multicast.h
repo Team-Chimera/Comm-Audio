@@ -26,6 +26,4 @@ LPMULTICAST_INFORMATION initMulticastSocket();
 DWORD WINAPI multicastSendLoop(LPVOID lpParameter);
 void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
-void displayError(char *errStr, int errCode);
-
 #endif

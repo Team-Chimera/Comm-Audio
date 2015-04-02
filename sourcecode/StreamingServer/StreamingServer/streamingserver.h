@@ -4,11 +4,11 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <sstream>
 #include <map>
 #include <string>
 #include "session.h"
 #include "network.h"
+#include "atlstr.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
