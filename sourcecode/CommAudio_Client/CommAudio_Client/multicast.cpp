@@ -1,22 +1,20 @@
-/*------------------------------------------------------------------------------------------------------------------
--- SOURCE FILE: multicast.cpp
+/*-------------------------------------------------------------------------------------------------
+-- SOURCE FILE: mulitcast.cpp
 --
 -- PROGRAM: CommAudio_Client
 --
 -- FUNCTIONS:
+--            //
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
 -- NOTES:
---
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    //
+-------------------------------------------------------------------------------------------------*/
 
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
@@ -48,25 +46,30 @@ HANDLE multiParentThread = INVALID_HANDLE_VALUE;
 
 bool streaming = false;
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropMulticast
+/******************************************************************************************************************************************
+*******************************************************************************************************************************************
+*
+* START AND END FUNCTIONS
+*
+*******************************************************************************************************************************************
+******************************************************************************************************************************************/
+
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: StartMulticast
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void DropMulticast()
+-- INTERFACE: bool StartMulticast()
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Drops the multicast session, and stops multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Starts receiving and playback threads for the multicasting data
+-------------------------------------------------------------------------------------------------*/
 bool StartMulticast()
 {
 	DWORD thread;
@@ -74,39 +77,36 @@ bool StartMulticast()
 	multiParentThread = CreateThread(NULL, 0, JoinMulticast, NULL, 0, &thread);
 	if (multiParentThread == NULL)
 	{
-		cerr << "Multicast: Thread creation error (" << WSAGetLastError() << ")" << endl;
+		cerr << "Multicast: thread creation error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 
 	GetExitCodeThread(multiParentThread, &thread);
 	if (thread != STILL_ACTIVE)
 	{
-		cerr << "Multicast: Parent start error (" << WSAGetLastError() << ")" << endl;
+		cerr << "Multicast: parent start error (" << WSAGetLastError() << ")" << endl;
 		return false;
 	}
 
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropMulticast
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: EndMulticast
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void DropMulticast()
+-- INTERFACE: bool EndMulticast()
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Drops the multicast session, and stops multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Stops the receiving and playback threads, and resets variables
+-------------------------------------------------------------------------------------------------*/
 bool EndMulticast()
 {
 	if (setsockopt(socketInfo.socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo.addr), sizeof(socketInfo.addr)) == SOCKET_ERROR)
@@ -134,7 +134,7 @@ bool EndMulticast()
 	{
 		if (waveOutPrepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
 		{
-			cerr << "Failed to unprepare output header." << endl;
+			cerr << "Multicast: failed to unprepare output header" << endl;
 			exit(1);
 		}
 
@@ -147,25 +147,31 @@ bool EndMulticast()
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
+/******************************************************************************************************************************************
+*******************************************************************************************************************************************
+*
+* RECEIVE AND PLAYBACK FUNCTIONS
+*
+*******************************************************************************************************************************************
+******************************************************************************************************************************************/
+
+/*-------------------------------------------------------------------------------------------------
 -- FUNCTION: JoinMulticast
 --
 -- DATE: April 1, 2015
 --
--- REVISIONS: Created March 10, 2015
---
 -- DESIGNER: Michael Chimick
 --
--- PROGRAMMER: Michael Chimick
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
 --
--- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+-- INTERFACE: DWORD WINAPI JoinMulticast(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
--- RETURNS: void
+-- RETURNS: DWORD // thread exit code
 --
 -- NOTES:
--- Joins the multicast session, and starts multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Initializes multicast variables and starts the playback thread and receive function
+-------------------------------------------------------------------------------------------------*/
 DWORD WINAPI JoinMulticast(LPVOID parameter)
 {
 	DWORD recvThread;
@@ -174,13 +180,13 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 	socketInfo.socket = socket(AF_INET, SOCK_DGRAM, 0);
 	if (socketInfo.socket == INVALID_SOCKET)
 	{
-		cerr << "Multicast: Socket creation failure (" << WSAGetLastError() << ")" << endl;
+		cerr << "Multicast: socket creation failure (" << WSAGetLastError() << ")" << endl;
 		return -1;
 	}
 
 	if (setsockopt(socketInfo.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag)) == SOCKET_ERROR)
 	{
-		cerr << "Multicast: Socket options set err (" << WSAGetLastError() << ")" << endl;
+		cerr << "Multicast: socket options set err (" << WSAGetLastError() << ")" << endl;
 		return -1;
 	}
 
@@ -189,7 +195,7 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 	socketInfo.sockAddr.sin_port = htons(MULTICAST_PORT);
 	if (bind(socketInfo.socket, (struct sockaddr*)&(socketInfo.sockAddr), sizeof(socketInfo.sockAddr)) == SOCKET_ERROR)
 	{
-		cerr << "Multicast: Bind error (" << WSAGetLastError() << ")" << endl;
+		cerr << "Multicast: bind error (" << WSAGetLastError() << ")" << endl;
 		return -1;
 	}
 
@@ -205,80 +211,36 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 
 	//begin streaming audio
 	DWORD threadId;
-	if ((multiThread = CreateThread(NULL, 0, playMulticastSong, NULL, 0, &threadId)) == NULL)
+	if ((multiThread = CreateThread(NULL, 0, StartMulticastPlayback, NULL, 0, &threadId)) == NULL)
 	{
-		cerr << "Unable to create multicast thread";
+		cerr << "Multicast: thread creation error" << endl;
 		return -1;
 	}
 
 	//begin reading data from the server
-	receiveMulticastData();
-
+	RecvMulticastData();
 
 	return 0;
 }
 
-
-
-void receiveMulticastData()
-{
-	streaming = true;
-
-	//receive data from the server
-	int serverInfoSize = sizeof(socketInfo.sockAddr);
-	int numReceived = 0;
-	char tempBuffer[MESSAGE_SIZE];
-
-	while (streaming)
-	{
-		if ((numReceived = recvfrom(socketInfo.socket, tempBuffer, MESSAGE_SIZE,\
-			0, (struct sockaddr*) &socketInfo.sockAddr, &serverInfoSize)) < 0)
-		{
-			cerr << "Error reading data from multicast socket." << endl;
-			continue;
-		}
-		cout << "Received:" << tempBuffer << endl;
-		//place the data into the circular buffer
-		for (int i = 0; i < numReceived; i++)
-		{
-			multiBuffer.buf[multiBuffer.pos] = tempBuffer[i];
-			if (multiBuffer.pos == MUSIC_BUFFER_SIZE - 1)
-			{
-				multiBuffer.pos = 0;
-			}
-			else
-			{
-				multiBuffer.pos++;
-			}
-		}
-
-	}
-}
-
-/*****************************************************************
-** Function: playSong
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			DWORD WINAPI playSong(LPVOID arg)
-**				LPVOID arg -- Thread arguments
-**
-** Returns:
-**          DWORD -- -1 on failure; 0 on success
-**
-** Notes:
-** Plays the received song in a thread.
-**
-*******************************************************************/
-DWORD WINAPI playMulticastSong(LPVOID arg)
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: StartMulticastPlayback
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick, Rhea Lauzon
+--
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
+--
+-- INTERFACE: DWORD WINAPI StartMulticastPlayback(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
+--
+-- RETURNS: DWORD // thread exit code, -1 on failure; 0 on success
+--
+-- NOTES:
+--    Starts the multicast playback
+-------------------------------------------------------------------------------------------------*/
+DWORD WINAPI StartMulticastPlayback(LPVOID parameter)
 {
 	//create the wave header
 	WAVEFORMATEX wavFormat;
@@ -293,9 +255,9 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 	wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
 
 	//open the media device for streaming to
-	if (waveOutOpen(&multicastOutput, WAVE_MAPPER, &wavFormat, (DWORD)MultiWaveCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+	if (waveOutOpen(&multicastOutput, WAVE_MAPPER, &wavFormat, (DWORD)MultiPlaybackCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
 	{
-		cerr << "Failed to open output device." << endl;
+		cerr << "Multicast: failed to open output device" << endl;
 		return -1;
 	}
 
@@ -313,13 +275,12 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 		// Create the header
 		if (waveOutPrepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
 		{
-			cerr << "Failed to create output header." << endl;
-			exit(1);
+			cerr << "Multicast: failed to create output header" << endl;
+			return -1;
 		}
 	}
 
-	//write audio to the buffer
-	cout << "I am ready to play music!" << endl;
+	cout << "Ready to play music" << endl;
 
 	//wait until we have two messages worth of data; this avoids crackle
 	while (multiBuffer.pos < PRE_BUFFER_SIZE)
@@ -333,45 +294,89 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 	}
 
 	return 0;
-
 }
 
-/*****************************************************************
-** Function: waveCallback
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg,
-**								DWORD dwUser, DWORD dw1, DWORD dw2)
-**				HWAVEOUT hWave -- handle to the output device
-**				UINT uMsg -- message sent to the callback
-**				DWORD dwUser -- Unused parameter
-**				DWORD dw1 -- the header used for this audio output
-**				DWORD dw2 -- Unused parameter
-**
-**
-** Returns:
-**          void
-**
-** Notes:
-** Plays the audio without skipping issues.
-**
-*******************************************************************/
-void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: RecvMulticastData
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick, Rhea Lauzon
+--
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
+--
+-- INTERFACE: void RecvMulticastData()
+--
+-- RETURNS: void
+--
+-- NOTES:
+--    Runs a loop that receives voice data and places it into the buffer
+-------------------------------------------------------------------------------------------------*/
+void RecvMulticastData()
+{
+	streaming = true;
+
+	//receive data from the server
+	int serverInfoSize = sizeof(socketInfo.sockAddr);
+	int numReceived = 0;
+	char tempBuffer[MESSAGE_SIZE];
+
+	while (streaming)
+	{
+		if ((numReceived = recvfrom(socketInfo.socket, tempBuffer, MESSAGE_SIZE,\
+			0, (struct sockaddr*) &socketInfo.sockAddr, &serverInfoSize)) < 0)
+		{
+			cerr << "Multicast: error reading data from multicast socket." << endl;
+			continue;
+		}
+
+		cout << "Received:" << tempBuffer << endl;
+
+		//place the data into the circular buffer
+		for (int i = 0; i < numReceived; i++)
+		{
+			multiBuffer.buf[multiBuffer.pos] = tempBuffer[i];
+			if (multiBuffer.pos == MUSIC_BUFFER_SIZE - 1)
+			{
+				multiBuffer.pos = 0;
+			}
+			else
+			{
+				multiBuffer.pos++;
+			}
+		}
+
+	}
+}
+
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: MultiPlaybackCallback
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void CALLBACK MultiPlaybackCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+--                HWAVEOUT hWave // handle to the waveform-audio device associated with the callback
+--                UINT uMsg      // waveform-audio output message
+--                DWORD dwUser   // user-instance data
+--                DWORD dw1      // message parameter; wavehdr outputted
+--                DWORD dw2      // message parameter
+--
+-- RETURNS: void
+--
+-- NOTES:
+--    Callback after a buffer has finished playing, simply adds it to the back of the queue
+-------------------------------------------------------------------------------------------------*/
+void CALLBACK MultiPlaybackCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
 	if (uMsg == WOM_DONE)
 	{
-		if (waveOutWrite(multicastOutput, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+		if (waveOutWrite(hWave, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
 		{
-			cerr << "Failed to play audio." << endl;
+			cerr << "Multicast: audio playback error" << endl;
 			exit(1);
 		}
 	}

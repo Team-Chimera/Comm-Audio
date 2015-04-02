@@ -242,7 +242,7 @@ DWORD WINAPI StartVoiceRecv(LPVOID parameter)
 }
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION: 
+-- FUNCTION: StartVoicePlayback
 --
 -- DATE: April 1, 2015
 --
@@ -251,11 +251,12 @@ DWORD WINAPI StartVoiceRecv(LPVOID parameter)
 -- PROGRAMMER: Michael Chimick
 --
 -- INTERFACE: DWORD WINAPI StartVoicePlayback(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
--- RETURNS: void
+-- RETURNS: DWORD // thread exit code
 --
 -- NOTES:
--- .
+--    Starts the voice playback
 -------------------------------------------------------------------------------------------------*/
 DWORD WINAPI StartVoicePlayback(LPVOID parameter)
 {
@@ -268,7 +269,7 @@ DWORD WINAPI StartVoicePlayback(LPVOID parameter)
 	wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
 	wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
 
-	if (waveOutOpen(&voiceOutput, WAVE_MAPPER, &wavFormat, (DWORD)VoiceOutCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+	if (waveOutOpen(&voiceOutput, WAVE_MAPPER, &wavFormat, (DWORD)VoicePlaybackCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
 	{
 		cerr << "VoiceChat: open waveout error" << endl;
 		return -1;
@@ -304,23 +305,20 @@ DWORD WINAPI StartVoicePlayback(LPVOID parameter)
 }
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION: RecvVoiceThread
+-- FUNCTION: RecvVoiceData
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: DWORD WINAPI RecvVoiceThread(LPVOID parameter)
+-- INTERFACE: void RecvVoiceData()
 --
--- RETURNS: DWORD
+-- RETURNS: void
 --
 -- NOTES:
---
---
+--    Runs a loop that receives voice data and places it into the buffer
 -------------------------------------------------------------------------------------------------*/
 void RecvVoiceData()
 {
@@ -353,29 +351,31 @@ void RecvVoiceData()
 }
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION:
+-- FUNCTION: VoicePlaybackCallback
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE:
+-- INTERFACE: void CALLBACK VoicePlaybackCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+--                HWAVEOUT hWave // handle to the waveform-audio device associated with the callback
+--                UINT uMsg      // waveform-audio output message
+--                DWORD dwUser   // user-instance data
+--                DWORD dw1      // message parameter
+--                DWORD dw2      // message parameter
 --
--- RETURNS:
+-- RETURNS: void
 --
 -- NOTES:
---
---
+--    Callback after a buffer has finished playing, simply adds it to the back of the queue
 -------------------------------------------------------------------------------------------------*/
-void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+void CALLBACK VoicePlaybackCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
 	if (uMsg == WOM_DONE)
 	{
-		if (waveOutWrite(voiceOutput, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+		if (waveOutWrite(hWave, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
 		{
 			cout << "VoiceChat: playing buffer error" << endl;
 			exit(1);
@@ -392,23 +392,21 @@ void CALLBACK VoiceOutCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw
 ******************************************************************************************************************************************/
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION: .
+-- FUNCTION: StartVoiceSend
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: .
+-- INTERFACE: DWORD WINAPI StartVoiceSend(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
 -- RETURNS: void
 --
 -- NOTES:
--- .
---
+--    Initializes variables and starts the record and send functions
 -------------------------------------------------------------------------------------------------*/
 DWORD WINAPI StartVoiceSend(LPVOID parameter)
 {
@@ -447,23 +445,21 @@ DWORD WINAPI StartVoiceSend(LPVOID parameter)
 }
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION: .
+-- FUNCTION: StartVoiceRecord
 --
 -- DATE: April 1, 2015
---
--- REVISIONS: Created March 10, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: .
+-- INTERFACE: DWORD WINAPI StartVoiceRecord(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
 -- RETURNS: void
 --
 -- NOTES:
--- .
---
+--    Starts the voice recording
 -------------------------------------------------------------------------------------------------*/
 DWORD WINAPI StartVoiceRecord(LPVOID parameter)
 {
@@ -476,7 +472,7 @@ DWORD WINAPI StartVoiceRecord(LPVOID parameter)
 	wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
 	wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
 
-	if (waveInOpen(&voiceInput, WAVE_MAPPER, &wavFormat, (DWORD)VoiceInCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+	if (waveInOpen(&voiceInput, WAVE_MAPPER, &wavFormat, (DWORD)VoiceRecordCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
 	{
 		cerr << "VoiceChat: Open wavein error" << endl;
 		return -1;
@@ -513,7 +509,7 @@ DWORD WINAPI StartVoiceRecord(LPVOID parameter)
 }
 
 /*-------------------------------------------------------------------------------------------------
--- FUNCTION:
+-- FUNCTION: VoiceRecordCallback
 --
 -- DATE: April 1, 2015
 --
@@ -523,15 +519,20 @@ DWORD WINAPI StartVoiceRecord(LPVOID parameter)
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE:
+-- INTERFACE: void CALLBACK VoiceRecordCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+--                HWAVEOUT hWave // handle to the waveform-audio device associated with the callback
+--                UINT uMsg      // waveform-audio output message
+--                DWORD dwUser   // user-instance data
+--                DWORD dw1      // message parameter
+--                DWORD dw2      // message parameter
 --
 -- RETURNS:
 --
 -- NOTES:
---
---
+--    Callback after a buffer has been filled, 
+--    sends it to the server and then adds it back to the queue
 -------------------------------------------------------------------------------------------------*/
-void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+void CALLBACK VoiceRecordCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
 	if (uMsg == WIM_DATA)
 	{
@@ -544,7 +545,7 @@ void CALLBACK VoiceInCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1
 		}
 
 		// add the buffer back onto the queue
-		if (waveInAddBuffer(voiceInput, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+		if (waveInAddBuffer(hWave, (LPWAVEHDR)dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
 		{
 			cout << "VoiceChat: error adding in buffer to queue" << endl;
 			exit(1);
