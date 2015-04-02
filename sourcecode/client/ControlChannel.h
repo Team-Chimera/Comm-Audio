@@ -25,8 +25,9 @@ void parseControlString(std::string, ctrlMessage *);
 
 /** GUI editors **/
 void updateListeners(std::vector<std::string>);
-void updateNowPlaying(std::vector<std::string> msgData);
+void updateNowPlaying(std::vector<std::string>);
 void establishGUIConnector(void *);
+void updateLibrary(std::vector<std::string>);
 
 
 

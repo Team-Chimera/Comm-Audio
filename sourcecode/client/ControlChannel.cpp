@@ -240,6 +240,14 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
     }
 
     cout << "Received: " << sockInfo->Buffer;
+
+    string received = sockInfo->Buffer;
+
+    //parse control string into the structure
+    parseControlString(received, &message);
+
+    //handle it
+    handleControlMessage(&message);
     cout.flush();
     Sleep(1000);
 
@@ -370,6 +378,7 @@ void handleControlMessage(ctrlMessage *cMessage)
         //list of songs the server has
         case LIBRARY_INFO:
         {
+            updateLibrary(cMessage->msgData);
             break;
         }
 
@@ -428,6 +437,50 @@ void updateListeners(vector<string> data)
     for (int i = 0; i < data.size(); i++)
     {
         GUI->updateListeners(data[i]);
+    }
+}
+
+/*******************************************************************
+** Function: updateLibrary
+**
+** Date: April 2nd, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateLibrary(vector<string> data)
+**              vector<string> data -- songs to be added
+**
+** Returns:
+**			void
+**
+** Notes:
+** Updates the library of music
+*******************************************************************/
+void updateLibrary(vector<string> data)
+{
+
+    //add each song to the GUI
+    for (int i = 0; i < data.size(); i++)
+    {
+        //fetch the song
+        string libraryEntry = data[i];
+        vector<string> songData;
+
+        //parse out the song information into a vector
+        int endSection = libraryEntry.find('^');
+        songData.push_back(libraryEntry.substr(0, endSection));
+        songData.push_back(libraryEntry.substr(endSection + 1, libraryEntry.length()));
+
+        stringstream ss;
+        ss << songData[1] << " by " << songData[0];
+
+        GUI->addSongToLibrary(ss.str());
     }
 }
 
