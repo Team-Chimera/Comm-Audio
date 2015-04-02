@@ -383,6 +383,8 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //someone wants to make a mic chat with this client
           case MIC_CONNECTION:
           {
+              m->mode = 'u';
+              strcpy_s(m->ptp_ip, ctrl.msgData[0].c_str());
               ReleaseSemaphore(m->voiceSem, 1, 0);
               break;
           }
@@ -920,12 +922,16 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
 	DWORD sendBytes;
 	LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION)lpOverlapped;
     LPMUSIC_SESSION m = getSession(SI->Socket);
-    SOCKADDR_IN client;
-	int clientLen = sizeof(client);
+    SOCKADDR_IN clientFrom;
+    SOCKADDR_IN clientTo;
+	int clientFromLen;
+	int clientToLen;
 
     int port = CLIENT_UDP_PORT;
-    getIP_Addr(&client, m->ip, port);
-    clientLen = sizeof(client);
+    getIP_Addr(&clientFrom, m->ip, port);
+    clientFromLen = sizeof(clientFrom);
+    getIP_Addr(&clientTo, m->ptp_ip, port);
+    clientToLen = sizeof(clientTo);
 
     if(error != 0)
     {
@@ -960,7 +966,7 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
         SI->DataBuf.buf = SI->Buffer + SI->BytesSEND;
         SI->DataBuf.len = SI->BytesRECV - SI->BytesSEND;
 
-	    if(WSASendTo(SI->Socket, &(SI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(client), clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+	    if(WSASendTo(SI->Socket, &(SI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(clientTo), clientToLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
 	    {
 	    	if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -981,7 +987,7 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
         SI->DataBuf.len = DATA_BUFSIZE;
         SI->DataBuf.buf = SI->Buffer;
 
-        if(WSARecvFrom(SI->Socket, &(SI->DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(client), &clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+        if(WSARecvFrom(SI->Socket, &(SI->DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(clientFrom), &clientFromLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
 	    {
 	    	if (WSAGetLastError() != WSA_IO_PENDING)
             {

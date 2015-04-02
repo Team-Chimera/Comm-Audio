@@ -44,6 +44,7 @@ typedef struct _MUSIC_SESSION {
 
     char* fileToSend;
     char filename[FILE_PATH];
+    char ptp_ip[IP_SIZE];
     char mode;
     bool sending;
 } MUSIC_SESSION, * LPMUSIC_SESSION;
