@@ -38,6 +38,11 @@ HANDLE newSongSem;
 HANDLE songAccessSem;
 HANDLE userChangeSem;
 HANDLE userAccessSem;
+std::vector<std::string> userList;
+std::vector<std::string> songList;
+HANDLE sessionsSem;
+std::string multicastSong;
+
 using namespace std;
 
 std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
@@ -83,6 +88,7 @@ bool createSession(SOCKET c, char* a)
     }
     // should be ok
     strcpy_s(m->ip, a);
+    userList.emplace_back(a);
 
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(SessionPair(c, m));
@@ -176,7 +182,7 @@ bool createThreads(LPMUSIC_SESSION m)
 **
 ** Notes: thread that listens and waits for incoming connections
 *******************************************************************/
-DWORD WINAPI AcceptThread()
+DWORD WINAPI AcceptThread(LPVOID lpParameter)
 {
     SOCKET Accept, temp;
     sockaddr peer;
@@ -253,11 +259,13 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[2] = m->sendCompleteSem;
     waitHandles[3] = m->voiceSem;
 
-    // post send call with song list
+    // send song list and user list
+    sendSongList(m);
+    sendUserList(m);
 
     // post send call with other users
 
-
+    
     //post rcv call waiting for data
     if ( WSARecv( m->control.Socket, &(m->control.DataBuf), 1, &RecvBytes, &flags, &(m->control.Overlapped), controlRoutine ) == SOCKET_ERROR)
       {
@@ -266,7 +274,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
             printf("WSARecv() failed with error %d\n", WSAGetLastError());
             sessionCleanUp(m);
          }
-      }
+      } 
 
     // get into alertable state
     while(1)
@@ -433,6 +441,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
    {
       SI->BytesRECV = 0;
       SI->bytesToSend = 0; // just in case it got negative somehow.....
+      delete [] &(SI->DataBuf);
 
       // Now that there are no more bytes to send post another WSARecv() request.
 
@@ -807,6 +816,10 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     TerminateThread(m->voice_thr, 0);
     TerminateThread(m->send_thr, 0);
 
+    //delete any data in the buffers
+    //delete [] &(m->control.DataBuf);
+   // delete [] &(m->send.DataBuf);
+
     // close all socket infos
     if(&(m->control) == 0 )
         deleteSocketInfo(&(m->control));
@@ -956,5 +969,61 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
                 return;
             }
 	    }
+    }
+}
+
+
+void sendSongList(LPMUSIC_SESSION m)
+{
+    if(songList.empty())
+        return;
+
+    DWORD result, SendBytes;
+    sockaddr_in client;
+    std::string temp;
+    ctrlMessage message;
+
+    message.msgData = songList;
+    message.type = LIBRARY_INFO;
+    createControlString(message, temp);
+
+    std::string to_send = "********************************************" + temp;
+
+    sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
+
+}
+
+void sendUserList(LPMUSIC_SESSION m)
+{
+    if(userList.empty())
+        return;
+
+    std::string temp;
+
+    ctrlMessage message;
+    message.msgData = userList;
+    message.type = CURRENT_LISTENERS;
+    createControlString(message, temp);
+
+    std::string to_send = "********************************************" + temp;
+
+    //call send function
+    sendToAll(to_send);
+
+}
+
+void sendToAll(std::string message)
+{
+    std::vector<SOCKET> sockets;
+    WaitForSingleObject(sessionsSem, INFINITE);
+    for(auto const &it : SESSIONS)
+    {
+         sockets.push_back((SOCKET)it.first);
+    }
+    ReleaseSemaphore(sessionsSem, 1, 0);
+
+    for(auto s: sockets)
+    {
+        sendTCPMessage(&(s), message, DATA_BUFSIZE);
     }
 }

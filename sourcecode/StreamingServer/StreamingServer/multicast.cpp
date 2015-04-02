@@ -7,9 +7,6 @@
 #include <vlc/libvlc.h>
 #include "music.h"
 
-#pragma comment(lib, "libvlc.lib")
-#pragma comment(lib, "libvlccore.lib")
-
 //VLC instance objects
 libvlc_instance_t *inst;
 libvlc_media_player_t *mediaPlayer;
@@ -102,12 +99,8 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 	}
 
 	//load a song from command line else the test song
-<<<<<<< HEAD
-	libvlc_media_t *song = libvlc_media_new_path(inst, "test.m4a");
-=======
-   // std::string song_to_play(song_dir + "test.mp3");
-	libvlc_media_t *song = libvlc_media_new_path(inst, "test.mp3");
->>>>>>> a7ab8e3f588101060e3a6fc4a4f1b56a9f9d3da8
+    std::string song_to_play(song_dir + "unknown^test.mp3");
+	libvlc_media_t *song = libvlc_media_new_path(inst, song_to_play.c_str());
 
 	//load the song
 	if (song == NULL)
@@ -329,36 +322,6 @@ LPMULTICAST_INFORMATION initMulticastSocket()
     return lpMulticastInfo;
 }
 
-/*******************************************************************
-** Function: displayError
-**
-** Date: March 12th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Julian Brandrick
-**
-** Programmer: Julian Brandrick
-**
-** Interface:
-**			void displayError(char *errStr, int errCode)
-** 
-** Parameters:
-**          errStr - Error string to be displayed
-**          errCode - Error code that was thrown
-**
-** Returns:
-**			void
-**
-** Notes:
-**  This function prints a formatted error string and code to 
-**  stderr.
-*******************************************************************/
-void displayError(char *errStr, int errCode)
-{
-    fprintf(stderr, "%s: %d\n", errStr, errCode);
-}
 
 /*****************************************************************
 ** Function: audioCleanup
@@ -476,7 +439,7 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 			WSACleanup();
 			exit(0);
 		}
-        //   cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
+           cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
 		
 
 		//remove the char array

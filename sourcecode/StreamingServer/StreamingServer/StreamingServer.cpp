@@ -44,12 +44,11 @@ int main(int argc, char *argv[])
 	}
 	
     cout << "Id of Main thread " << GetCurrentThreadId() << endl;
-
 	 initWSA(&wsadata);
     // Julian's multicast...
     createWorkerThread(startMulticastThread, &multicastThread, 0, 0);
-    
-    AcceptThread();
+    createWorkerThread(AcceptThread, &acceptThread, 0, 0);
+
     while(1){};
 
     return 0;
@@ -117,7 +116,6 @@ bool loadSongList()
     cout << endl << "Loading Songs" << endl;
     HANDLE hFind;
     WIN32_FIND_DATA data;
-    stringstream ss;
     int count = 0;
 
     hFind = FindFirstFile(SONG_DIR, &data);
@@ -132,8 +130,8 @@ bool loadSongList()
   {
       if(count++ > 1)
       {
-        ss << data.cFileName;
-        songList.push_back(ss.str());
+        string temp = CW2A(data.cFileName);
+        songList.push_back(temp);
       }
   } while (FindNextFile(hFind, &data));
 
@@ -142,6 +140,11 @@ bool loadSongList()
   {
       cout << "no songs in song directory" << endl;
       return false;
+  }
+
+  for(string s : songList)
+  {
+      cout << s << endl;
   }
 
   return true;

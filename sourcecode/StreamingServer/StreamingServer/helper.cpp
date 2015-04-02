@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "helper.h"
 
+LPCWSTR SONG_DIR = L"..\\songs\\*.*";
+std::string song_dir = "..\\songs\\";
+
 using namespace std;
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: loadFile
