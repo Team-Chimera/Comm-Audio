@@ -88,10 +88,13 @@ bool createSession(SOCKET c, char* a)
     }
     // should be ok
     strcpy_s(m->ip, a);
+    WaitForSingleObject(userAccessSem, INFINITE);
     userList.emplace_back(a);
+    ReleaseSemaphore(userAccessSem, 1, 0);
 
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(SessionPair(c, m));
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
     ReleaseSemaphore(sessionsSem, 1, 0);
 
     //start the threads here
@@ -259,12 +262,9 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[2] = m->sendCompleteSem;
     waitHandles[3] = m->voiceSem;
 
-    // send song list and user list
+    // send song list
     sendSongList(m);
-    sendUserList(m);
-
-    // post send call with other users
-
+    
     
     //post rcv call waiting for data
     if ( WSARecv( m->control.Socket, &(m->control.DataBuf), 1, &RecvBytes, &flags, &(m->control.Overlapped), controlRoutine ) == SOCKET_ERROR)
@@ -295,6 +295,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
          {
             case 0:
                  // change in user list, access the list and send it
+                sendUserList(m);
                  break;
             case 1:
                  //new multicast song, send name of new song
@@ -382,6 +383,8 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //someone wants to make a mic chat with this client
           case MIC_CONNECTION:
           {
+              m->mode = 'u';
+              strcpy_s(m->ptp_ip, ctrl.msgData[0].c_str());
               ReleaseSemaphore(m->voiceSem, 1, 0);
               break;
           }
@@ -812,9 +815,25 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     SOCKET c = m->control.Socket;
     printf("Session clean up for socket %d\n", c);
 
+    //remove this user from the list
+    WaitForSingleObject(userAccessSem, INFINITE);
+    auto it = userList.begin();
+    while(it != userList.end())
+    {
+        if(strcmp( (*it).c_str(), m->ip) == 0 )
+        {
+            userList.erase(it);
+            break;
+        }
+        it++;
+    }
+    ReleaseSemaphore(userAccessSem, 1, 0);
+
     // close threads
     TerminateThread(m->voice_thr, 0);
     TerminateThread(m->send_thr, 0);
+    TerminateThread(m->voice_thr, 0);
+
 
     //delete any data in the buffers
     //delete [] &(m->control.DataBuf);
@@ -841,6 +860,9 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.erase(c);
     ReleaseSemaphore(sessionsSem, 1, NULL);
+
+    //signal other sessions to send the updated userlist
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
 
     //close this thread
     ExitThread(0);
@@ -900,12 +922,16 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
 	DWORD sendBytes;
 	LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION)lpOverlapped;
     LPMUSIC_SESSION m = getSession(SI->Socket);
-    SOCKADDR_IN client;
-	int clientLen = sizeof(client);
+    SOCKADDR_IN clientFrom;
+    SOCKADDR_IN clientTo;
+	int clientFromLen;
+	int clientToLen;
 
     int port = CLIENT_UDP_PORT;
-    getIP_Addr(&client, m->ip, port);
-    clientLen = sizeof(client);
+    getIP_Addr(&clientFrom, m->ip, port);
+    clientFromLen = sizeof(clientFrom);
+    getIP_Addr(&clientTo, m->ptp_ip, port);
+    clientToLen = sizeof(clientTo);
 
     if(error != 0)
     {
@@ -940,7 +966,7 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
         SI->DataBuf.buf = SI->Buffer + SI->BytesSEND;
         SI->DataBuf.len = SI->BytesRECV - SI->BytesSEND;
 
-	    if(WSASendTo(SI->Socket, &(SI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(client), clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+	    if(WSASendTo(SI->Socket, &(SI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(clientTo), clientToLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
 	    {
 	    	if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -961,7 +987,7 @@ void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED 
         SI->DataBuf.len = DATA_BUFSIZE;
         SI->DataBuf.buf = SI->Buffer;
 
-        if(WSARecvFrom(SI->Socket, &(SI->DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(client), &clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+        if(WSARecvFrom(SI->Socket, &(SI->DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(clientFrom), &clientFromLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
 	    {
 	    	if (WSAGetLastError() != WSA_IO_PENDING)
             {
@@ -1008,8 +1034,7 @@ void sendUserList(LPMUSIC_SESSION m)
     std::string to_send = "********************************************" + temp;
 
     //call send function
-    sendToAll(to_send);
-
+    sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
 }
 
 void sendToAll(std::string message)
