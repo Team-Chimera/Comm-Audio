@@ -322,36 +322,6 @@ LPMULTICAST_INFORMATION initMulticastSocket()
     return lpMulticastInfo;
 }
 
-/*******************************************************************
-** Function: displayError
-**
-** Date: March 12th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Julian Brandrick
-**
-** Programmer: Julian Brandrick
-**
-** Interface:
-**			void displayError(char *errStr, int errCode)
-** 
-** Parameters:
-**          errStr - Error string to be displayed
-**          errCode - Error code that was thrown
-**
-** Returns:
-**			void
-**
-** Notes:
-**  This function prints a formatted error string and code to 
-**  stderr.
-*******************************************************************/
-void displayError(char *errStr, int errCode)
-{
-    fprintf(stderr, "%s: %d\n", errStr, errCode);
-}
 
 /*****************************************************************
 ** Function: audioCleanup
