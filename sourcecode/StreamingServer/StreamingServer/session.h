@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 #define NOMINMAX
 #define FILE_PATH 64
@@ -18,21 +19,19 @@
 #define SERVER_MIC_IN 9977
 #define SERVER_MIC_OUT 7799
 
-#define MAX_SESSIONS 2000
+#define MAX_SESSIONS 64
 
 typedef struct _MUSIC_SESSION {
 
     SOCKET_INFORMATION control;
-    SOCKET_INFORMATION mic_send;
-    SOCKET_INFORMATION mic_rcv;
+    SOCKET_INFORMATION voice;
     SOCKET_INFORMATION send;
 
     char ip[IP_SIZE];
 
     // thread handles
     HANDLE control_thr;
-    HANDLE mic_send_thr;
-    HANDLE mic_rcv_thr;
+    HANDLE voice_thr;
     HANDLE send_thr; // sends udp or tcp files, both won't happen at same time
 
     //tells send semaphore when to begin
@@ -40,6 +39,8 @@ typedef struct _MUSIC_SESSION {
     // tells control when send is completed so control
     // can send proper finished message.
     HANDLE sendCompleteSem;
+    // Semaphore for mic sending/receiving
+    HANDLE voiceSem;
 
     char* fileToSend;
     char filename[FILE_PATH];
@@ -56,8 +57,7 @@ typedef struct _MUSIC_SESSION {
  * Song access is a binary semaphore so that song name isn't
  * changed while other threads are reading it
  * */
-static HANDLE newSongSem;
-static HANDLE songAccessSem;
+
 static std::string multicastSong;
 
 /*
@@ -68,8 +68,10 @@ static std::string multicastSong;
  * is binary.
  *
  * */
-static HANDLE userChangeSem;
-static HANDLE userAccessSem;
+extern HANDLE newSongSem;
+extern HANDLE songAccessSem;
+extern HANDLE userChangeSem;
+extern HANDLE userAccessSem;
 static std::vector<std::string> userList;
 static std::vector<std::string> songList;
 
@@ -84,12 +86,12 @@ bool createThreads(LPMUSIC_SESSION m);
 
 bool initSockets(LPMUSIC_SESSION m, SOCKET control);
 
-DWORD WINAPI micSendThread(LPVOID lpParameter);
-DWORD WINAPI micRcvThread(LPVOID lpParameter);
+DWORD WINAPI voiceThread(LPVOID lpParameter);
 DWORD WINAPI sendFileThread(LPVOID lpParameter);
 DWORD WINAPI controlThread(LPVOID lpParameter);
 DWORD WINAPI AcceptThread();
 
+void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags);
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 

@@ -26,7 +26,9 @@ long loadFile(const char* file_name, char** file_out)
     long size;
     ifstream input;
 
-    input.open( file_name, ios::binary | ifstream::ate );
+    string to_open = song_dir + file_name;
+
+    input.open( to_open, ios::binary | ifstream::ate );
     if(!input.is_open())
     {
         printf("Error opening in put file %s, aborting send", file_name);
@@ -194,4 +196,66 @@ void parseControlString(string str, ctrlMessage *msg)
     }
 
 }
+
+/*******************************************************************
+** Function: displayError
+**
+** Date: March 12th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Julian Brandrick
+**
+** Programmer: Julian Brandrick
+**
+** Interface:
+**			void displayError(char *errStr, int errCode)
+** 
+** Parameters:
+**          errStr - Error string to be displayed
+**          errCode - Error code that was thrown
+**
+** Returns:
+**			void
+**
+** Notes:
+**  This function prints a formatted error string and code to 
+**  stderr.
+*******************************************************************/
+void displayError(char *errStr, int errCode)
+{
+    fprintf(stderr, "Error>%s: %d\n", errStr, errCode);
+}
+
+/*******************************************************************
+** Function: displayOutput
+**
+** Date: March 12th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Julian Brandrick
+**
+** Programmer: Julian Brandrick
+**
+** Interface:
+**			void displayOutput(char *outStr)
+** 
+** Parameters:
+**          outStr - Output string to be displayed
+**
+** Returns:
+**			void
+**
+** Notes:
+**  This function prints a formatted output string to stdout.
+*******************************************************************/
+void displayOutput(char *outStr)
+{
+    printf("Output>%s\n", outStr);
+}
+
+
 

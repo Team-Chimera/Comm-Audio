@@ -228,6 +228,14 @@ bool Dialog::initialConnect(QString address)
          exit(1);
      }
 
+     //create the control channel
+
+    if (setupControlChannel(he) < 0)
+    {
+        cerr << "Unable to open control channel." << endl;
+        exit(1);
+    }
+
      //Resolve multicast
      if ((multi = gethostbyname(multicastIP.c_str())) == NULL)
      {
@@ -236,19 +244,9 @@ bool Dialog::initialConnect(QString address)
          exit(1);
      }
 
-     //create the control channel
-     /*
-    if (setupControlChannel(he) < 0)
-    {
-        cerr << "Unable to open control channel." << endl;
-        exit(1);
-    }
-    */
-
-
-    struct in_addr ia;
-    memcpy((void*)multi->h_addr,(void*)&ia, multi->h_length);
-    StartMulticast(ia);
+     struct in_addr ia;
+     memcpy((void*)multi->h_addr,(void*)&ia, multi->h_length);
+     StartMulticast(ia);
 
 
     return true;

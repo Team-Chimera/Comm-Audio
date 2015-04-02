@@ -21,7 +21,7 @@ typedef struct _MULTICAST_INFORMATION {
    DWORD BytesSent;
 } MULTICAST_INFORMATION, *LPMULTICAST_INFORMATION;
 
-bool startMulticastThread(HANDLE *multicastThread);
+DWORD WINAPI startMulticastThread(LPVOID lpParameter);
 LPMULTICAST_INFORMATION initMulticastSocket();
 DWORD WINAPI multicastSendLoop(LPVOID lpParameter);
 void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);

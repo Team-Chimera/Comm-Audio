@@ -34,6 +34,12 @@
 #include "session.h"
 
 
+HANDLE newSongSem;
+HANDLE songAccessSem;
+HANDLE userChangeSem;
+HANDLE userAccessSem;
+using namespace std;
+
 std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
 using namespace std;
@@ -62,6 +68,7 @@ using namespace std;
 *******************************************************************/
 bool createSession(SOCKET c, char* a)
 {
+    cout << endl << "Creating a session for control socket " << c << " with ip " << a << endl;
     LPMUSIC_SESSION m;
     if ((m = (LPMUSIC_SESSION) GlobalAlloc(GPTR,
          sizeof(MUSIC_SESSION))) == NULL)
@@ -83,8 +90,7 @@ bool createSession(SOCKET c, char* a)
 
     //start the threads here
     ResumeThread(m->control_thr);
-    ResumeThread(m->mic_rcv_thr);
-    ResumeThread(m->mic_send_thr);
+    ResumeThread(m->voice_thr);
     ResumeThread(m->send_thr);
 
     return true;
@@ -118,8 +124,7 @@ bool initSockets(LPMUSIC_SESSION m, SOCKET control)
     SOCKET mic_out = createUDPSOCKET();
     SOCKET mic_in = createUDPSOCKET();
     return createSocketInfo(&(m->control), control)
-            && createSocketInfo(&(m->mic_rcv), mic_in)
-            && createSocketInfo(&(m->mic_send), mic_out);
+            && createSocketInfo(&(m->voice), mic_in);
 }
 /*******************************************************************
 ** Function: createThreads()
@@ -146,8 +151,7 @@ bool initSockets(LPMUSIC_SESSION m, SOCKET control)
 bool createThreads(LPMUSIC_SESSION m)
 {
     return createWorkerThread(controlThread, &(m->control_thr), m, CREATE_SUSPENDED)
-        && createWorkerThread(micSendThread, &(m->mic_send_thr), m, CREATE_SUSPENDED)
-        && createWorkerThread(micRcvThread, &(m->mic_rcv_thr), m, CREATE_SUSPENDED)
+        && createWorkerThread(voiceThread, &(m->voice_thr), m, CREATE_SUSPENDED)
         && createWorkerThread(sendFileThread, &(m->send_thr), m, CREATE_SUSPENDED);
 }
 /*******************************************************************
@@ -183,11 +187,12 @@ DWORD WINAPI AcceptThread()
         printf("error creating sessionSem\n");
         return FALSE;
     }
-
+    cout << endl << "Accepting Clients" << endl;
     if(!openListenSocket(&Accept, SERVER_TCP_LISTEN_PORT) )
         return FALSE;
 
 
+    cout << "Id of Accepting thread " << GetCurrentThreadId() << endl;
         while(TRUE)
        {
            peer_len = sizeof(peer);
@@ -238,7 +243,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
     handles = 4;
-    HANDLE waitHandles[3];
+    HANDLE waitHandles[4];
 
     flags = 0;
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
@@ -246,6 +251,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[0] = userChangeSem;
     waitHandles[1] = newSongSem;
     waitHandles[2] = m->sendCompleteSem;
+    waitHandles[3] = m->voiceSem;
 
     // post send call with song list
 
@@ -368,6 +374,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //someone wants to make a mic chat with this client
           case MIC_CONNECTION:
           {
+              ReleaseSemaphore(m->voiceSem, 1, 0);
               break;
           }
           //song has been requested for unicast send to this client
@@ -572,10 +579,7 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
     DWORD result, SendBytes;
     sockaddr_in client;
     SOCKET temp;
-
-    int port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
-    getIP_Addr(&client, m->ip, port);
-    printIP(client);
+    int port;
 
     while(1)
     {
@@ -585,6 +589,8 @@ DWORD WINAPI sendFileThread(LPVOID lpParameter)
         // should check for error
 
         m->sending = true;
+        port = (m->mode == 't') ? CLIENT_TCP_PORT: CLIENT_UDP_PORT;
+        getIP_Addr(&client, m->ip, port);
 
         if(m->mode == 't')
         {
@@ -683,7 +689,7 @@ LPMUSIC_SESSION getSession(SOCKET s)
         // it.second is the data
         // was &it.second before... i think i would need a ** to music session for that though...
         m = (LPMUSIC_SESSION)it.second;
-        if( m->control.Socket == s || m->mic_rcv.Socket == s || m->mic_send.Socket == s || m->send.Socket == s)
+        if( m->control.Socket == s || m->voice.Socket == s || m->send.Socket == s)
         {
             ReleaseSemaphore(sessionsSem, 1, 0);
             return m;
@@ -760,6 +766,13 @@ bool createSems(LPMUSIC_SESSION m)
         printf("error creating semaphores");
         return false;
     }
+
+    if( (m->voiceSem = CreateSemaphore(NULL, 0, 1, NULL)) == NULL )
+    {
+        printf("error creating semaphores");
+        return false;
+    }
+
     return true;
 }
 /*******************************************************************
@@ -788,25 +801,27 @@ bool createSems(LPMUSIC_SESSION m)
 void sessionCleanUp(LPMUSIC_SESSION m)
 {
     SOCKET c = m->control.Socket;
-    printf("closing thread for control socket %d\n", c);
+    printf("Session clean up for socket %d\n", c);
+
+    // close threads
+    TerminateThread(m->voice_thr, 0);
+    TerminateThread(m->send_thr, 0);
 
     // close all socket infos
-    deleteSocketInfo(&(m->control));
-    deleteSocketInfo(&(m->mic_rcv));
-    deleteSocketInfo(&(m->mic_send));
-    deleteSocketInfo(&(m->send));
+    if(&(m->control) == 0 )
+        deleteSocketInfo(&(m->control));
+    if(&(m->voice) == 0 )
+        deleteSocketInfo(&(m->voice));
+    if(&(m->send) == 0 )
+        deleteSocketInfo(&(m->send));
 
     // close semaphores
+    CloseHandle(m->voiceSem);
     CloseHandle(m->sendSem);
     CloseHandle(m->sendCompleteSem);
 
-    // close threads
-    TerminateThread(m->mic_rcv_thr, 0);
-    TerminateThread(m->mic_send_thr, 0);
-    TerminateThread(m->send_thr, 0);
-
-    CloseHandle(m->mic_rcv_thr);
-    CloseHandle(m->mic_send_thr);
+    // close thread handles
+    CloseHandle(m->voice_thr);
     CloseHandle(m->send_thr);
 
     //delete session from map
@@ -818,11 +833,128 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     ExitThread(0);
 }
 
-DWORD WINAPI micSendThread(LPVOID lpParameter)
+DWORD WINAPI voiceThread(LPVOID lpParameter)
 {
+    LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
+    DWORD index;
+	DWORD flags = 0;
+	DWORD recvBytes = 0;
+	SOCKADDR_IN client;
+    int clientLen = sizeof(client);
+
+	do
+	{
+        //wait for signal from control to initiate a send
+        WaitForSingleObject(m->voiceSem, INFINITE);
+
+        m->sending = false;
+
+        if(WSARecvFrom(m->voice.Socket, &(m->voice.DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(client), &clientLen, &(m->voice.Overlapped), voiceRoutine) == SOCKET_ERROR)
+		{
+			if (WSAGetLastError() != WSA_IO_PENDING)
+		    {
+		        displayError("WSARecvFrom failed", WSAGetLastError()); 
+		        return -1;
+		    }
+		}
+		
+		while(TRUE)
+		{
+			index = SleepEx(INFINITE, TRUE);
+		
+			if(index == WAIT_IO_COMPLETION)
+			{
+				break;
+			}
+			else
+			{
+				displayError("SleepEx failed", index);
+				return -1;
+			}
+		}
+	}
+	while(recvBytes > 0);
+
+    ReleaseSemaphore(m->voiceSem, 1, 0);
+
     return TRUE;
 }
-DWORD WINAPI micRcvThread(LPVOID lpParameter)
+
+void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
-    return TRUE;
+	DWORD flags = 0;
+	DWORD recvBytes;
+	DWORD sendBytes;
+	LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION)lpOverlapped;
+    LPMUSIC_SESSION m = getSession(SI->Socket);
+    SOCKADDR_IN client;
+	int clientLen = sizeof(client);
+
+    int port = CLIENT_UDP_PORT;
+    getIP_Addr(&client, m->ip, port);
+    clientLen = sizeof(client);
+
+    if(error != 0)
+    {
+        displayError("Voice error", error);
+    }
+    if(bytesTransferred == 0)
+    {
+        printf("Closing send socket %d\n", SI->Socket);
+    }
+
+	if(error != 0 || bytesTransferred == 0)
+	{
+        deleteSocketInfo(SI);
+        m->sending = false;
+		return;
+	}
+
+    if(SI->BytesRECV == 0)
+    {
+        SI->BytesRECV = bytesTransferred;
+        SI->BytesSEND = 0;
+    }
+    else
+    {
+        SI->BytesSEND += bytesTransferred;
+    }
+
+    if(SI->BytesRECV > SI->BytesSEND)
+    {
+        ZeroMemory(&SI->Overlapped, sizeof(WSAOVERLAPPED));
+
+        SI->DataBuf.buf = SI->Buffer + SI->BytesSEND;
+        SI->DataBuf.len = SI->BytesRECV - SI->BytesSEND;
+
+	    if(WSASendTo(SI->Socket, &(SI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(client), clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+	    {
+	    	if (WSAGetLastError() != WSA_IO_PENDING)
+            {
+                displayError("WSASendTo failed", WSAGetLastError()); 
+                m->sending = false;
+                return;
+            }
+	    }
+    }
+    else
+    {
+        SI->BytesRECV = 0;
+        flags = 0;
+        m->sending = false;
+
+        ZeroMemory(&SI->Overlapped, sizeof(WSAOVERLAPPED));
+
+        SI->DataBuf.len = DATA_BUFSIZE;
+        SI->DataBuf.buf = SI->Buffer;
+
+        if(WSARecvFrom(SI->Socket, &(SI->DataBuf), 1, &recvBytes, &flags, (sockaddr *)&(client), &clientLen, &(SI->Overlapped), voiceRoutine) == SOCKET_ERROR)
+	    {
+	    	if (WSAGetLastError() != WSA_IO_PENDING)
+            {
+                displayError("WSARecvFrom failed", WSAGetLastError()); 
+                return;
+            }
+	    }
+    }
 }
