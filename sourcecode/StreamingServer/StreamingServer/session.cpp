@@ -88,10 +88,13 @@ bool createSession(SOCKET c, char* a)
     }
     // should be ok
     strcpy_s(m->ip, a);
+    WaitForSingleObject(userAccessSem, INFINITE);
     userList.emplace_back(a);
+    ReleaseSemaphore(userAccessSem, 1, 0);
 
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(SessionPair(c, m));
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
     ReleaseSemaphore(sessionsSem, 1, 0);
 
     //start the threads here
@@ -259,12 +262,9 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[2] = m->sendCompleteSem;
     waitHandles[3] = m->voiceSem;
 
-    // send song list and user list
+    // send song list
     sendSongList(m);
-    sendUserList(m);
-
-    // post send call with other users
-
+    
     
     //post rcv call waiting for data
     if ( WSARecv( m->control.Socket, &(m->control.DataBuf), 1, &RecvBytes, &flags, &(m->control.Overlapped), controlRoutine ) == SOCKET_ERROR)
@@ -295,6 +295,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
          {
             case 0:
                  // change in user list, access the list and send it
+                sendUserList(m);
                  break;
             case 1:
                  //new multicast song, send name of new song
@@ -812,9 +813,25 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     SOCKET c = m->control.Socket;
     printf("Session clean up for socket %d\n", c);
 
+    //remove this user from the list
+    WaitForSingleObject(userAccessSem, INFINITE);
+    auto it = userList.begin();
+    while(it != userList.end())
+    {
+        if(strcmp( (*it).c_str(), m->ip) == 0 )
+        {
+            userList.erase(it);
+            break;
+        }
+        it++;
+    }
+    ReleaseSemaphore(userAccessSem, 1, 0);
+
     // close threads
     TerminateThread(m->voice_thr, 0);
     TerminateThread(m->send_thr, 0);
+    TerminateThread(m->voice_thr, 0);
+
 
     //delete any data in the buffers
     //delete [] &(m->control.DataBuf);
@@ -841,6 +858,9 @@ void sessionCleanUp(LPMUSIC_SESSION m)
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.erase(c);
     ReleaseSemaphore(sessionsSem, 1, NULL);
+
+    //signal other sessions to send the updated userlist
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
 
     //close this thread
     ExitThread(0);
@@ -1008,8 +1028,7 @@ void sendUserList(LPMUSIC_SESSION m)
     std::string to_send = "********************************************" + temp;
 
     //call send function
-    sendToAll(to_send);
-
+    sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
 }
 
 void sendToAll(std::string message)
