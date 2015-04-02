@@ -227,7 +227,7 @@ void receiveMulticastData()
            cerr << "Error reading data from multicast socket." << endl;
            continue;
        }
-       cout << "Received:" << tempBuffer << endl;
+      // cout << "Received:" << tempBuffer << endl;
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
