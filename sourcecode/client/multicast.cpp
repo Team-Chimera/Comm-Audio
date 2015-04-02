@@ -315,7 +315,7 @@ for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
 cout << "I am ready to play music!" << endl;
 
 //wait until we have two messages worth of data; this avoids crackle
-while(multiBuffer.pos < MESSAGE_SIZE * 5)
+while(multiBuffer.pos < MESSAGE_SIZE * 10)
 {
     //wait for the buffer to be ready
 }

@@ -135,8 +135,6 @@ void MainWindow::setupConnections()
      Dialog initializeMessage(this);
      initializeMessage.exec();
 
-     //add song to the library list
-     addSongToLibrary("IAmAHardCodedTest.mp3");
 
 }
 

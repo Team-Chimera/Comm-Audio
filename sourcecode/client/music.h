@@ -10,7 +10,7 @@
 #define MESSAGE_SIZE 4096
 
 /* The size of the circular audio buffer */
-#define MUSIC_BUFFER_SIZE (MESSAGE_SIZE * 20)
+#define MUSIC_BUFFER_SIZE (MESSAGE_SIZE * 50)
 
 typedef struct CircularBuffer
 {
