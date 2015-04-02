@@ -980,12 +980,14 @@ void sendSongList(LPMUSIC_SESSION m)
 
     DWORD result, SendBytes;
     sockaddr_in client;
-    std::string to_send;
+    std::string temp;
     ctrlMessage message;
 
     message.msgData = songList;
     message.type = LIBRARY_INFO;
-    createControlString(message, to_send);
+    createControlString(message, temp);
+
+    std::string to_send = "********************************************" + temp;
 
     sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
 
@@ -996,12 +998,14 @@ void sendUserList(LPMUSIC_SESSION m)
     if(userList.empty())
         return;
 
-    std::string to_send;
+    std::string temp;
 
     ctrlMessage message;
     message.msgData = userList;
     message.type = CURRENT_LISTENERS;
-    createControlString(message, to_send);
+    createControlString(message, temp);
+
+    std::string to_send = "********************************************" + temp;
 
     //call send function
     sendToAll(to_send);
