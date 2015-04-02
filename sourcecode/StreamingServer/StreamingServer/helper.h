@@ -22,6 +22,9 @@ void Split( std::string list, std::vector<std::string>& v );
 bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags = 0);
 long loadFile(const char* file_name, char** file_out);
 
+void displayError(char *errStr, int errCode);
+void displayOutput(char *outStr);
+
 const static char DELIM = ':';
 
 #endif
