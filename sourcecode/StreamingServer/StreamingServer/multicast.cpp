@@ -7,6 +7,9 @@
 #include <vlc/libvlc.h>
 #include "music.h"
 
+#pragma comment(lib, "libvlc.lib")
+#pragma comment(lib, "libvlccore.lib")
+
 //VLC instance objects
 libvlc_instance_t *inst;
 libvlc_media_player_t *mediaPlayer;
@@ -96,7 +99,7 @@ bool startMulticastThread(HANDLE *multicastThread)
 	}
 
 	//load a song from command line else the test song
-	libvlc_media_t *song = libvlc_media_new_path(inst, "test.mp3");
+	libvlc_media_t *song = libvlc_media_new_path(inst, "test.m4a");
 
 	//load the song
 	if (song == NULL)

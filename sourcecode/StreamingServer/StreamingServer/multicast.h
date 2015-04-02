@@ -8,7 +8,7 @@
 #define DATA_BUFSIZE 1024
 #define TIMECAST_ADDR   "234.5.6.7"
 #define TIMECAST_PORT   8910
-#define TIMECAST_TTL    0
+#define TIMECAST_TTL    10
 #define TIMECAST_INTRVL 1
 
 typedef struct _MULTICAST_INFORMATION {
