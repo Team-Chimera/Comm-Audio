@@ -1089,10 +1089,9 @@ void sendNowPlaying(string artist, string name, string album, string length)
     ctrlMessage message;
 
 	//create the control message
-    message.msgData.emplace_back(name);
-	message.msgData.emplace_back(artist);
-	message.msgData.emplace_back(album);
-	message.msgData.emplace_back(length);
+	stringstream ss;
+	ss << name << "^" << artist << "^" << album << "^";
+	message.msgData.push_back(ss.str());
     message.type = NOW_PLAYING;
 
     createControlString(message, temp);
