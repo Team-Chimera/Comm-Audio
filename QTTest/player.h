@@ -6,6 +6,21 @@
 #include <QAudio>
 #include <QObject>
 
+/*------------------------------------------------------------------------------
+-- CLASS: Player
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- INTERFACE: class Player extends QObject
+--
+-- NOTES:
+--  Receives recorded audio from a UDP socket and plays it using the default
+--   audio output device.
+------------------------------------------------------------------------------*/
 class Player : QObject
 {
     Q_OBJECT

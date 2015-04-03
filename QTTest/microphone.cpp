@@ -7,8 +7,26 @@
 
 #include "microphone.h"
 
-Microphone::Microphone() : QObject()
+/*------------------------------------------------------------------------------
+-- FUNCTION: Microphone
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- INTERFACE: Microphone(QString address)
+--
+-- PARAMETER:
+--      address - IP address for the ptp client.
+--
+-- NOTES:
+--  Writes the recording audio directly to the created UDP socket.
+------------------------------------------------------------------------------*/
+Microphone::Microphone(QString address) : QObject()
 {
+    // Sets up a format for recording the audio
     QAudioFormat format;
     format.setSampleRate(8000); 
     format.setChannelCount(1);
@@ -17,21 +35,43 @@ Microphone::Microphone() : QObject()
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::UnSignedInt);
     
+    // Checks to see if the default recording device can handle the above 
+    //  format. If not then it finds the nearest format it can use.
     QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
     if(!info.isFormatSupported(format))
     {
         qWarning() << "Default format not supported, finding next best...";
         format = info.nearestFormat(format);
     }
-    socket = new QUdpSocket();
-    socket->connectToHost("192.168.1.70", 8800);
     
+    // Sets up a QT UDP socket and gets it ready to send to the "address" on 
+    //  port 8800.
+    socket = new QUdpSocket();
+    socket->connectToHost(address, 8800);
+    
+    // Gets the recording device ready and connects the microphones state to 
+    //  the handleStateChanged function.
     audio = new QAudioInput(format, this);
     connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
     
+    // Starts the microphone recording and writes it directly to the socket.
     audio->start(socket);
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: ~Microphone
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- INTERFACE: ~Microphone()
+--
+-- NOTES:
+--  Stops recording, closes the socket and frees their memory.
+------------------------------------------------------------------------------*/
 Microphone::~Microphone()
 {
     audio->stop();
@@ -40,6 +80,23 @@ Microphone::~Microphone()
     delete socket;
 }
 
+/*------------------------------------------------------------------------------
+-- FUNCTION: handleStateChanged
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- INTERFACE: void handleStateChanged(QAudio::State newState)
+--
+-- PARAMETER:
+--      newState - The state of the microphone.
+--
+-- NOTES:
+--  Gets the current state of the microphone.
+------------------------------------------------------------------------------*/
 void Microphone::handleStateChanged(QAudio::State newState)
 {
     switch(newState)
@@ -48,7 +105,7 @@ void Microphone::handleStateChanged(QAudio::State newState)
             if(audio->error() != QAudio::NoError)
             {
                 // Error handling
-                qWarning() << "Error found: Microphone";
+                qWarning() << "Microphone Error: " << audio->error();
                 
             }
             else
@@ -63,7 +120,8 @@ void Microphone::handleStateChanged(QAudio::State newState)
             qDebug() << "Active: Microphone";
         break;
         default:
-            // ... other cases as appropriate
+            // other cases
+            qDebug() << "Something weird";
         break;
     }
 }
