@@ -1,0 +1,9 @@
+﻿Build started 3/17/2015 9:24:39 PM.
+     1>Project "C:\Users\Jeffrey\Desktop\Comm-Audio\test-client\testbed\testbed.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         testbed.vcxproj -> C:\Users\Jeffrey\Desktop\Comm-Audio\test-client\Debug\testbed.exe
+     1>Done Building Project "C:\Users\Jeffrey\Desktop\Comm-Audio\test-client\testbed\testbed.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.07
