@@ -1,24 +1,34 @@
 #include "stdafx.h"
 #include <iostream>
+#include <vector>
+#include <string>
 #include "multicast.h"
 #include "helper.h"
 #include <mmsystem.h>
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
 #include "music.h"
+#include "session.h"
+
+using namespace std;
 
 //VLC instance objects
 libvlc_instance_t *inst;
 libvlc_media_player_t *mediaPlayer;
+libvlc_media_t *song;
 
 
 //circular buffer
 CircularBuffer circBuf;
 
 //multicast info
- LPMULTICAST_INFORMATION lpMulticastInfo;
+LPMULTICAST_INFORMATION lpMulticastInfo;
 
-using namespace std;
+ //song list
+vector<string> multicastList;
+MetaData data;
+
+bool done;
 
 /*******************************************************************
 ** Function: startMulticastThread
@@ -47,15 +57,13 @@ using namespace std;
 **  multicast structure and starts sending in a separate thread.
 *******************************************************************/
 
-DWORD WINAPI startMulticastThread(LPVOID lpParameter)
+DWORD WINAPI startMulticastThread(LPVOID songs)
 {
     char multicastAddr[16] = TIMECAST_ADDR;
     WORD wVersionRequested = MAKEWORD (2,2);
     WSAData wsaData;
     int loop;
     u_char lTTL;
-
-   // cout << "Id of multicast thread " << GetCurrentThreadId() << endl;
 
     WSAStartup(wVersionRequested, &wsaData);
 
@@ -86,7 +94,18 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter)
         return false;
     }
 
-	/** Make the music! **/
+	//load a song from command line else the test song
+	multicastList = *((vector<string> *) songs);
+	done = false;
+	playMulticastSong();
+
+    return 0;
+}
+
+/** Make the music! **/
+bool playMulticastSong()
+{
+	int index = 0;
 	char memoryOptions[256];
 	sprintf_s(memoryOptions, VLC_OPTIONS, (long long int)(intptr_t)(void*) &handleStream, (long long int)(intptr_t)(void*) &prepareRender);
 	const char* const vlcArgs[] = { "-I", "dummy", "--verbose=0", "--sout", memoryOptions};
@@ -98,166 +117,64 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter)
 		return false;
 	}
 
-	//load a song from command line else the test song
-    std::string song_to_play(song_dir + "unknown^test.mp3");
-	libvlc_media_t *song = libvlc_media_new_path(inst, song_to_play.c_str());
-
-	//load the song
-	if (song == NULL)
+	while(!done)
 	{
-		cerr << "failed to load the song." << endl;
-		return false;
+		string song_to_play(song_dir + "/" + multicastList[index]);
+		song = libvlc_media_new_path(inst, song_to_play.c_str());
+
+		//load the song
+		if (song == NULL)
+		{
+			cerr << "failed to load the song." << endl;
+			return false;
+		}
+
+		//get the metadata of the song
+		freeMetaData(&data);
+
+		if (getMetaData(&data, song))
+		{
+			 cout << "Meta Data: " << data.artist << ", " << data.title << ", " << data.album << endl;
+		}
+
+		//send out the data
+		sendNowPlaying(data.artist, data.title, data.album, "Ill figure out length later");
+
+		//create a media player
+		mediaPlayer = libvlc_media_player_new_from_media(song);
+
+		//Begin playing the music
+		libvlc_media_release(song);
+
+		//starts the process of streaming the audio (calls pre-render then handleStream)
+		libvlc_media_player_play(mediaPlayer);
+
+		while (!libvlc_media_player_is_playing(mediaPlayer))
+		{
+		// Wait for the song to start
+		}
+
+		//sleep constantly till the song finishes
+		while (!done && libvlc_media_player_is_playing(mediaPlayer))
+		{
+			Sleep(1000);
+		}
+
+		//iterate to the next song
+		if(!done)
+		{
+			if (index == multicastList.size() -1 )
+			{
+				index = 0;
+			}
+			else
+			{
+				index++;
+			}
+		}
 	}
 
-	//create a media player
-	mediaPlayer = libvlc_media_player_new_from_media(song);
-
-	//Begin playing the music
-	libvlc_media_release(song);
-
-	//starts the process of streaming the audio (calls pre-render then handleStream)
-	libvlc_media_player_play(mediaPlayer);
-
-    return 0;
-}
-
-/*******************************************************************
-** Function: multicastSendLoop
-**
-** Date: March 12th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Julian Brandrick
-**
-** Programmer: Julian Brandrick
-**
-** Interface:
-**			DWORD WINAPI multicastSendLoop(LPVOID lpParam)
-**
-** Parameters:
-**          lpParam - Contains a Multicast structure
-**
-** Returns:
-**			FALSE upon failure
-**
-** Notes:
-**  This is the thread routine for the multicast send loop. It
-**  sends data over a multicast channel using a completion routine.
-*******************************************************************/
-DWORD WINAPI multicastSendLoop(LPVOID lpParam)
-{
-    LPMULTICAST_INFORMATION lpMulticastInfo = (LPMULTICAST_INFORMATION)lpParam;
-
-    int index;
-    DWORD flags;
-    DWORD sendBytes;
-    WSAEVENT eventArray[1];
-
-    strcpy_s(lpMulticastInfo->Buffer, "This is from a Completion Port UDP Server");
-
-    flags = 0;
-    
-    while(TRUE)
-    {
-        if (WSASendTo(lpMulticastInfo->Socket, &(lpMulticastInfo->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(lpMulticastInfo->Client), sizeof(lpMulticastInfo->Client), &(lpMulticastInfo->Overlapped), multicastRoutine) == SOCKET_ERROR)
-        {
-            if (WSAGetLastError() != WSA_IO_PENDING)
-            {
-                displayError("WSASendTo failed", WSAGetLastError()); 
-                return -1;
-            }
-        }
-
-        eventArray[0] = WSACreateEvent(); 
-        while(TRUE)
-        {
-            index = WSAWaitForMultipleEvents(1, eventArray, FALSE, WSA_INFINITE, TRUE);
-
-            if (index == WAIT_IO_COMPLETION)
-            {
-                break;
-            }
-            else
-            {
-                displayError("WSAWaitForMultipleEvents failed", WSAGetLastError());
-                return -1;
-            }
-        }
-    }
-
-    return FALSE;
-}
-
-/*******************************************************************
-** Function: multicastRoutine
-**
-** Date: March 12th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Julian Brandrick
-**
-** Programmer: Julian Brandrick
-**
-** Interface:
-**			void CALLBACK multicastRoutine(DWORD Error, 
-**                                         DWORD BytesTransferred, 
-**                                         LPWSAOVERLAPPED Overlapped, 
-**                                         DWORD InFlags)
-**
-** Parameters:
-**          Error - Contains any errors that occur
-**          BytesTransferred - Number of bytes transferred
-**          Overlapped - Pointer to an overlapped struct
-**          InFlags - Flags used for sending
-**
-** Returns:
-**			FALSE upon failure
-**
-** Notes:
-**  This is the completion routine that handles sending data to the
-**  multicast clients.
-*******************************************************************/
-void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
-{
-    DWORD sendBytes;
-    DWORD flags;
-    int clientLen;
-
-    LPMULTICAST_INFORMATION MI = (LPMULTICAST_INFORMATION) Overlapped;
-
-    if (Error != 0 || BytesTransferred == 0)
-    {
-        displayError("Routine error", Error);
-        closesocket(MI->Socket);
-        GlobalFree(MI);
-        return;
-    }
-
-    MI->BytesSent += BytesTransferred;
-    flags = 0;
-    ZeroMemory(Overlapped, sizeof(WSAOVERLAPPED));
-
-    MI->DataBuf.len = DATA_BUFSIZE;
-    MI->DataBuf.buf = MI->Buffer;
-
-    clientLen = sizeof(MI->Client);
-
-    if (WSASendTo(MI->Socket, &(MI->DataBuf), 1, &sendBytes, flags, (sockaddr *)&(MI->Client), clientLen, &(MI->Overlapped), multicastRoutine) == SOCKET_ERROR)
-    {
-        if (WSAGetLastError() != WSA_IO_PENDING)
-        {
-            displayError("WSASendTo failed", WSAGetLastError());
-            return;
-        }
-    }
-
-    printf("\nRoutine: %s\n", MI->Buffer);
-
-    Sleep(TIMECAST_INTRVL * 1000);
+	return true;
 }
 
 /*******************************************************************
@@ -438,9 +355,7 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
 			closesocket(lpMulticastInfo->Socket);
 			WSACleanup();
 			exit(0);
-		}
-           cout << "multicast sent! thread ID:  " << GetCurrentThreadId() << endl;
-		
+		}		
 
 		//remove the char array
 		delete [] buffer;
@@ -486,4 +401,36 @@ void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size)
   //  cout << "Id of prepare renderer " << GetCurrentThreadId() << endl;
 	// Allocate memory to the buffer
 	*pp_pcm_buffer = (uint8_t*) malloc(size);
+}
+
+
+bool getMetaData(MetaData *md, libvlc_media_t *media)
+{
+	libvlc_media_parse(media);
+	// Parse the metadata from the audio file
+	md->title = libvlc_media_get_meta(media, libvlc_meta_Title);
+	md->artist = libvlc_media_get_meta(media, libvlc_meta_Artist);
+	md->album = libvlc_media_get_meta(media, libvlc_meta_Album);
+
+	if (md->title == NULL || md->artist == NULL || md->album == NULL)
+	{
+		return false;
+	}
+	return true;
+}
+
+
+void freeMetaData(MetaData *md)
+{
+	libvlc_free(md->artist);
+	libvlc_free(md->album);
+	libvlc_free(md->title);
+}
+
+void fetchMetaData(MetaData *m)
+{
+	m->artist = data.artist;
+	m->album = data.album;
+	m->title = data.title;
+
 }

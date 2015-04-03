@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     cout << "Id of Main thread " << GetCurrentThreadId() << endl;
 	 initWSA(&wsadata);
     // Julian's multicast...
-    createWorkerThread(startMulticastThread, &multicastThread, 0, 0);
+    createWorkerThread(startMulticastThread, &multicastThread, (LPVOID *) &songList, 0);
     createWorkerThread(AcceptThread, &acceptThread, 0, 0);
 
     while(1){};

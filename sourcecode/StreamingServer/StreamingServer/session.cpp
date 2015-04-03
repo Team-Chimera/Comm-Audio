@@ -20,7 +20,7 @@
 
         void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
         void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-        bool startSend(LPMUSIC_SESSION m, std::string filename);
+        bool startSend(LPMUSIC_SESSION m, string filename);
         void sessionCleanUp(LPMUSIC_SESSION m);
 --
 -- REVISIONS: (Date and Description)
@@ -30,24 +30,29 @@
 -- PROGRAMMER: Jeff Bayntun
 --
 --------------------------------------------------------------------------------------------*/
+#include <iostream>
 #include "stdafx.h"
 #include "session.h"
+#include "helper.h"
+#include <mmsystem.h>
+#include <vlc/vlc.h>
+#include <vlc/libvlc.h>
+#include "music.h"
 
+using namespace std;
 
 HANDLE newSongSem;
 HANDLE songAccessSem;
 HANDLE userChangeSem;
 HANDLE userAccessSem;
-std::vector<std::string> userList;
-std::vector<std::string> songList;
+vector<string> userList;
+vector<string> songList;
 HANDLE sessionsSem;
-std::string multicastSong;
+string multicastSong;
 
-using namespace std;
+map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
-std::map<SOCKET, LPMUSIC_SESSION> SESSIONS;
 
-using namespace std;
 /*******************************************************************
 ** Function: createSession()
 **
@@ -295,7 +300,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
          {
             case 0:
                  // change in user list, access the list and send it
-                sendUserList(m);
+                updateNewUser(m);
                  break;
             case 1:
                  //new multicast song, send name of new song
@@ -1006,14 +1011,14 @@ void sendSongList(LPMUSIC_SESSION m)
 
     DWORD result, SendBytes;
     sockaddr_in client;
-    std::string temp;
+    string temp;
     ctrlMessage message;
 
     message.msgData = songList;
     message.type = LIBRARY_INFO;
     createControlString(message, temp);
 
-    std::string to_send = "********************************************" + temp;
+    string to_send = "********************************************" + temp;
 
     sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
 
@@ -1024,22 +1029,47 @@ void sendUserList(LPMUSIC_SESSION m)
     if(userList.empty())
         return;
 
-    std::string temp;
+    string temp;
 
     ctrlMessage message;
     message.msgData = userList;
     message.type = CURRENT_LISTENERS;
     createControlString(message, temp);
 
-    std::string to_send = "********************************************" + temp;
+    string to_send = "********************************************" + temp;
 
     //call send function
     sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
 }
 
-void sendToAll(std::string message)
+void updateNewUser(LPMUSIC_SESSION m)
 {
-    std::vector<SOCKET> sockets;
+	sendUserList(m);
+	ctrlMessage message;
+	string temp;
+
+	MetaData *d = new MetaData;
+	fetchMetaData(d);
+	//create the now playing control message
+	stringstream ss;
+	ss << d->title << "^" << d->artist << "^" << d->album << "^";
+	message.msgData.push_back(ss.str());
+    message.type = NOW_PLAYING;
+
+    createControlString(message, temp);
+
+    string to_send = "********************************************" + temp;
+
+	//send the message to the client
+	sendTCPMessage(&(m->control.Socket), to_send, DATA_BUFSIZE);
+
+	delete d;
+
+}
+
+void sendToAll(string message)
+{
+    vector<SOCKET> sockets;
     WaitForSingleObject(sessionsSem, INFINITE);
     for(auto const &it : SESSIONS)
     {
@@ -1051,4 +1081,24 @@ void sendToAll(std::string message)
     {
         sendTCPMessage(&(s), message, DATA_BUFSIZE);
     }
+}
+
+void sendNowPlaying(string artist, string name, string album, string length)
+{
+	string temp;
+    ctrlMessage message;
+
+	//create the control message
+    message.msgData.emplace_back(name);
+	message.msgData.emplace_back(artist);
+	message.msgData.emplace_back(album);
+	message.msgData.emplace_back(length);
+    message.type = NOW_PLAYING;
+
+    createControlString(message, temp);
+
+    string to_send = "********************************************" + temp;
+
+    //call send function
+	sendToAll(to_send);
 }

@@ -94,6 +94,8 @@ DWORD WINAPI controlThread(LPVOID lpParameter);
 DWORD WINAPI AcceptThread(LPVOID lpParameter);
 void sendToAll(std::string message);
 void sendUserList(LPMUSIC_SESSION m);
+void updateNewUser(LPMUSIC_SESSION);
+void sendNowPlaying(std::string, std::string, std::string, std::string);
 
 void CALLBACK voiceRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags);
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
@@ -101,6 +103,7 @@ void CALLBACK sendFileRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPP
 
 bool startSend(LPMUSIC_SESSION m, std::string filename);
 void sessionCleanUp(LPMUSIC_SESSION m);
+
 
 
 #endif

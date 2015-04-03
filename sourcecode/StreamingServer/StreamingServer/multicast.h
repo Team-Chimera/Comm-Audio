@@ -25,5 +25,6 @@ DWORD WINAPI startMulticastThread(LPVOID lpParameter);
 LPMULTICAST_INFORMATION initMulticastSocket();
 DWORD WINAPI multicastSendLoop(LPVOID lpParameter);
 void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+bool playMulticastSong();
 
 #endif
