@@ -468,19 +468,7 @@ void updateLibrary(vector<string> data)
     //add each song to the GUI
     for (int i = 0; i < data.size(); i++)
     {
-        //fetch the song
-        string libraryEntry = data[i];
-        vector<string> songData;
-
-        //parse out the song information into a vector
-        int endSection = libraryEntry.find('^');
-        songData.push_back(libraryEntry.substr(0, endSection));
-        songData.push_back(libraryEntry.substr(endSection + 1, libraryEntry.length()));
-
-        stringstream ss;
-        ss << songData[1] << " by " << songData[0];
-
-        GUI->addSongToLibrary(ss.str());
+        GUI->addSongToLibrary(data[i]);
     }
 }
 
