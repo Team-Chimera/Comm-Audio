@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui qml quick widgets core multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,17 +18,18 @@ TEMPLATE = app
 SOURCES += main.cpp \
         mainwindow.cpp \
         multicast.cpp \
-        voiceChat.cpp \
         controlChannel.cpp \
         dialog.cpp \
         unicastSong.cpp \
     unicastdialog.cpp \
-    downloadSong.cpp
+    downloadSong.cpp \
+    microphone.cpp \
+    player.cpp \
+    voiceDialog.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
     multicast.h \
-    voiceChat.h \
     controlMessage.h \
     unicastSong.h \
     dialog.h \
@@ -36,11 +37,15 @@ HEADERS  += mainwindow.h \
     controlChannel.h \
     music.h \
     socketinfo.h \
-    downloadSong.h
+    downloadSong.h \
+    microphone.h \
+    player.h \
+    voiceDialog.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
-    unicastdialog.ui
+    unicastdialog.ui \
+    voiceDialog.ui
 
 
 INSTALLS += install_it

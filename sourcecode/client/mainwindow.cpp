@@ -28,7 +28,9 @@
 #include "ui_mainwindow.h"
 #include "dialog.h"
 #include "multicast.h"
+#include "voiceDialog.h"
 #include "controlChannel.h"
+#include "player.h"
 
 using std::string;
 using std::vector;
@@ -130,6 +132,12 @@ void MainWindow::setupConnections()
 
     //make the songs in the library clickable
     connect(ui->songs, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openSongMenu(QListWidgetItem *)));
+
+    //make the client list clickable
+    connect(ui->listeners, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openVoiceMenu(QListWidgetItem *)));
+
+    //allow the microphone button to start the listening of microphone data
+    connect(ui->connectMic, SIGNAL(pressed()), this, SLOT(receiveVoiceChat()));
 
     //create the dialog box for the launch
      Dialog initializeMessage(this);
@@ -280,3 +288,35 @@ void MainWindow::openSongMenu(QListWidgetItem *it)
      songMenu.setSongName(it->text().toStdString());
      songMenu.exec();
 }
+
+
+/*****************************************************************
+** Function: openVoiceMenu
+**
+** Date: March 24th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void openVoiceMenu(QListWidgetItem *it)
+**              QListWidgetItem *it -- Item that was clicked on
+**
+** Returns:
+**          void
+**
+** Notes:
+** Opens a small context menu when each client is opened
+*******************************************************************/
+void MainWindow::openVoiceMenu(QListWidgetItem *it)
+{
+    //create the dialog box for the song
+     voiceDialog voiceMenu(this);
+     voiceMenu.setClientName(it->text().toStdString());
+     voiceMenu.exec();
+}
+
