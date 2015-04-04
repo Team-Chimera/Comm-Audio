@@ -256,8 +256,8 @@ DWORD WINAPI AcceptThread(LPVOID lpParameter)
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
     DWORD RecvBytes, result, flags, handles;
-    handles = 4;
-    HANDLE waitHandles[4];
+    handles = 3;
+    HANDLE waitHandles[3];
 
     flags = 0;
     LPMUSIC_SESSION m = (LPMUSIC_SESSION) lpParameter;
@@ -265,7 +265,6 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
     waitHandles[0] = userChangeSem;
     waitHandles[1] = newSongSem;
     waitHandles[2] = m->sendCompleteSem;
-    waitHandles[3] = m->voiceSem;
 
     // send song list
     sendSongList(m);
@@ -405,7 +404,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           case SAVE_SONG:
           {
             m->mode = 't';
-            startSend(m, ctrl.msgData[0]);
+           // startSend(m, ctrl.msgData[0]);
               break;
           }
           case END_CONNECTION:

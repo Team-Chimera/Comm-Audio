@@ -245,9 +245,10 @@ void MainWindow::updateNowPlaying(vector<string> songInfo)
 ** Notes:
 ** Adds a song to the library list
 *******************************************************************/
-void MainWindow::addSongToLibrary(string song)
+void MainWindow::addSongToLibrary(std::string s)
+
 {
-    ui->songs->addItem(QString::fromStdString(song));
+    ui->songs->addItem(QString::fromStdString(s));
 }
 
 

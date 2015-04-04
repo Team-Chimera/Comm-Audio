@@ -22,7 +22,7 @@ public:
     ~MainWindow();
     void setupConnections();
     void addClient(std::string);
-    void addSongToLibrary(std:: string);
+
 
 public slots:
    // bool initialConnect();
@@ -30,6 +30,7 @@ public slots:
     void updateListeners(std::string);
     void updateNowPlaying(std::vector<std::string>);
     void openSongMenu(QListWidgetItem *);
+    void addSongToLibrary(std::string);
 
 private:
     Ui::MainWindow *ui;

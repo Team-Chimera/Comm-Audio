@@ -111,7 +111,6 @@ SOCKET createUDPSOCKET()
 **          s:  socket to connect
 **          addr: structure with ip and port to connect to
 **
-**
 ** Returns:
 **			false on failure
 **
@@ -178,10 +177,16 @@ void printIP(sockaddr_in& peer)
 **
 ** Notes: sets default values for a SOCKET_INFORMATION
 *******************************************************************/
-bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s)
+LPSOCKET_INFORMATION createSocketInfo(SOCKET s)
 {
-    ZeroMemory(si, sizeof(SOCKET_INFORMATION));
-    ZeroMemory(&(si->Overlapped), sizeof(WSAOVERLAPPED));
+    LPSOCKET_INFORMATION si;
+
+    if ((si = (LPSOCKET_INFORMATION) GlobalAlloc(GPTR,
+         sizeof(SOCKET_INFORMATION))) == NULL)
+      {
+         printf("Test GlobalAlloc() failed with error %d\n", GetLastError());
+         return NULL;
+      } 
 
       si->Socket = s;
       si->BytesSEND = 0;
@@ -190,7 +195,7 @@ bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s)
       si->DataBuf.len = DATA_BUFSIZE;
       si->DataBuf.buf = si->Buffer;
 
-      return true;
+      return si;
 }
 /*******************************************************************
 ** Function: deleteSocketInfo()
@@ -362,9 +367,10 @@ bool setAcceptEvent(WSAEVENT* a)
 *******************************************************************/
 bool getIP_Addr(sockaddr_in* addr, char* host, int port)
 {
-    struct hostent	*hp;
+    struct hostent	*temp;
+    temp = gethostbyname(host);
 
-   if ((hp = gethostbyname(host)) == NULL)
+   if (temp == NULL)
     {
         printf("Unknown server address\n");
         return false;
@@ -374,7 +380,7 @@ bool getIP_Addr(sockaddr_in* addr, char* host, int port)
    addr->sin_family = AF_INET;
    addr->sin_port = htons(port);
 
-   memcpy((char *)&addr->sin_addr, hp->h_addr, hp->h_length);
+   memcpy((char *)&addr->sin_addr, temp->h_addr, temp->h_length);
 
    return true;
 }
@@ -418,4 +424,66 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
 	}
     delete [] to_send;
 	return totalSent;
+}
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: openTCPSend
+--
+-- DATE: January 30, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: bool openTCPSend( SOCKET* s, int port, string ip)
+-- s: pointer to SOCKET that will be opened
+-- port: port to bind the socket to
+-- ip: ip address to connect to
+--			
+-- RETURNS: false on failure, else true
+--
+-- NOTES: opens a TCP socket, binds it to a port and connects to an ip address
+----------------------------------------------------------------------------------------------------------------------*/
+bool openTCPSend( SOCKET* s, int port, std::string ip)
+{
+	WSADATA WSAData;
+	if ( WSAStartup( MAKEWORD( 2, 2 ), &WSAData ) != 0 ) //No useable DLL
+	{
+		std::cout << "WSAStartup DLL not found!\n";
+		return false;
+	}
+
+	struct sockaddr_in server;
+	struct hostent	*hp;
+	
+	// Create a stream socket
+	if ((*s = socket (PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	{
+		std::cout << "Can't create socket\n";
+		return false;
+	}
+
+	memset((char *)&server, 0, sizeof(struct sockaddr_in));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(port);
+
+	// Initialize and set up the address structure
+
+	if ((hp = gethostbyname(ip.c_str())) == NULL)
+	{
+		std::cout << "Unknown server address\n";
+		return false;
+	}
+
+	// Copy the server address
+	memcpy((char *)&server.sin_addr, hp->h_addr, hp->h_length);
+	
+	if (connect (*s, (struct sockaddr *)&server, sizeof(server)) != 0)
+	{
+		std::cout << "error in connect\n";
+		return false;
+	}
+	return true;
 }

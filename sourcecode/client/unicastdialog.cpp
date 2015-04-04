@@ -3,6 +3,7 @@
 #include "unicastdialog.h"
 #include "ui_unicastdialog.h"
 #include "controlChannel.h"
+#include "tcpdownload.h"
 
 using std::string;
 
@@ -38,7 +39,7 @@ unicastDialog::unicastDialog(QWidget *parent) :
 
     //add the connection to the two buttons
     connect(ui->playUnicast, SIGNAL(pressed()), this, SLOT(unicastSong()));
-    connect(ui->DownloadSong, SIGNAL(pressed()), this, SLOT(downloadSong()));
+    connect(ui->DownloadSong, SIGNAL(pressed()), this, SLOT(requestDownload()));
 }
 
 
@@ -91,9 +92,13 @@ unicastDialog::~unicastDialog()
 ** Notes:
 ** Sends a messsage to the server requesting a file download
 *******************************************************************/
-void unicastDialog::downloadSong()
+void unicastDialog::requestDownload()
 {
+  // get name of current song, send appropriate request to server
+    downloadSong(clickedSong);
 
+    // make thread to handle download
+    // in thread, make rcv call, get alertable, then do that shit.
     this->close();
 }
 

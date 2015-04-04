@@ -33,13 +33,16 @@
     <ClInclude Include="network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="session.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="streamingserver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\client\controlMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="music.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newsession.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,7 +62,7 @@
     <ClCompile Include="network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="session.cpp">
+    <ClCompile Include="newsession.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

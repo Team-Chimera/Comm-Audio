@@ -23,7 +23,8 @@ SOURCES += main.cpp \
         dialog.cpp \
         unicastSong.cpp \
     unicastdialog.cpp \
-    downloadSong.cpp
+    downloadSong.cpp \
+    tcpdownload.cpp
 
 HEADERS  += mainwindow.h \
     client.h \
@@ -36,7 +37,8 @@ HEADERS  += mainwindow.h \
     controlChannel.h \
     music.h \
     socketinfo.h \
-    downloadSong.h
+    downloadSong.h \
+    tcpdownload.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \

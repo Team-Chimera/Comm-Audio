@@ -37,9 +37,9 @@ HANDLE multicastThread;
 int main(int argc, char *argv[])
 {
 	
-	if(!makeSharedSems() || !loadSongList())
+	if(!loadSongList())
 	{
-		cout << "error making semaphores, aborting" << endl;
+		cout << "error loading songs, aborting" << endl;
 		return 55;
 	}
 	
@@ -47,69 +47,12 @@ int main(int argc, char *argv[])
 	 initWSA(&wsadata);
     // Julian's multicast...
     createWorkerThread(startMulticastThread, &multicastThread, (LPVOID *) &songList, 0);
-    createWorkerThread(AcceptThread, &acceptThread, 0, 0);
-
-    while(1){};
+    AcceptThread();
 
     return 0;
 
 }
 
-/*******************************************************************
-** Function: makeSharedSems()
-**
-** Date: March 22th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Jeff Bayntun
-**
-** Programmer: Jeff Bayntun
-**
-** Interface:
-**			bool makeSharedSems()
-**
-**
-** Returns:
-**			true on success
-**
-** Notes:
-** create semaphores that will be used by all session threads, including
- * for changes in the list of users or the currenly multicasted song
-*******************************************************************/
-bool makeSharedSems()
-{
-    cout << endl << "Making shared semaphores" << endl;
-
-    if( (userAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == 0)
-    {
-        printf("error creating userAccessSem\n");
-        return false;
-    }
-
-    if( (songAccessSem = CreateSemaphore(NULL, 1, 1, NULL)) == 0)
-    {
-        printf("error creating songAccessSem\n");
-        return false;
-    }
-
-    
-
-    if( (userChangeSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == 0)
-    {
-        printf("error creating userChangeSem\n");
-        return false;
-    }
-
-     if( (newSongSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == 0)
-    {
-        printf("error creating newSongSem\n");
-        return false;
-    }
-
-    return true;
-}
 
 bool loadSongList()
 {

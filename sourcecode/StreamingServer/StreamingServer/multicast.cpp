@@ -8,7 +8,7 @@
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
 #include "music.h"
-#include "session.h"
+//#include "newsession.h"
 
 using namespace std;
 
@@ -138,7 +138,7 @@ bool playMulticastSong()
 		}
 
 		//send out the data
-		sendNowPlaying(data.artist, data.title, data.album, "Ill figure out length later");
+		//sendNowPlaying(data.artist, data.title, data.album, "Ill figure out length later");
 
 		//create a media player
 		mediaPlayer = libvlc_media_player_new_from_media(song);
@@ -210,7 +210,7 @@ LPMULTICAST_INFORMATION initMulticastSocket()
         return NULL;
     }
 
-    if ((lpMulticastInfo->Socket = WSASocket(PF_INET, SOCK_DGRAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET)
+    if ((lpMulticastInfo->Socket = socket(PF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
     {
         displayError("Socket error", WSAGetLastError());
         return NULL;
