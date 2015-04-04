@@ -24,12 +24,14 @@ public:
     void addClient(std::string);
     void addSongToLibrary(std:: string);
 
+
 public slots:
    // bool initialConnect();
     void clearListeners();
     void updateListeners(std::string);
     void updateNowPlaying(std::vector<std::string>);
     void openSongMenu(QListWidgetItem *);
+    void openVoiceMenu(QListWidgetItem *);
 
 private:
     Ui::MainWindow *ui;
