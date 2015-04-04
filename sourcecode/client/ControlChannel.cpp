@@ -53,6 +53,7 @@ int controlSocket;
 
 //GUI Connector
 MainWindow *GUI;
+bool GUIReady;
 
 SOCKET_INFORMATION controlSocketInfo;
 
@@ -431,6 +432,12 @@ void handleControlMessage(ctrlMessage *cMessage)
 *******************************************************************/
 void updateListeners(vector<string> data)
 {
+    //wait for the GUI to be ready
+    while(!GUIReady)
+    {
+
+    }
+
     //clear the list of listeners
     GUI->clearListeners();
 
@@ -465,6 +472,11 @@ void updateListeners(vector<string> data)
 *******************************************************************/
 void updateLibrary(vector<string> data)
 {
+    //wait for the GUI to be ready
+    while(!GUIReady)
+    {
+
+    }
 
     //add each song to the GUI
     for (int i = 0; i < data.size(); i++)
@@ -499,6 +511,12 @@ void updateLibrary(vector<string> data)
 *******************************************************************/
 void updateNowPlaying(vector<string> msgData)
 {
+    //wait for the GUI to be ready
+    while(!GUIReady)
+    {
+
+    }
+
     //fetch the song
     string nowPlaying = msgData[0];
     vector<string> songData;
@@ -543,6 +561,7 @@ void updateNowPlaying(vector<string> msgData)
 void establishGUIConnector(void *gui)
 {
     GUI = (MainWindow *)gui;
+    GUIReady = true;
 }
 
 
