@@ -1,4 +1,5 @@
 #define CLIENT_UNICAST_PORT 6698
+#define NOMINMAX
 
 #include <mmsystem.h>
 #include <stdint.h>

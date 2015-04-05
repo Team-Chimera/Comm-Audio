@@ -31,9 +31,13 @@
 #include "voiceDialog.h"
 #include "controlChannel.h"
 #include "player.h"
+#include "microphone.h"
 
 using std::string;
 using std::vector;
+
+Microphone *mic;
+Player *micPlayer;
 
 /*****************************************************************
 ** Function: MainWindow
@@ -62,8 +66,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     //set up the GUI
     ui->setupUi(this);
+
+    mic = new Microphone();
+    micPlayer = new Player;
+
+
+
 }
 
 
@@ -122,13 +133,12 @@ void MainWindow::setupConnections()
     //QAction *connectButton = ui->menuBar->addAction("Connect");
     //connect(connectButton, SIGNAL(triggered()), this, SLOT(initialConnect()));
 
-
     //make now playing fields read only
     ui->artistName->setFocusPolicy(Qt::NoFocus);
-    ui->artistName->setReadOnly(true);
+    //ui->artistName->setReadOnly(true);
 
     ui->songName->setFocusPolicy(Qt::NoFocus);
-    ui->songName->setReadOnly(true);
+    //ui->songName->setReadOnly(true);
 
     //make the songs in the library clickable
     connect(ui->songs, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openSongMenu(QListWidgetItem *)));
@@ -136,8 +146,6 @@ void MainWindow::setupConnections()
     //make the client list clickable
     connect(ui->listeners, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openVoiceMenu(QListWidgetItem *)));
 
-    //allow the microphone button to start the listening of microphone data
-    connect(ui->connectMic, SIGNAL(pressed()), this, SLOT(receiveVoiceChat()));
 
     //create the dialog box for the launch
      Dialog initializeMessage(this);
@@ -226,8 +234,8 @@ void MainWindow::updateListeners(string listener)
 *******************************************************************/
 void MainWindow::updateNowPlaying(vector<string> songInfo)
 {
-    ui->songName->append(QString::fromStdString(songInfo[0]));
-    ui->artistName->append(QString::fromStdString(songInfo[1]));
+    ui->songName->setText(QString::fromStdString(songInfo[0]));
+    ui->artistName->setText(QString::fromStdString(songInfo[1]));
 }
 
 
@@ -315,9 +323,13 @@ void MainWindow::openSongMenu(QListWidgetItem *it)
 *******************************************************************/
 void MainWindow::openVoiceMenu(QListWidgetItem *it)
 {
+    micPlayer->startVoicePlay();
+    //mic->startVoice("127.0.0.1");
+
     //create the dialog box for the song
-     voiceDialog voiceMenu(this);
+     voiceDialog voiceMenu(mic, this);
      voiceMenu.setClientName(it->text().toStdString());
      voiceMenu.exec();
+
 }
 

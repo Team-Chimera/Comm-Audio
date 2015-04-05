@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <QDebug>
 #include <QObject>
-
 #include "microphone.h"
 
 /*------------------------------------------------------------------------------
@@ -24,7 +23,7 @@
 -- NOTES:
 --  Writes the recording audio directly to the created UDP socket.
 ------------------------------------------------------------------------------*/
-Microphone::Microphone(QString address) : QObject()
+Microphone::Microphone() : QObject()
 {
     // Sets up a format for recording the audio
     QAudioFormat format;
@@ -44,18 +43,14 @@ Microphone::Microphone(QString address) : QObject()
         format = info.nearestFormat(format);
     }
     
-    // Sets up a QT UDP socket and gets it ready to send to the "address" on 
-    //  port 8800.
+    // Sets up a QT UDP socket and gets it ready
     socket = new QUdpSocket();
-    socket->connectToHost(address, 8800);
     
     // Gets the recording device ready and connects the microphones state to 
     //  the handleStateChanged function.
     audio = new QAudioInput(format, this);
     connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
     
-    // Starts the microphone recording and writes it directly to the socket.
-    audio->start(socket);
 }
 
 /*------------------------------------------------------------------------------
@@ -124,4 +119,19 @@ void Microphone::handleStateChanged(QAudio::State newState)
             qDebug() << "Something weird";
         break;
     }
+}
+
+void Microphone::startVoice(QString address)
+{
+    socket->disconnectFromHost();
+    socket->connectToHost(address, 8800);
+
+    // Starts the microphone recording and writes it directly to the socket.
+    audio->start(socket);
+}
+
+
+void Microphone::stopVoice()
+{
+    audio->stop();
 }

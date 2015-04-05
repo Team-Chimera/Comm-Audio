@@ -1,12 +1,20 @@
+#define WIN32_LEAN_AND_MEAN
+#include <WinSock2.h>
+#include <WS2tcpip.h>
 #include <iostream>
 #include <string>
+#include "microphone.h"
 #include "voiceDialog.h"
 #include "ui_voicedialog.h"
 #include "player.h"
-#include "microphone.h"
 
 using std::string;
+using std::cerr;
 
+HANDLE voiceThread = INVALID_HANDLE_VALUE;
+
+
+Microphone *voice;
 
 /*****************************************************************
 ** Function: voiceDialog
@@ -31,11 +39,13 @@ using std::string;
 ** client context menu constructor
 **
 *******************************************************************/
-voiceDialog::voiceDialog(QWidget *parent) :
+voiceDialog::voiceDialog(Microphone *mic, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::voiceDialog)
 {
     ui->setupUi(this);
+
+    voice = mic;
 
     //add the connection to the two buttons
     connect(ui->connectVoice, SIGNAL(pressed()), this, SLOT(startVoiceChat()));
@@ -125,8 +135,19 @@ void voiceDialog::setClientName(string client)
 *******************************************************************/
 bool voiceDialog::startVoiceChat()
 {
-    Microphone mic(QString::fromStdString(clickedClient));
-    Player play;
+    DWORD threadId;
+
+   voice->startVoice(QString::fromStdString(clickedClient));
 
     return true;
+}
+
+
+DWORD WINAPI voiceChat(LPVOID client)
+{
+
+    string *clientName = (string *) client;
+
+
+    return 0;
 }

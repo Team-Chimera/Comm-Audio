@@ -18,10 +18,8 @@
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTabWidget>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -31,15 +29,14 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QSlider *horizontalSlider;
-    QPushButton *pushButton;
     QSlider *horizontalSlider_2;
     QTabWidget *tabWidget;
     QWidget *Multicast;
     QLabel *label_2;
     QLabel *label_3;
     QLabel *label_4;
-    QTextEdit *songName;
-    QTextEdit *artistName;
+    QLabel *artistName;
+    QLabel *songName;
     QWidget *Library;
     QListWidget *songs;
     QLabel *label;
@@ -122,16 +119,12 @@ public:
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         horizontalSlider = new QSlider(centralWidget);
         horizontalSlider->setObjectName(QStringLiteral("horizontalSlider"));
-        horizontalSlider->setGeometry(QRect(20, 410, 831, 20));
+        horizontalSlider->setGeometry(QRect(20, 440, 831, 20));
         horizontalSlider->setAutoFillBackground(false);
         horizontalSlider->setOrientation(Qt::Horizontal);
-        pushButton = new QPushButton(centralWidget);
-        pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(30, 430, 93, 28));
-        pushButton->setAutoFillBackground(false);
         horizontalSlider_2 = new QSlider(centralWidget);
         horizontalSlider_2->setObjectName(QStringLiteral("horizontalSlider_2"));
-        horizontalSlider_2->setGeometry(QRect(650, 430, 160, 19));
+        horizontalSlider_2->setGeometry(QRect(690, 460, 160, 19));
         horizontalSlider_2->setOrientation(Qt::Horizontal);
         tabWidget = new QTabWidget(centralWidget);
         tabWidget->setObjectName(QStringLiteral("tabWidget"));
@@ -150,12 +143,12 @@ public:
         label_4 = new QLabel(Multicast);
         label_4->setObjectName(QStringLiteral("label_4"));
         label_4->setGeometry(QRect(90, 90, 55, 16));
-        songName = new QTextEdit(Multicast);
-        songName->setObjectName(QStringLiteral("songName"));
-        songName->setGeometry(QRect(140, 40, 161, 31));
-        artistName = new QTextEdit(Multicast);
+        artistName = new QLabel(Multicast);
         artistName->setObjectName(QStringLiteral("artistName"));
-        artistName->setGeometry(QRect(140, 90, 161, 31));
+        artistName->setGeometry(QRect(160, 90, 421, 16));
+        songName = new QLabel(Multicast);
+        songName->setObjectName(QStringLiteral("songName"));
+        songName->setGeometry(QRect(140, 40, 421, 16));
         tabWidget->addTab(Multicast, QString());
         Library = new QWidget();
         Library->setObjectName(QStringLiteral("Library"));
@@ -165,11 +158,19 @@ public:
         tabWidget->addTab(Library, QString());
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
-        label->setGeometry(QRect(650, 20, 131, 21));
+        label->setGeometry(QRect(650, 10, 131, 21));
         listeners = new QListWidget(centralWidget);
         listeners->setObjectName(QStringLiteral("listeners"));
-        listeners->setGeometry(QRect(640, 40, 211, 341));
+        listeners->setGeometry(QRect(640, 30, 211, 341));
         MainWindow->setCentralWidget(centralWidget);
+        horizontalSlider->raise();
+        horizontalSlider_2->raise();
+        tabWidget->raise();
+        label->raise();
+        listeners->raise();
+        artistName->raise();
+        label_4->raise();
+        label_3->raise();
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 870, 26));
@@ -177,7 +178,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -186,11 +187,12 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-        pushButton->setText(QApplication::translate("MainWindow", "Play", 0));
         label_2->setText(QApplication::translate("MainWindow", "Now Playing:", 0));
         label_3->setText(QApplication::translate("MainWindow", "Song:", 0));
         label_4->setText(QApplication::translate("MainWindow", "Artist:", 0));
-        tabWidget->setTabText(tabWidget->indexOf(Multicast), QApplication::translate("MainWindow", "Multicast", 0));
+        artistName->setText(QString());
+        songName->setText(QString());
+        tabWidget->setTabText(tabWidget->indexOf(Multicast), QApplication::translate("MainWindow", "Now Playing", 0));
         tabWidget->setTabText(tabWidget->indexOf(Library), QApplication::translate("MainWindow", "Library", 0));
         label->setText(QApplication::translate("MainWindow", "Connected Users:", 0));
     } // retranslateUi

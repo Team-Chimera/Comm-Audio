@@ -34,6 +34,8 @@ class Player : QObject
     public slots:
         void handleStateChanged(QAudio::State newState);
         void playData();
+        void startVoicePlay();
+        void stopVoicePlay();
         
     private:
         QUdpSocket *socket;

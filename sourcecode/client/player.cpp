@@ -3,7 +3,6 @@
 #include <QIODevice>
 #include <QByteArray>
 #include <QDebug>
-
 #include "player.h"
 
 /*------------------------------------------------------------------------------
@@ -42,13 +41,11 @@ Player::Player() : QObject()
     
     // Sets up a QT UDP socket and binds it to port 8800.
     socket = new QUdpSocket();
-    socket->bind(VOICE_CHAT_CHANNEL);
 
     // Gets the playing device ready and connects the stereos state to the 
     //  handleStateChanged function and the socket to the playData function.
     audio = new QAudioOutput(format, this);
     connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
-    device = audio->start();
     connect(socket, SIGNAL(readyRead()), this, SLOT(playData()));
 }
 
@@ -144,4 +141,15 @@ void Player::playData()
         socket->readDatagram(data.data(), data.size());
         device->write(data.data(), data.size());
     }
+}
+
+void Player::startVoicePlay()
+{
+    device = audio->start();
+    socket->bind(VOICE_CHAT_CHANNEL);
+}
+
+void Player::stopVoicePlay()
+{
+    audio->stop();
 }

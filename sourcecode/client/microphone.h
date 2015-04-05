@@ -26,8 +26,10 @@ class Microphone : QObject
     Q_OBJECT
     
     public:
-        Microphone(QString address);
+        Microphone();
         ~Microphone();
+        void startVoice(QString);
+        void stopVoice();
     
     public slots:
         void handleStateChanged(QAudio::State newState);
