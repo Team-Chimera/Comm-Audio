@@ -1,7 +1,7 @@
 #ifndef PLAYER
 #define PLAYER
 
-#include <QUdpSocket>
+#include <qudpsocket.h>
 #include <QAudioOutput>
 #include <QAudio>
 #include <QObject>

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "session.h"
+#include "newsession.h"
 #include "network.h"
 #include "atlstr.h"
 

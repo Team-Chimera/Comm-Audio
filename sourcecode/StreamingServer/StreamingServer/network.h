@@ -31,16 +31,18 @@ extern const char* DENY;
 SOCKET createTCPSOCKET();
 SOCKET createUDPSOCKET();
 bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr);
-bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s);
+LPSOCKET_INFORMATION createSocketInfo(SOCKET s);
 void deleteSocketInfo(LPSOCKET_INFORMATION si);
 
 bool initWSA(WSADATA* wsaData);
 bool openListenSocket(SOCKET* s, int port);
 bool setAcceptEvent(WSAEVENT* a);
 int sendTCPMessage( SOCKET* s, std::string message, int size);
+int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size);
 
 bool getIP_Addr(sockaddr_in* addr, char* host, int port);
 void printIP(sockaddr_in& addr);
+bool openTCPSend( SOCKET* s, int port, std::string ip);
 
 
 
