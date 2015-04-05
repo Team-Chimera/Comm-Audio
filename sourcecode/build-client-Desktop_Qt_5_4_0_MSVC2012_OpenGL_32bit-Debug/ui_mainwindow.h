@@ -20,7 +20,6 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTabWidget>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -36,8 +35,8 @@ public:
     QLabel *label_2;
     QLabel *label_3;
     QLabel *label_4;
-    QTextEdit *songName;
-    QTextEdit *artistName;
+    QLabel *artistName;
+    QLabel *songName;
     QWidget *Library;
     QListWidget *songs;
     QLabel *label;
@@ -144,12 +143,12 @@ public:
         label_4 = new QLabel(Multicast);
         label_4->setObjectName(QStringLiteral("label_4"));
         label_4->setGeometry(QRect(90, 90, 55, 16));
-        songName = new QTextEdit(Multicast);
-        songName->setObjectName(QStringLiteral("songName"));
-        songName->setGeometry(QRect(140, 40, 161, 31));
-        artistName = new QTextEdit(Multicast);
+        artistName = new QLabel(Multicast);
         artistName->setObjectName(QStringLiteral("artistName"));
-        artistName->setGeometry(QRect(140, 90, 161, 31));
+        artistName->setGeometry(QRect(160, 90, 421, 16));
+        songName = new QLabel(Multicast);
+        songName->setObjectName(QStringLiteral("songName"));
+        songName->setGeometry(QRect(140, 40, 421, 16));
         tabWidget->addTab(Multicast, QString());
         Library = new QWidget();
         Library->setObjectName(QStringLiteral("Library"));
@@ -164,6 +163,14 @@ public:
         listeners->setObjectName(QStringLiteral("listeners"));
         listeners->setGeometry(QRect(640, 30, 211, 341));
         MainWindow->setCentralWidget(centralWidget);
+        horizontalSlider->raise();
+        horizontalSlider_2->raise();
+        tabWidget->raise();
+        label->raise();
+        listeners->raise();
+        artistName->raise();
+        label_4->raise();
+        label_3->raise();
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 870, 26));
@@ -171,7 +178,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -183,7 +190,9 @@ public:
         label_2->setText(QApplication::translate("MainWindow", "Now Playing:", 0));
         label_3->setText(QApplication::translate("MainWindow", "Song:", 0));
         label_4->setText(QApplication::translate("MainWindow", "Artist:", 0));
-        tabWidget->setTabText(tabWidget->indexOf(Multicast), QApplication::translate("MainWindow", "Multicast", 0));
+        artistName->setText(QString());
+        songName->setText(QString());
+        tabWidget->setTabText(tabWidget->indexOf(Multicast), QApplication::translate("MainWindow", "Now Playing", 0));
         tabWidget->setTabText(tabWidget->indexOf(Library), QApplication::translate("MainWindow", "Library", 0));
         label->setText(QApplication::translate("MainWindow", "Connected Users:", 0));
     } // retranslateUi
