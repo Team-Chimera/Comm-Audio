@@ -4,8 +4,7 @@
 
 using namespace std;
 bool TCP_rcv;
-std::string* file_name;
-std::ofstream file;
+
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: TestThread
@@ -28,17 +27,19 @@ std::ofstream file;
 ----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI doTCPDownload(LPVOID lpParameter)
 {
+    cout << "I am HERE!" << endl;
+   string* file_name = (std::string*) lpParameter;
 
-    string message;
-   file_name = (std::string*) lpParameter;
-
+    ofstream file;
    SOCKET acceptSocket;
 
-   file.open(*file_name);
+   file.open(*file_name, ios::binary);
 
    if(!file.is_open())
    {
        std::cout << "error opening file, exiting file download" << std::endl;
+       fflush(stdout);
+       delete file_name;
        return FALSE;
    }
 
@@ -46,18 +47,21 @@ DWORD WINAPI doTCPDownload(LPVOID lpParameter)
    openListenSocket(&acceptSocket, CLIENT_DOWNLOAD_PORT);
    SOCKET downloadSocket = accept(acceptSocket, NULL, NULL);
 
+   char* incoming;
+   int size_out;
+
       // start making rcv calls
    while(1)
    {
-       message.assign(readTCP(&downloadSocket,BUFFER_SIZE ));
-       if(message.compare("") == 0)
+       readTCP(&downloadSocket,BUFFER_SIZE, &incoming, &size_out);
+       if(!size_out)
        {
            break;
        }
-       file << message;
+       file.write(incoming, size_out);
    }
 
-
+    delete file_name;
       closesocket(downloadSocket);
       closesocket(acceptSocket);
       file.close();
@@ -121,7 +125,7 @@ void CALLBACK tcpDownloadRoutine(DWORD Error, DWORD BytesTransferred,
       //rcv = true;
       message_rcv.assign(SI->Buffer);
 
-      file << message_rcv;
+    //  file << message_rcv;
 
    }
 
@@ -259,7 +263,7 @@ bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID 
 --
 -- NOTES:
 -------------------------------------------------------------------------------------------------*/
-char* readTCP(SOCKET* s, int size)
+void readTCP(SOCKET* s, int size, char** out, int* size_out )
 {
     int RecvBytes = 0;
     char* buf = new char[size];
@@ -271,9 +275,15 @@ char* readTCP(SOCKET* s, int size)
         buf_ptr += n;
         RecvBytes += n; // not working
         size -= n;
-        if(n == 0 || size == 0)
-                return nullptr;
+        if(n == 0 && RecvBytes > 0)
+                break;
+        else if(n == 0)
+        {
+            *size_out = 0;
+            return;
+        }
     }
-   // buf[RecvBytes] = '\0';
-    return buf;
+    std::cout << buf << endl;
+    *size_out = RecvBytes;
+    *out = buf;
 }

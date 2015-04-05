@@ -432,8 +432,12 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
 	int totalSent = 0;
     char* to_send = message;
 
-	while(totalSent < file_size)
+	while(totalSent <= file_size)
 	{
+        // only send the final bit
+        if( file_size - totalSent < packet_size )
+            packet_size = file_size - totalSent;
+
 		if( (result = send (*s, to_send, packet_size, 0)) == SOCKET_ERROR )
 		{
 			std::cout << "send "  << WSAGetLastError()  << std::endl;
@@ -441,6 +445,7 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
 		}
 		totalSent += result;
         to_send += result;
+        Sleep(2);
 	}
 	return totalSent;
  }
@@ -467,12 +472,12 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
 ----------------------------------------------------------------------------------------------------------------------*/
 bool openTCPSend( SOCKET* s, int port, std::string ip)
 {
-	WSADATA WSAData;
+/*	WSADATA WSAData;
 	if ( WSAStartup( MAKEWORD( 2, 2 ), &WSAData ) != 0 ) //No useable DLL
 	{
 		std::cout << "WSAStartup DLL not found!\n";
 		return false;
-	}
+	} */
 
 	struct sockaddr_in server;
 	struct hostent	*hp;

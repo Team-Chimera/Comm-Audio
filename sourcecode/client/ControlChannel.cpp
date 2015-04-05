@@ -592,7 +592,7 @@ bool downloadSong(string song)
 {
     //create a song request message for the control channel
     ctrlMessage message;
-   // openListenSocket();
+    string* to_send = new string(song);
 
     message.type = SAVE_SONG;
     message.msgData.emplace_back(song);
@@ -602,8 +602,10 @@ bool downloadSong(string song)
 
     //create the download thread
     HANDLE threadH;
-    createWorkerThread(doTCPDownload, &threadH, &song, 0);
 
+    createWorkerThread(doTCPDownload, &threadH, to_send, 0);
+        cout << "download worker created in main thread" << endl;
+        fflush(stdout);
   //  Sleep(5000);
     //send the message to the server
     if (send(controlSocket, requestMessage.c_str(), requestMessage.length(), 0) == -1 )
