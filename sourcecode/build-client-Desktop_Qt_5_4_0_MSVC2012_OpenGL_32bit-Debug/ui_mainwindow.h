@@ -18,7 +18,6 @@
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QTextEdit>
@@ -31,7 +30,6 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QSlider *horizontalSlider;
-    QPushButton *pushButton;
     QSlider *horizontalSlider_2;
     QTabWidget *tabWidget;
     QWidget *Multicast;
@@ -122,16 +120,12 @@ public:
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         horizontalSlider = new QSlider(centralWidget);
         horizontalSlider->setObjectName(QStringLiteral("horizontalSlider"));
-        horizontalSlider->setGeometry(QRect(20, 410, 831, 20));
+        horizontalSlider->setGeometry(QRect(20, 440, 831, 20));
         horizontalSlider->setAutoFillBackground(false);
         horizontalSlider->setOrientation(Qt::Horizontal);
-        pushButton = new QPushButton(centralWidget);
-        pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(30, 430, 93, 28));
-        pushButton->setAutoFillBackground(false);
         horizontalSlider_2 = new QSlider(centralWidget);
         horizontalSlider_2->setObjectName(QStringLiteral("horizontalSlider_2"));
-        horizontalSlider_2->setGeometry(QRect(650, 430, 160, 19));
+        horizontalSlider_2->setGeometry(QRect(690, 460, 160, 19));
         horizontalSlider_2->setOrientation(Qt::Horizontal);
         tabWidget = new QTabWidget(centralWidget);
         tabWidget->setObjectName(QStringLiteral("tabWidget"));
@@ -165,10 +159,10 @@ public:
         tabWidget->addTab(Library, QString());
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
-        label->setGeometry(QRect(650, 20, 131, 21));
+        label->setGeometry(QRect(650, 10, 131, 21));
         listeners = new QListWidget(centralWidget);
         listeners->setObjectName(QStringLiteral("listeners"));
-        listeners->setGeometry(QRect(640, 40, 211, 341));
+        listeners->setGeometry(QRect(640, 30, 211, 341));
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
@@ -186,7 +180,6 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-        pushButton->setText(QApplication::translate("MainWindow", "Play", 0));
         label_2->setText(QApplication::translate("MainWindow", "Now Playing:", 0));
         label_3->setText(QApplication::translate("MainWindow", "Song:", 0));
         label_4->setText(QApplication::translate("MainWindow", "Artist:", 0));

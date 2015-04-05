@@ -588,19 +588,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="connectMic">
-    <property name="geometry">
-     <rect>
-      <x>690</x>
-      <y>380</y>
-      <width>101</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Join Mic Chat</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

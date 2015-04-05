@@ -4,6 +4,8 @@
 #include "mainwindow.h"
 #include "controlChannel.h"
 #include <QApplication>
+#include "player.h"
+#include "microphone.h"
 
 
 /*******************************************************************
@@ -49,6 +51,7 @@ int main(int argc, char *argv[])
     GUI.setupConnections();
     GUI.show();
     establishGUIConnector(&GUI);
+
 
     return a.exec();
 }

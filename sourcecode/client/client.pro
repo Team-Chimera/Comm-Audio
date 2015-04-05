@@ -52,3 +52,5 @@ INSTALLS += install_it
 
 LIBS += -lws2_32 -lwinmm
 CONFIG += c++11
+
+QMAKE_CXXFLAGS += /DNOMINMAX

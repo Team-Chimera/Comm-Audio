@@ -244,8 +244,9 @@ debug\moc_microphone.cpp: C:\Qt\5.4\msvc2012_opengl\include\QtNetwork\QUdpSocket
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudioformat.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudiodeviceinfo.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudio \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QString \
 		microphone.h
-	C:\Qt\5.4\msvc2012_opengl\bin\moc.exe $(DEFINES) -D_MSC_VER=1700 -D_WIN32 -IC:/Qt/5.4/msvc2012_opengl/mkspecs/win32-msvc2012 -IC:/Users/Julian/Documents/Term4/COMP4985/Assignments/CommAudio/QTTest -IC:/Qt/5.4/msvc2012_opengl/include -IC:/Qt/5.4/msvc2012_opengl/include/QtQuick -IC:/Qt/5.4/msvc2012_opengl/include/QtWidgets -IC:/Qt/5.4/msvc2012_opengl/include/QtMultimedia -IC:/Qt/5.4/msvc2012_opengl/include/QtGui -IC:/Qt/5.4/msvc2012_opengl/include/QtQml -IC:/Qt/5.4/msvc2012_opengl/include/QtNetwork -IC:/Qt/5.4/msvc2012_opengl/include/QtCore microphone.h -o debug\moc_microphone.cpp
+	C:\Qt\5.4\msvc2012_opengl\bin\moc.exe $(DEFINES) -D_MSC_VER=1700 -D_WIN32 -IC:/Qt/5.4/msvc2012_opengl/mkspecs/win32-msvc2012 -I"C:/Users/Rhea/Dropbox/School/COMP4985(Windows Data Comm)/comm-audio/QTTest" -IC:/Qt/5.4/msvc2012_opengl/include -IC:/Qt/5.4/msvc2012_opengl/include/QtQuick -IC:/Qt/5.4/msvc2012_opengl/include/QtWidgets -IC:/Qt/5.4/msvc2012_opengl/include/QtMultimedia -IC:/Qt/5.4/msvc2012_opengl/include/QtGui -IC:/Qt/5.4/msvc2012_opengl/include/QtQml -IC:/Qt/5.4/msvc2012_opengl/include/QtNetwork -IC:/Qt/5.4/msvc2012_opengl/include/QtCore microphone.h -o debug\moc_microphone.cpp
 
 debug\moc_player.cpp: C:\Qt\5.4\msvc2012_opengl\include\QtNetwork\QUdpSocket \
 		C:\Qt\5.4\msvc2012_opengl\include\QtNetwork\qudpsocket.h \
@@ -327,7 +328,7 @@ debug\moc_player.cpp: C:\Qt\5.4\msvc2012_opengl\include\QtNetwork\QUdpSocket \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudio \
 		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QObject \
 		player.h
-	C:\Qt\5.4\msvc2012_opengl\bin\moc.exe $(DEFINES) -D_MSC_VER=1700 -D_WIN32 -IC:/Qt/5.4/msvc2012_opengl/mkspecs/win32-msvc2012 -IC:/Users/Julian/Documents/Term4/COMP4985/Assignments/CommAudio/QTTest -IC:/Qt/5.4/msvc2012_opengl/include -IC:/Qt/5.4/msvc2012_opengl/include/QtQuick -IC:/Qt/5.4/msvc2012_opengl/include/QtWidgets -IC:/Qt/5.4/msvc2012_opengl/include/QtMultimedia -IC:/Qt/5.4/msvc2012_opengl/include/QtGui -IC:/Qt/5.4/msvc2012_opengl/include/QtQml -IC:/Qt/5.4/msvc2012_opengl/include/QtNetwork -IC:/Qt/5.4/msvc2012_opengl/include/QtCore player.h -o debug\moc_player.cpp
+	C:\Qt\5.4\msvc2012_opengl\bin\moc.exe $(DEFINES) -D_MSC_VER=1700 -D_WIN32 -IC:/Qt/5.4/msvc2012_opengl/mkspecs/win32-msvc2012 -I"C:/Users/Rhea/Dropbox/School/COMP4985(Windows Data Comm)/comm-audio/QTTest" -IC:/Qt/5.4/msvc2012_opengl/include -IC:/Qt/5.4/msvc2012_opengl/include/QtQuick -IC:/Qt/5.4/msvc2012_opengl/include/QtWidgets -IC:/Qt/5.4/msvc2012_opengl/include/QtMultimedia -IC:/Qt/5.4/msvc2012_opengl/include/QtGui -IC:/Qt/5.4/msvc2012_opengl/include/QtQml -IC:/Qt/5.4/msvc2012_opengl/include/QtNetwork -IC:/Qt/5.4/msvc2012_opengl/include/QtCore player.h -o debug\moc_player.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -474,6 +475,7 @@ debug\main.obj: main.cpp C:\Qt\5.4\msvc2012_opengl\include\QtWidgets\QApplicatio
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudioformat.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudiodeviceinfo.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudio \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QString \
 		player.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudioOutput \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudiooutput.h \
@@ -565,7 +567,8 @@ debug\microphone.obj: microphone.cpp C:\Qt\5.4\msvc2012_opengl\include\QtCore\QI
 		C:\Qt\5.4\msvc2012_opengl\include\QtNetwork\qhostaddress.h \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudioInput \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudioinput.h \
-		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudio
+		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudio \
+		C:\Qt\5.4\msvc2012_opengl\include\QtCore\QString
 
 debug\player.obj: player.cpp C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\QAudioFormat \
 		C:\Qt\5.4\msvc2012_opengl\include\QtMultimedia\qaudioformat.h \
