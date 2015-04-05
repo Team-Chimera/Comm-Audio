@@ -34,7 +34,8 @@
 #include "controlChannel.h"
 #include "unicastSong.h"
 #include "mainwindow.h"
-#include "downloadSong.h"
+#include "tcpdownload.h"
+
 
 
 using namespace std;
@@ -574,7 +575,7 @@ void establishGUIConnector(void *gui)
 **
 ** Designer: Rhea Lauzon
 **
-** Programmer: Rhea Lauzon
+** Programmer: Rhea Lauzon, Jeff Bayntun
 **
 ** Interface:
 **			bool downloadSong(string song)
@@ -591,13 +592,21 @@ bool downloadSong(string song)
 {
     //create a song request message for the control channel
     ctrlMessage message;
+    string* to_send = new string(song);
 
-    message.type = SONG_REQUEST;
+    message.type = SAVE_SONG;
     message.msgData.emplace_back(song);
 
     string requestMessage;
     createControlString(message, requestMessage);
 
+    //create the download thread
+    HANDLE threadH;
+
+    createWorkerThread(doTCPDownload, &threadH, to_send, 0);
+        cout << "download worker created in main thread" << endl;
+        fflush(stdout);
+  //  Sleep(5000);
     //send the message to the server
     if (send(controlSocket, requestMessage.c_str(), requestMessage.length(), 0) == -1 )
     {
@@ -605,13 +614,7 @@ bool downloadSong(string song)
         return false;
     }
 
-    //create the download thread
-    DWORD threadId;
-    if ((downloadThread = CreateThread(NULL, 0, beginDownload, NULL, 0, &threadId)) == NULL)
-    {
-        cerr << "Unable to create unicast thread";
-        return false;
-    }
+
 
     return true;
 }

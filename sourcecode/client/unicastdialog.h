@@ -18,7 +18,7 @@ public:
 
 public slots:
     void unicastSong();
-    void downloadSong();
+    void requestDownload();
 
 private:
     Ui::unicastDialog *ui;
