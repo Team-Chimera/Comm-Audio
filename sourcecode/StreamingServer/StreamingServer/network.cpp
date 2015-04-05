@@ -431,12 +431,16 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
      	int result;
 	int totalSent = 0;
     char* to_send = message;
+    bool finished = false;
 
-	while(totalSent <= file_size)
+	while(!finished)
 	{
         // only send the final bit
         if( file_size - totalSent < packet_size )
+        {
             packet_size = file_size - totalSent;
+            finished = true;
+        }
 
 		if( (result = send (*s, to_send, packet_size, 0)) == SOCKET_ERROR )
 		{
