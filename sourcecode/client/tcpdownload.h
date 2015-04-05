@@ -21,6 +21,7 @@ LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 void deleteSocketInfo(LPSOCKET_INFORMATION si);
 
 bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags);
+char *readTCP(SOCKET* s, int size);
 
 #endif // TCPDOWNLOAD
 

@@ -426,6 +426,25 @@ int sendTCPMessage( SOCKET* s, std::string message, int size)
 	return totalSent;
 }
 
+ int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size)
+ {
+     	int result;
+	int totalSent = 0;
+    char* to_send = message;
+
+	while(totalSent < file_size)
+	{
+		if( (result = send (*s, to_send, packet_size, 0)) == SOCKET_ERROR )
+		{
+			std::cout << "send "  << WSAGetLastError()  << std::endl;
+			return -1;
+		}
+		totalSent += result;
+        to_send += result;
+	}
+	return totalSent;
+ }
+
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: openTCPSend
 --

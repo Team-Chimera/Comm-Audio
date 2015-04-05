@@ -1,9 +1,10 @@
 #include <iostream>
 #include "tcpdownload.h"
+#include "controlChannel.h"
 
 using namespace std;
 bool TCP_rcv;
-std::string file_name;
+std::string* file_name;
 std::ofstream file;
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -27,18 +28,13 @@ std::ofstream file;
 ----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI doTCPDownload(LPVOID lpParameter)
 {
-   DWORD Flags, result;
-   LPSOCKET_INFORMATION SocketInfo;
-   file_name = *((std::string*) lpParameter);
-   DWORD Index;
-   DWORD RecvBytes;
 
-   sockaddr peer;
-   int peer_len;
+    string message;
+   file_name = (std::string*) lpParameter;
 
    SOCKET acceptSocket;
 
-   file.open(file_name);
+   file.open(*file_name);
 
    if(!file.is_open())
    {
@@ -50,48 +46,22 @@ DWORD WINAPI doTCPDownload(LPVOID lpParameter)
    openListenSocket(&acceptSocket, CLIENT_DOWNLOAD_PORT);
    SOCKET downloadSocket = accept(acceptSocket, NULL, NULL);
 
-      // Fill in the details of our accepted socket.
+      // start making rcv calls
+   while(1)
+   {
+       message.assign(readTCP(&downloadSocket,BUFFER_SIZE ));
+       if(message.compare("") == 0)
+       {
+           break;
+       }
+       file << message;
+   }
 
-      SocketInfo->socket = downloadSocket;
-      ZeroMemory(&(SocketInfo->overlapped), sizeof(WSAOVERLAPPED));
-      SocketInfo->bytesSEND = 0;
-      SocketInfo->bytesRECV = 0;
-      SocketInfo->DataBuf.len = DATA_BUFSIZE;
-      SocketInfo->DataBuf.buf = SocketInfo->Buffer;
 
-      Flags = 0;
+      closesocket(downloadSocket);
+      closesocket(acceptSocket);
+      file.close();
 
-      //once shit is accepted, post a receive call on the new socket
-      if (WSARecv(SocketInfo->socket, &(SocketInfo->DataBuf), 1, &RecvBytes, &Flags,
-         &(SocketInfo->overlapped), tcpDownloadRoutine) == SOCKET_ERROR)
-      {
-         if (WSAGetLastError() != WSA_IO_PENDING)
-         {
-            printf("Test WSARecv() failed with error %d\n", WSAGetLastError());
-            return FALSE;
-         }
-      }
-
-      TCP_rcv = true;
-
-      // enter alertable state
-      while(1)
-     {
-         result = SleepEx(INFINITE, TRUE);
-
-          if (result!= WAIT_IO_COMPLETION)
-          {
-             printf("problem waiting for tcp download %d", downloadSocket);
-             break;
-          }
-
-          if( !TCP_rcv )
-          {
-              deleteSocketInfo(SocketInfo);
-              file.close();
-              break;
-          }
-     }
 
    return TRUE;
 }
@@ -267,4 +237,43 @@ bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID 
         return false;
     }
     return true;
+}
+
+
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: readTCP
+--
+-- DATE: January 30, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: string readTCP(SOCKET* s, int size)
+-- s: pointer to SOCKET to read from
+-- size: size of message to expect, defaults to BUFSIZE
+--
+-- RETURNS: string containing the message read
+--
+-- NOTES:
+-------------------------------------------------------------------------------------------------*/
+char* readTCP(SOCKET* s, int size)
+{
+    int RecvBytes = 0;
+    char* buf = new char[size];
+    char* buf_ptr = buf;
+    int n;
+
+    while (n = recv(*s, buf_ptr, size, 0))
+    {
+        buf_ptr += n;
+        RecvBytes += n; // not working
+        size -= n;
+        if(n == 0 || size == 0)
+                return nullptr;
+    }
+   // buf[RecvBytes] = '\0';
+    return buf;
 }

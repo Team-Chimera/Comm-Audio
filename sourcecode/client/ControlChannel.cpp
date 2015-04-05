@@ -604,6 +604,7 @@ bool downloadSong(string song)
     HANDLE threadH;
     createWorkerThread(doTCPDownload, &threadH, &song, 0);
 
+  //  Sleep(5000);
     //send the message to the server
     if (send(controlSocket, requestMessage.c_str(), requestMessage.length(), 0) == -1 )
     {

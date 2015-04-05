@@ -38,6 +38,7 @@ bool initWSA(WSADATA* wsaData);
 bool openListenSocket(SOCKET* s, int port);
 bool setAcceptEvent(WSAEVENT* a);
 int sendTCPMessage( SOCKET* s, std::string message, int size);
+int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size);
 
 bool getIP_Addr(sockaddr_in* addr, char* host, int port);
 void printIP(sockaddr_in& addr);
