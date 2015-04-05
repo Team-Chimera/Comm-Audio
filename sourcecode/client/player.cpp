@@ -41,7 +41,6 @@ Player::Player() : QObject()
     
     // Sets up a QT UDP socket and binds it to port 8800.
     socket = new QUdpSocket();
-    socket->bind(VOICE_CHAT_CHANNEL);
 
     // Gets the playing device ready and connects the stereos state to the 
     //  handleStateChanged function and the socket to the playData function.
@@ -147,6 +146,7 @@ void Player::playData()
 void Player::startVoicePlay()
 {
     device = audio->start();
+    socket->bind(VOICE_CHAT_CHANNEL);
 }
 
 void Player::stopVoicePlay()

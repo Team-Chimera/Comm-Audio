@@ -135,10 +135,10 @@ void MainWindow::setupConnections()
 
     //make now playing fields read only
     ui->artistName->setFocusPolicy(Qt::NoFocus);
-    ui->artistName->setReadOnly(true);
+    //ui->artistName->setReadOnly(true);
 
     ui->songName->setFocusPolicy(Qt::NoFocus);
-    ui->songName->setReadOnly(true);
+    //ui->songName->setReadOnly(true);
 
     //make the songs in the library clickable
     connect(ui->songs, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openSongMenu(QListWidgetItem *)));
@@ -234,8 +234,8 @@ void MainWindow::updateListeners(string listener)
 *******************************************************************/
 void MainWindow::updateNowPlaying(vector<string> songInfo)
 {
-    ui->songName->append(QString::fromStdString(songInfo[0]));
-    ui->artistName->append(QString::fromStdString(songInfo[1]));
+    ui->songName->setText(QString::fromStdString(songInfo[0]));
+    ui->artistName->setText(QString::fromStdString(songInfo[1]));
 }
 
 
