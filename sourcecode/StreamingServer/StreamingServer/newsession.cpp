@@ -504,14 +504,20 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
     
 
     SOCKET socket;
-    openTCPSend(&socket, CLIENT_TCP_PORT, ns->ip);
+    Sleep(2000);
+    if(!openTCPSend(&socket, CLIENT_TCP_PORT, ns->ip) )
+    {
+        cout << "couldn't connect to client rcv" << endl;
+        return FALSE;
+    }
 
     //send song
-    Sleep(2000);
+    Sleep(500);
     sendTCPMessage(&socket, temp, file_size, DATA_BUFSIZE);
 
    // maybe signal control thread.....
 
     //exit thread
+    closesocket(socket);
     return TRUE;
 }
