@@ -390,14 +390,48 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
 void updateNewUser(SOCKET c)
 {
+    WaitForSingleObject(sessionsSem, INFINITE);
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
+    ReleaseSemaphore(sessionsSem, 1, 0);
+
 	ctrlMessage message;
 	string temp;
 
-	MetaData *d = new MetaData;
-	fetchMetaData(d);
+	/*
+	MetaData *data = new MetaData;
+	fetchMetaData(data);
 	//create the now playing control message
 	stringstream ss;
-	ss << d->title << "^" << d->artist << "^" << d->album << "^";
+
+	if (data->title == NULL)
+	{
+		ss << "Unknown Song^";
+	}
+	else
+	{
+		ss << data->title << "^";
+	}
+
+	//add the artist
+	if (data->artist == NULL)
+	{
+		ss << "Unknown Artist^";
+	}
+	else
+	{
+		ss << data->artist << "^";
+	}
+
+	//add the album
+	if (data->album == NULL)
+	{
+		ss << "Unknown Album^";
+	}
+	else
+	{
+		ss << data->album << "^";
+	}
+
 	message.msgData.push_back(ss.str());
     message.type = NOW_PLAYING;
 
@@ -407,9 +441,9 @@ void updateNewUser(SOCKET c)
 
 	//send the message to the client
 	sendTCPMessage(&c, to_send, DATA_BUFSIZE);
-
-	delete d;
-
+	
+	delete data;
+	*/
 }
 
 
@@ -448,7 +482,7 @@ void sendUserList(SOCKET c)
 
 
 
-void sendNowPlaying(string artist, string name, string album, string length)
+void sendNowPlaying(MetaData *data)
 {
 	string temp;
     ctrlMessage message;
@@ -456,7 +490,37 @@ void sendNowPlaying(string artist, string name, string album, string length)
 
 	//create the control message
 	stringstream ss;
-	ss << name << "^" << artist << "^" << album << "^";
+
+	//add the song name
+	if (data->title == NULL)
+	{
+		ss << "Unknown Song^";
+	}
+	else
+	{
+		ss << data->title << "^";
+	}
+
+	//add the artist
+	if (data->artist == NULL)
+	{
+		ss << "Unknown Artist^";
+	}
+	else
+	{
+		ss << data->artist << "^";
+	}
+
+	//add the album
+	if (data->album == NULL)
+	{
+		ss << "Unknown Album^";
+	}
+	else
+	{
+		ss << data->album << "^";
+	}
+	
 	message.msgData.push_back(ss.str());
     message.type = NOW_PLAYING;
 
@@ -465,8 +529,20 @@ void sendNowPlaying(string artist, string name, string album, string length)
     string to_send = "********************************************" + temp;
 
     //call send function
-//	sendToAll(to_send);
+	sendToAll(to_send);
 }
+
+void sendToAll(string message)
+{
+	std::map<SOCKET, new_session *>::iterator it;
+
+	for( it = SESSIONS.begin(); it != SESSIONS.end(); it++)
+	{
+		//send it all clients
+		sendTCPMessage((SOCKET *)(&(it->first)), message, message.size());
+	}
+}
+
 
 void transmitSong(SOCKET s, string song)
 {

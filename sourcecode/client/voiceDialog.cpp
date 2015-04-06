@@ -3,6 +3,7 @@
 #include <WS2tcpip.h>
 #include <iostream>
 #include <string>
+#include <QMessageBox>
 #include "microphone.h"
 #include "voiceDialog.h"
 #include "ui_voicedialog.h"
@@ -112,7 +113,7 @@ void voiceDialog::setClientName(string client)
 
 
 /*****************************************************************
-** Function: startVoiceChat
+** Function: triggerVoiceChat
 **
 ** Date: April 4th, 2015
 **
@@ -131,23 +132,69 @@ void voiceDialog::setClientName(string client)
 **          bool -- if the connect fails or starts
 **
 ** Notes:
-** Starts a voice chat session with the specified client
+** Toggles between using the microphone or not
 *******************************************************************/
-bool voiceDialog::startVoiceChat()
+bool voiceDialog::triggerVoiceChat()
 {
     DWORD threadId;
 
-   voice->startVoice(QString::fromStdString(clickedClient));
+    if(!connected)
+    {
+        connected = true;
+        voice->startVoice(QString::fromStdString(clickedClient));
+        QPixmap pixmap(":/images/mic.png");
+        QIcon ButtonIcon(pixmap);
+        ui->connectVoice->setIcon(ButtonIcon);
+        ui->connectVoice->setIconSize(pixmap.rect().size());
+
+    }
+    else
+    {
+        connected = false;
+        voice->stopVoice();
+    }
 
     return true;
 }
 
 
-DWORD WINAPI voiceChat(LPVOID client)
+/*****************************************************************
+** Function: reject
+**
+** Date: March 18th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**          void reject()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Overriden method to trigger close events when disconnecting.
+**
+*******************************************************************/
+void voiceDialog::reject()
 {
 
-    string *clientName = (string *) client;
+    QMessageBox::StandardButton resBtn = QMessageBox::Yes;
 
+        resBtn = QMessageBox::question( this, "End Voice Chat",
+                                        tr("Are you sure you want to quit?\n"),
+                                        QMessageBox::Cancel | QMessageBox::Yes,
+                                        QMessageBox::Yes);
+    if (resBtn == QMessageBox::Yes)
+    {
+        QDialog::reject();
 
-    return 0;
+        //End the voice
+        connected = false;
+        voice->stopVoice();
+    }
 }

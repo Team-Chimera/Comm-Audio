@@ -33,7 +33,7 @@ public:
         voiceDialog->resize(400, 74);
         connectVoice = new QPushButton(voiceDialog);
         connectVoice->setObjectName(QStringLiteral("connectVoice"));
-        connectVoice->setGeometry(QRect(120, 30, 161, 31));
+        connectVoice->setGeometry(QRect(120, 20, 151, 41));
         client = new QLabel(voiceDialog);
         client->setObjectName(QStringLiteral("client"));
         client->setGeometry(QRect(10, 0, 391, 21));

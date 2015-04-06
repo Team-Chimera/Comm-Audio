@@ -18,7 +18,6 @@ TEMPLATE = app
 SOURCES += main.cpp \
         mainwindow.cpp \
         multicast.cpp \
-        voiceChat.cpp \
         controlChannel.cpp \
         dialog.cpp \
         unicastSong.cpp \
@@ -31,7 +30,6 @@ SOURCES += main.cpp \
 HEADERS  += mainwindow.h \
     client.h \
     multicast.h \
-    voiceChat.h \
     controlMessage.h \
     unicastSong.h \
     dialog.h \

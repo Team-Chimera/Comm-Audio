@@ -324,7 +324,6 @@ void MainWindow::openSongMenu(QListWidgetItem *it)
 void MainWindow::openVoiceMenu(QListWidgetItem *it)
 {
     micPlayer->startVoicePlay();
-    //mic->startVoice("127.0.0.1");
 
     //create the dialog box for the song
      voiceDialog voiceMenu(mic, this);

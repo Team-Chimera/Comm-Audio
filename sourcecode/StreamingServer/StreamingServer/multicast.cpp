@@ -134,11 +134,12 @@ bool playMulticastSong()
 
 		if (getMetaData(&data, song))
 		{
-			 cout << "Meta Data: " << data.artist << ", " << data.title << ", " << data.album << endl;
+			 cout << "Now Playing: " << data.artist << "'s " << data.title << " from album: " << data.album << endl;
 		}
 
 		//send out the data
-		sendNowPlaying(data.artist, data.title, data.album, "Ill figure out length later");
+		sendNowPlaying(&data);
+
 
 		//create a media player
 		mediaPlayer = libvlc_media_player_new_from_media(song);
@@ -159,6 +160,9 @@ bool playMulticastSong()
 		{
 			Sleep(1000);
 		}
+
+		//free the media player
+		libvlc_media_player_release(mediaPlayer);
 
 		//iterate to the next song
 		if(!done)

@@ -20,11 +20,13 @@ public:
     void setClientName(std::string);
 
 public slots:
-    bool startVoiceChat();
+    bool triggerVoiceChat();
+    void reject();
 
 private:
     Ui::voiceDialog *ui;
     std::string clickedClient;
+    bool connected;
 };
 
 DWORD WINAPI voiceChat(LPVOID);
