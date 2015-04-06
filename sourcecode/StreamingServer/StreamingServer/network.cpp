@@ -409,11 +409,12 @@ int sendTCPMessage( SOCKET *s, std::string message, int size)
 {
 	int result;
 	int totalSent = 0;
-    char* to_send = new char[size];
-    strcpy_s(to_send, size, (char*)message.c_str());
+    char* to_send = new char[size + 1];
+    //strcpy_s(to_send, size, (char*)message.c_str());
+	
 	while(message.size() > 0)
 	{
-		if( (result = send (*s, to_send, size, 0)) == SOCKET_ERROR )
+		if( (result = send (*s, message.c_str(), 1024, 0)) == SOCKET_ERROR )
 		{
 			std::cout << "WSARecv() failed with error "  << WSAGetLastError()  << std::endl;
 			return -1;

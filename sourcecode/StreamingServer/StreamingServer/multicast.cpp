@@ -161,6 +161,9 @@ bool playMulticastSong()
 			Sleep(1000);
 		}
 
+		//free the media player
+		libvlc_media_player_release(mediaPlayer);
+
 		//iterate to the next song
 		if(!done)
 		{

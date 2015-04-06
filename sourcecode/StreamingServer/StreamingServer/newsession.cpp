@@ -397,12 +397,41 @@ void updateNewUser(SOCKET c)
 	ctrlMessage message;
 	string temp;
 
-
-	MetaData *d = new MetaData;
-	fetchMetaData(d);
+	/*
+	MetaData *data = new MetaData;
+	fetchMetaData(data);
 	//create the now playing control message
 	stringstream ss;
-	ss << d->title << "^" << d->artist << "^" << d->album << "^";
+
+	if (data->title == NULL)
+	{
+		ss << "Unknown Song^";
+	}
+	else
+	{
+		ss << data->title << "^";
+	}
+
+	//add the artist
+	if (data->artist == NULL)
+	{
+		ss << "Unknown Artist^";
+	}
+	else
+	{
+		ss << data->artist << "^";
+	}
+
+	//add the album
+	if (data->album == NULL)
+	{
+		ss << "Unknown Album^";
+	}
+	else
+	{
+		ss << data->album << "^";
+	}
+
 	message.msgData.push_back(ss.str());
     message.type = NOW_PLAYING;
 
@@ -413,9 +442,8 @@ void updateNewUser(SOCKET c)
 	//send the message to the client
 	sendTCPMessage(&c, to_send, DATA_BUFSIZE);
 	
-
-	delete d;
-
+	delete data;
+	*/
 }
 
 
