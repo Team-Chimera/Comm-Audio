@@ -27,4 +27,5 @@ DWORD WINAPI JoinMulticast(LPVOID parameter);
 void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 void receiveMulticastData();
 DWORD WINAPI playMulticastSong(LPVOID arg);
+void updateVolume(int);
 #endif

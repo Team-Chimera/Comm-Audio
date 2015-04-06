@@ -32,6 +32,7 @@ public slots:
     void updateNowPlaying(std::vector<std::string>);
     void openSongMenu(QListWidgetItem *);
     void openVoiceMenu(QListWidgetItem *);
+    void changeSongVolume(int);
 
 private:
     Ui::MainWindow *ui;
