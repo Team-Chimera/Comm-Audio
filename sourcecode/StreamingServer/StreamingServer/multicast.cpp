@@ -140,6 +140,7 @@ bool playMulticastSong()
 		//send out the data
 		sendNowPlaying(&data);
 
+
 		//create a media player
 		mediaPlayer = libvlc_media_player_new_from_media(song);
 

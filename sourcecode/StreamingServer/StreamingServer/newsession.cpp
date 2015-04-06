@@ -216,7 +216,6 @@ void sendSongList(SOCKET c)
     message.msgData = songList;
     message.type = LIBRARY_INFO;
     createControlString(message, temp);
-
     string to_send = "********************************************" + temp;
 
     sendTCPMessage(&c, to_send, DATA_BUFSIZE);
@@ -395,7 +394,6 @@ void updateNewUser(SOCKET c)
     ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
     ReleaseSemaphore(sessionsSem, 1, 0);
 
-	/*
 	ctrlMessage message;
 	string temp;
 
@@ -409,7 +407,7 @@ void updateNewUser(SOCKET c)
     message.type = NOW_PLAYING;
 
     createControlString(message, temp);
-
+     std::cout << "ACKKKKKKKKKKKKKKKKKKKKKKK !!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     string to_send = "********************************************" + temp;
 
 	//send the message to the client
@@ -417,8 +415,6 @@ void updateNewUser(SOCKET c)
 	
 
 	delete d;
-
-	*/
 
 }
 
@@ -462,6 +458,7 @@ void sendNowPlaying(MetaData *data)
 {
 	string temp;
     ctrlMessage message;
+    cout << "YESSSSSSSSSSSSSSSSSSSSSSSSSSSS !!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 
 	//create the control message
 	stringstream ss;
