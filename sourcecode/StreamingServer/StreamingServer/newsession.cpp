@@ -216,7 +216,6 @@ void sendSongList(SOCKET c)
     message.msgData = songList;
     message.type = LIBRARY_INFO;
     createControlString(message, temp);
-
     string to_send = "********************************************" + temp;
 
     sendTCPMessage(&c, to_send, DATA_BUFSIZE);
@@ -391,10 +390,6 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
 void updateNewUser(SOCKET c)
 {
-    WaitForSingleObject(sessionsSem, INFINITE);
-    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
-    ReleaseSemaphore(sessionsSem, 1, 0);
-
 	ctrlMessage message;
 	string temp;
 
@@ -407,7 +402,7 @@ void updateNewUser(SOCKET c)
     message.type = NOW_PLAYING;
 
     createControlString(message, temp);
-
+     std::cout << "ACKKKKKKKKKKKKKKKKKKKKKKK !!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     string to_send = "********************************************" + temp;
 
 	//send the message to the client
@@ -457,6 +452,7 @@ void sendNowPlaying(string artist, string name, string album, string length)
 {
 	string temp;
     ctrlMessage message;
+    cout << "YESSSSSSSSSSSSSSSSSSSSSSSSSSSS !!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 
 	//create the control message
 	stringstream ss;
