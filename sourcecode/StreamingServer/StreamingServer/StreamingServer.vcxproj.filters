@@ -65,5 +65,8 @@
     <ClCompile Include="newsession.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="unicast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

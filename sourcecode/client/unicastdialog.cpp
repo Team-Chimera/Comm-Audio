@@ -40,6 +40,17 @@ unicastDialog::unicastDialog(QWidget *parent) :
     //add the connection to the two buttons
     connect(ui->playUnicast, SIGNAL(pressed()), this, SLOT(unicastSong()));
     connect(ui->DownloadSong, SIGNAL(pressed()), this, SLOT(requestDownload()));
+
+    //add the icons
+    QPixmap pixmap(":/Images/images/download.png");
+    QIcon ButtonIcon(pixmap);
+    ui->DownloadSong->setIcon(ButtonIcon);
+    ui->DownloadSong->setIconSize(QSize(ui->DownloadSong->size().width(),ui->DownloadSong->size().height()));
+
+    QPixmap pixmap2(":/Images/images/play.png");
+    QIcon ButtonIcon2(pixmap2);
+    ui->playUnicast->setIcon(ButtonIcon2);
+    ui->playUnicast->setIconSize(QSize(ui->playUnicast->size().width(),ui->playUnicast->size().height()));
 }
 
 

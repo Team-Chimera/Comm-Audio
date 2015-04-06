@@ -251,7 +251,7 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
     //handle it
     handleControlMessage(&message);
     cout.flush();
-    Sleep(1000);
+    //Sleep(1000);
 
 }
 
