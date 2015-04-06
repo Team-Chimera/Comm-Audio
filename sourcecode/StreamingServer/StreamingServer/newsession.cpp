@@ -390,14 +390,11 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
 void updateNewUser(SOCKET c)
 {
-    WaitForSingleObject(sessionsSem, INFINITE);
-    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
-    ReleaseSemaphore(sessionsSem, 1, 0);
 
 	ctrlMessage message;
 	string temp;
 
-	/*
+	
 	MetaData *data = new MetaData;
 	fetchMetaData(data);
 	//create the now playing control message
@@ -443,7 +440,7 @@ void updateNewUser(SOCKET c)
 	sendTCPMessage(&c, to_send, DATA_BUFSIZE);
 	
 	delete data;
-	*/
+	
 }
 
 
