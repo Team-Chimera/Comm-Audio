@@ -73,6 +73,9 @@ MainWindow::MainWindow(QWidget *parent) :
     mic = new Microphone();
     micPlayer = new Player;
 
+    //add the volume icon
+    QPixmap pixmap(":/Images/images/volume.png");
+    ui->volumeIcon->setPixmap(pixmap);
 
 
 }
@@ -145,6 +148,9 @@ void MainWindow::setupConnections()
 
     //make the client list clickable
     connect(ui->listeners, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openVoiceMenu(QListWidgetItem *)));
+
+    //make the volume trigger
+    connect(ui->volume, SIGNAL(valueChanged(int)),this, SLOT(changeSongVolume(int)));
 
 
     //create the dialog box for the launch
@@ -332,3 +338,30 @@ void MainWindow::openVoiceMenu(QListWidgetItem *it)
 
 }
 
+
+/*****************************************************************
+** Function: changeSongVolume
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void changeSongVolume(int value)
+**              int value -- Slider value
+**
+** Returns:
+**          void
+**
+** Notes:
+** Changes the volume of the current playing song
+*******************************************************************/
+void MainWindow::changeSongVolume(int value)
+{
+    updateVolume(value);
+}

@@ -47,6 +47,8 @@ HANDLE multiParentThread;
 
 bool streaming = false;
 
+int vol = 100;
+
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
 --
@@ -231,7 +233,7 @@ void receiveMulticastData()
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
-           multiBuffer.buf[multiBuffer.pos] = tempBuffer[i];
+           multiBuffer.buf[multiBuffer.pos] = tempBuffer[i] * vol /100;
            if(multiBuffer.pos == MUSIC_BUFFER_SIZE - 1)
            {
                 multiBuffer.pos = 0;
@@ -270,60 +272,60 @@ void receiveMulticastData()
 *******************************************************************/
 DWORD WINAPI playMulticastSong(LPVOID arg)
 {
-//create the wave header
-WAVEFORMATEX wavFormat;
+    //create the wave header
+    WAVEFORMATEX wavFormat;
 
-//create a number of buffers; in this case 3
-LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
+    //create a number of buffers; in this case 3
+    LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
 
-//set up the format
-wavFormat.nSamplesPerSec = 44100;
-wavFormat.wBitsPerSample = 16;
-wavFormat.nChannels = 2;
-wavFormat.cbSize = 0;
-wavFormat.wFormatTag = WAVE_FORMAT_PCM;
-wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
-wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
+    //set up the format
+    wavFormat.nSamplesPerSec = 44100;
+    wavFormat.wBitsPerSample = 16;
+    wavFormat.nChannels = 2;
+    wavFormat.cbSize = 0;
+    wavFormat.wFormatTag = WAVE_FORMAT_PCM;
+    wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
+    wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
 
-//open the media device for streaming to
-if (waveOutOpen(&multicastOutput, WAVE_MAPPER, &wavFormat, (DWORD) MultiWaveCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
-{
-    cerr << "Failed to open output device." << endl;
-    return -1;
-}
-
-// Prepare the wave headers
-for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-{
-    //malloc and clear the memory
-    audioBuffers[i] = (LPWAVEHDR) malloc(sizeof(WAVEHDR));
-    ZeroMemory(audioBuffers[i], sizeof(WAVEHDR));
-
-    //update the their buffers to a position in the tripple buffer
-    audioBuffers[i]->lpData = multiBuffer.buf;
-    audioBuffers[i]->dwBufferLength = MUSIC_BUFFER_SIZE;
-
-    // Create the header
-    if (waveOutPrepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+    //open the media device for streaming to
+    if (waveOutOpen(&multicastOutput, WAVE_MAPPER, &wavFormat, (DWORD) MultiWaveCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
     {
-        cerr << "Failed to create output header." << endl;
-        exit(1);
+        cerr << "Failed to open output device." << endl;
+        return -1;
     }
-}
 
-//write audio to the buffer
-cout << "I am ready to play music!" << endl;
+    // Prepare the wave headers
+    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
+    {
+        //malloc and clear the memory
+        audioBuffers[i] = (LPWAVEHDR) malloc(sizeof(WAVEHDR));
+        ZeroMemory(audioBuffers[i], sizeof(WAVEHDR));
 
-//wait until we have two messages worth of data; this avoids crackle
-while(multiBuffer.pos < MESSAGE_SIZE * 10)
-{
-    //wait for the buffer to be ready
-}
+        //update the their buffers to a position in the tripple buffer
+        audioBuffers[i]->lpData = multiBuffer.buf;
+        audioBuffers[i]->dwBufferLength = MUSIC_BUFFER_SIZE;
 
-for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-{
-    waveOutWrite(multicastOutput, audioBuffers[i], sizeof(WAVEHDR));
-}
+        // Create the header
+        if (waveOutPrepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+        {
+            cerr << "Failed to create output header." << endl;
+            exit(1);
+        }
+    }
+
+    //write audio to the buffer
+    cout << "I am ready to play music!" << endl;
+
+    //wait until we have two messages worth of data; this avoids crackle
+    while(multiBuffer.pos < MESSAGE_SIZE * 10)
+    {
+        //wait for the buffer to be ready
+    }
+
+    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
+    {
+        waveOutWrite(multicastOutput, audioBuffers[i], sizeof(WAVEHDR));
+    }
 
 return 0;
 
@@ -360,14 +362,20 @@ return 0;
 *******************************************************************/
 void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-if (uMsg == WOM_DONE)
-{
-    if (waveOutWrite(multicastOutput, (LPWAVEHDR) dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+    if (uMsg == WOM_DONE)
     {
-        cerr << "Failed to play audio." << endl;
-        exit(1);
+        if (waveOutWrite(multicastOutput, (LPWAVEHDR) dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+        {
+            cerr << "Failed to play audio." << endl;
+            exit(1);
+        }
     }
 }
+
+
+void updateVolume(int value)
+{
+    vol = value;
 }
 
 

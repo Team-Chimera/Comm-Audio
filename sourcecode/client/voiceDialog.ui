@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Song Options</string>
   </property>
   <widget class="QPushButton" name="connectVoice">
    <property name="geometry">
@@ -36,7 +36,9 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">font-weight: bold;</string>
+    <string notr="true">color: #5fd56f;
+font-weight: bold;
+</string>
    </property>
    <property name="text">
     <string>TextLabel</string>

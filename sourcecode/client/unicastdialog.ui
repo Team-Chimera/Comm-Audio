@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>74</height>
+    <width>403</width>
+    <height>87</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,27 +16,35 @@
   <widget class="QPushButton" name="playUnicast">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>90</x>
      <y>30</y>
-     <width>121</width>
-     <height>31</height>
+     <width>51</width>
+     <height>51</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background: none;
+border: none;</string>
+   </property>
    <property name="text">
-    <string>Play</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="DownloadSong">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>260</x>
      <y>30</y>
-     <width>111</width>
-     <height>31</height>
+     <width>51</width>
+     <height>51</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background: none;
+border: none;</string>
+   </property>
    <property name="text">
-    <string>Download</string>
+    <string/>
    </property>
   </widget>
   <widget class="QLabel" name="song">
@@ -49,7 +57,9 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">font-weight: bold;</string>
+    <string notr="true">color: #5fd56f;
+font-weight: bold;
+</string>
    </property>
    <property name="text">
     <string>TextLabel</string>

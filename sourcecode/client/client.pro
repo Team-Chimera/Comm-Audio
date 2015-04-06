@@ -54,3 +54,6 @@ LIBS += -lws2_32 -lwinmm
 CONFIG += c++11
 
 QMAKE_CXXFLAGS += /DNOMINMAX
+
+RESOURCES += \
+    resources.qrc

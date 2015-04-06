@@ -142,7 +142,7 @@ bool voiceDialog::triggerVoiceChat()
     {
         connected = true;
         voice->startVoice(QString::fromStdString(clickedClient));
-        QPixmap pixmap(":/images/mic.png");
+        QPixmap pixmap(":/Images/images/mic.png");
         QIcon ButtonIcon(pixmap);
         ui->connectVoice->setIcon(ButtonIcon);
         ui->connectVoice->setIconSize(pixmap.rect().size());
