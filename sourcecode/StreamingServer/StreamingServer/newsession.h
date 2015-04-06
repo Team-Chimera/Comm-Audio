@@ -30,10 +30,10 @@ typedef struct _new_session
     SOCKET s;
     std::string ip;
     std::string song;
+    HANDLE transferCompleteSem;
 
 } new_session;
 
-extern HANDLE userChangeSem;
 extern std::vector<std::string> songList;
 
 extern HANDLE sessionsSem;
@@ -43,7 +43,7 @@ extern std::map<SOCKET, new_session*> SESSIONS;
 void AcceptThread();
 void sendSongList(SOCKET c);
 bool createSession(new_session* ns);
-void sessionCleanUp(LPSOCKET_INFORMATION si);
+void sessionCleanUp(SOCKET s);
 DWORD WINAPI controlThread(LPVOID lpParameter);
 
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
@@ -52,7 +52,8 @@ void updateNewUser(SOCKET c);
 void transmitSong(SOCKET s, std::string song);
 DWORD WINAPI sendTCPSong(LPVOID lpParameter);
 void sendToAll(std::string);
-
+void sendUserList(SOCKET c);
+void sendSongDone(SOCKET s);
 
 
 #endif

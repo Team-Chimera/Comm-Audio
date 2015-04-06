@@ -10,6 +10,7 @@
 using namespace std;
 
 HANDLE userChangeSem;
+int userSemValue;
 vector<string> songList;
 HANDLE sessionsSem;
 
@@ -52,6 +53,8 @@ void AcceptThread()
         printf("error creating userChangeSem\n");
         return;
     }
+    userSemValue = 0;
+    cout << "UserSemValue at create : " << userSemValue << endl;
 
     cout << endl << "Accepting Clients" << endl;
     if(!openListenSocket(&Accept, SERVER_TCP_LISTEN_PORT) )
@@ -115,6 +118,10 @@ bool createSession(new_session* ns)
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(make_pair(ns->s, ns));
     ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
+
+    userSemValue += SESSIONS.size();
+    cout << "UserSemValue after user added: " << userSemValue << endl;
+
     ReleaseSemaphore(sessionsSem, 1, 0);
 
     createWorkerThread(controlThread, &h, ns, 0);
@@ -155,34 +162,46 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
 
 
     LPSOCKET_INFORMATION si = SI;
+
+    if( (ns->transferCompleteSem = CreateSemaphore(NULL, 0, 1, NULL)) == NULL)
+    {
+        printf("error creating transferComplete\n");
+        return FALSE;
+    }
   
     DWORD RecvBytes, result, flags;
-    HANDLE* waitHandles = &userChangeSem;
+    int handles = 2;
+    HANDLE* waitHandles = new HANDLE[handles];
+    waitHandles[0] = userChangeSem;
+    waitHandles[1] = ns->transferCompleteSem;
 
     flags = 0;
 
 
-    // send song list
+    // send song list and currently playing
     sendSongList(s);
+    updateNewUser(s);
     
     //post rcv call waiting for data
     if ( WSARecv( s, &(si->DataBuf), 1, &RecvBytes, &flags, &(si->Overlapped), controlRoutine ) == SOCKET_ERROR)
       {
-         if (WSAGetLastError() != WSA_IO_PENDING)
+         if (WSAGetLastError() != WSA_IO_PENDING && si)
          {
             printf("WSARecv() failed with error %d, control thread\n", WSAGetLastError());
-            sessionCleanUp(si);
+            SOCKET aaa = si->Socket;
+            deleteSocketInfo(si);
+            sessionCleanUp(aaa);
          }
       } 
 
     // get into alertable state
     while(1)
     {
-        result = WaitForMultipleObjectsEx(1, waitHandles, FALSE, INFINITE, TRUE);
+        result = WaitForMultipleObjectsEx(handles, waitHandles, FALSE, INFINITE, TRUE);
         if(result == WAIT_FAILED)
         {
             perror("error waiting for multiple objects");
-            sessionCleanUp(si);
+            sessionCleanUp(si->Socket);
         }
 
         if (result == WAIT_IO_COMPLETION)
@@ -194,11 +213,18 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
          {
             case 0:
                  // change in user list, access the list and send it
-                updateNewUser(si->Socket);
+                sendUserList(si->Socket);
+
+                userSemValue--;
+                cout << "UserSemValue after sleep ex, someone used it: " << userSemValue << endl;
                  break;
+            case 1:
+                //transfer of a song is completed, send message for that
+                sendSongDone(si->Socket);
+                break;
          default:
                 //error of somekind, clean up sessions and exit
-                sessionCleanUp(si);
+                sessionCleanUp(si->Socket);
          }
     }
 
@@ -246,19 +272,34 @@ void sendSongList(SOCKET c)
 ** Notes: closes threads, SOCKET_INFORMATIONS, and semaphores of
 ** the input session.
 *******************************************************************/
-void sessionCleanUp(LPSOCKET_INFORMATION si)
+void sessionCleanUp(SOCKET s)
 {
-    printf("Session clean up for socket %d\n", si->Socket);
+    printf("Session clean up for socket %d\n", s);
 
-    deleteSocketInfo(si);
+    
 
     //delete session from map
     WaitForSingleObject(sessionsSem, INFINITE);
-    SESSIONS.erase(si->Socket);
+    new_session* ns = SESSIONS.at(s);
+
+    if(ns)
+    {
+        CloseHandle(ns->transferCompleteSem);
+        int inny = SESSIONS.erase(s);
+    }
+
+    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
+
+    userSemValue += SESSIONS.size();
+    cout << "Sessions size after removing user  " << SESSIONS.size() << endl;
+    cout << "UserSemValue after session deleted: " << userSemValue << endl;
+
     ReleaseSemaphore(sessionsSem, 1, NULL);
 
     //signal other sessions to send the updated userlist
-    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
+    
+
+
 
     //close this thread
     ExitThread(0);
@@ -289,7 +330,9 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
    if (Error != 0 || BytesTransferred == 0)
    {
-       sessionCleanUp(SI);
+       SOCKET sss = SI->Socket;
+       deleteSocketInfo(SI);
+       sessionCleanUp(sss);
    }
 
    // Check to see if the BytesRECV field equals zero. If this is so, then
@@ -328,7 +371,9 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           case END_CONNECTION:
           default:
               {
-
+                   SOCKET aaa = SI->Socket;
+                   deleteSocketInfo(SI);
+                   sessionCleanUp(aaa);
               }
       }
 
@@ -455,11 +500,16 @@ void sendUserList(SOCKET c)
     map<const SOCKET, new_session*>::iterator &it = SESSIONS.begin();
     while(it != SESSIONS.end())
     {
-        if(it->first == c)
-            continue;
-
         ns = it->second;
-        users.push_back(ns->ip);
+        if(it->first == c)
+        {
+            users.push_back("Me: " + ns->ip);
+        }
+        else
+        {
+            users.push_back(ns->ip);
+        }
+        it++;
     }
     ReleaseSemaphore(sessionsSem, 1, 0);
 
@@ -584,9 +634,24 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
     Sleep(500);
     sendTCPMessage(&socket, temp, file_size, DATA_BUFSIZE);
 
-   // maybe signal control thread.....
+   //signal control thread that song is completed
+    ReleaseSemaphore(ns->transferCompleteSem, 1, 0);
 
     //exit thread
     closesocket(socket);
     return TRUE;
+}
+
+void sendSongDone(SOCKET s)
+{
+    string temp;
+    ctrlMessage message;
+    vector<string> bob;
+
+    message.msgData = bob;
+    message.type = END_SONG;
+    createControlString(message, temp);
+    string to_send = "********************************************" + temp;
+
+    sendTCPMessage(&s, to_send, DATA_BUFSIZE);
 }
