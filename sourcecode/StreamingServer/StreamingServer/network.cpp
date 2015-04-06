@@ -221,10 +221,10 @@ LPSOCKET_INFORMATION createSocketInfo(SOCKET s)
 *******************************************************************/
 void deleteSocketInfo(LPSOCKET_INFORMATION si)
 {
-    if (closesocket(si->Socket) == SOCKET_ERROR)
+   /* if (closesocket(si->Socket) == SOCKET_ERROR)
          {
             printf("closesocket() failed with error %d\n", WSAGetLastError());
-         }
+         } */
 
          GlobalFree(si);
 }
