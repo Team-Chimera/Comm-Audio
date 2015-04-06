@@ -8,7 +8,7 @@
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
 #include "music.h"
-//#include "newsession.h"
+#include "newsession.h"
 
 using namespace std;
 
@@ -134,11 +134,11 @@ bool playMulticastSong()
 
 		if (getMetaData(&data, song))
 		{
-			 cout << "Meta Data: " << data.artist << ", " << data.title << ", " << data.album << endl;
+			 cout << "Now Playing: " << data.artist << "'s " << data.title << " from album: " << data.album << endl;
 		}
 
 		//send out the data
-		//sendNowPlaying(data.artist, data.title, data.album, "Ill figure out length later");
+		sendNowPlaying(&data);
 
 		//create a media player
 		mediaPlayer = libvlc_media_player_new_from_media(song);

@@ -5,12 +5,14 @@
 #include "helper.h"
 #include "../../client/controlMessage.h"
 
+
 #include <string>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <vector>
 #include <iostream>
+
 
 #define NOMINMAX
 #define FILE_PATH 64
@@ -20,6 +22,8 @@
 #define SERVER_MIC_OUT 7799
 
 #define MAX_SESSIONS 64
+
+struct MetaData;
 
 typedef struct _new_session
 {
@@ -43,10 +47,11 @@ void sessionCleanUp(LPSOCKET_INFORMATION si);
 DWORD WINAPI controlThread(LPVOID lpParameter);
 
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-void sendNowPlaying(std::string artist, std::string name, std::string album, std::string length);
+void sendNowPlaying(MetaData *);
 void updateNewUser(SOCKET c);
 void transmitSong(SOCKET s, std::string song);
 DWORD WINAPI sendTCPSong(LPVOID lpParameter);
+void sendToAll(std::string);
 
 
 

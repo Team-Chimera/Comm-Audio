@@ -405,7 +405,7 @@ bool getIP_Addr(sockaddr_in* addr, char* host, int port)
 --
 -- NOTES:
 -------------------------------------------------------------------------------------------------*/
-int sendTCPMessage( SOCKET* s, std::string message, int size)
+int sendTCPMessage( SOCKET *s, std::string message, int size)
 {
 	int result;
 	int totalSent = 0;
