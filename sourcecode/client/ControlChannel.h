@@ -7,8 +7,6 @@
 #define BUFFER_SIZE 1024
 #define CONTROL_PORT 9874
 
-#define IP_SIZE 40
-
 #include <WinSock2.h>
 #include <stdio.h>
 
