@@ -59,6 +59,7 @@ DWORD WINAPI doTCPDownload(LPVOID lpParameter)
            break;
        }
        file.write(incoming, size_out);
+       delete [] incoming;
    }
 
     delete file_name;
@@ -265,25 +266,9 @@ bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID 
 -------------------------------------------------------------------------------------------------*/
 void readTCP(SOCKET* s, int size, char** out, int* size_out )
 {
-    int RecvBytes = 0;
     char* buf = new char[size];
-    char* buf_ptr = buf;
-    int n;
+    *size_out = recv(*s, buf, size, 0);
 
-    while (n = recv(*s, buf_ptr, size, 0))
-    {
-        buf_ptr += n;
-        RecvBytes += n; // not working
-        size -= n;
-        if(n == 0 && RecvBytes > 0)
-                break;
-        else if(n == 0)
-        {
-            *size_out = 0;
-            return;
-        }
-    }
-    std::cout << buf << endl;
-    *size_out = RecvBytes;
+   // std::cout << buf << endl;
     *out = buf;
 }
