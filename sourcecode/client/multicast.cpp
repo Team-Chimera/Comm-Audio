@@ -36,13 +36,13 @@ SOCKET_INFORMATION socketInfo;
 
 //audio
 CircularBuffer multiBuffer;
+
 //media output device
 HWAVEOUT multicastOutput;
 
 //stream thread handle
 HANDLE multicastStreamThread = INVALID_HANDLE_VALUE;
 
-HANDLE multiThread;
 HANDLE multiParentThread;
 
 bool streaming = false;
@@ -118,12 +118,8 @@ bool EndMulticast()
 		return false;
 	}
 
+    streaming = false;
     closesocket(socketInfo.socket);
-
-	if (TerminateThread(multiThread, 0) == 0)
-	{
-		cerr << "Multicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
-	}
 
 	if (TerminateThread(multiParentThread, 0) == 0)
 	{
@@ -229,7 +225,7 @@ void receiveMulticastData()
            cerr << "Error reading data from multicast socket." << endl;
            continue;
        }
-      // cout << "Received:" << tempBuffer << endl;
+
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
@@ -245,6 +241,8 @@ void receiveMulticastData()
        }
 
     }
+
+
 }
 
 /*****************************************************************
@@ -376,6 +374,12 @@ void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD d
 void updateVolume(int value)
 {
     vol = value;
+}
+
+
+CircularBuffer * getCircularBuffer()
+{
+    return (&multiBuffer);
 }
 
 

@@ -8,7 +8,7 @@ DWORD WINAPI unicastSong(LPVOID);
 void receiveData();
 
 //function prototpes
-DWORD WINAPI playSong(LPVOID arg);
+DWORD WINAPI unicastSong(LPVOID arg);
 void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size);
 void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels,

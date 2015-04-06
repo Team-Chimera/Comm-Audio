@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <mmsystem.h>
+#include "multicast.h"
 #include "music.h"
 #include "socketinfo.h"
 #include "unicastSong.h"
@@ -20,14 +21,12 @@ HANDLE streamThread = INVALID_HANDLE_VALUE;
 //flag for the song being finished
 bool finished = false;
 
-//media output device
-HWAVEOUT output;
 
 //server structure
 sockaddr_in server;
 
 //circular buffer
-CircularBuffer circBuf;
+CircularBuffer * uniCircBuf;
 
 /*******************************************************************
 ** Function: unicastSong
@@ -55,8 +54,9 @@ CircularBuffer circBuf;
 *******************************************************************/
 DWORD WINAPI unicastSong(LPVOID host)
 {
+    uniCircBuf = getCircularBuffer();
     //initialize the buffer position to 0
-    circBuf.pos = 0;
+    uniCircBuf->pos = 0;
 
     //conver tthe parameter
     hostent *hp = (hostent *) host;
@@ -83,7 +83,7 @@ DWORD WINAPI unicastSong(LPVOID host)
         // The socket failed to be bound
         cerr << "Failed to bind unicast socket." << endl;
         WSACleanup();
-        exit(1);
+        return -1;
     }
 
 
@@ -97,7 +97,7 @@ DWORD WINAPI unicastSong(LPVOID host)
 
     //begin streaming audio
     DWORD threadId;
-    if ((streamThread = CreateThread(NULL, 0, playSong, (LPVOID) output, 0, &threadId)) == NULL)
+    if ((streamThread = CreateThread(NULL, 0, playMulticastSong, NULL, 0, &threadId)) == NULL)
     {
         cerr << "Unable to create unicast thread";
         return false;
@@ -129,144 +129,17 @@ void receiveData()
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
-           circBuf.buf[circBuf.pos] = tempBuffer[i];
-           if(circBuf.pos == MUSIC_BUFFER_SIZE - 1)
+           uniCircBuf->buf[uniCircBuf->pos] = tempBuffer[i];
+           if(uniCircBuf->pos == MUSIC_BUFFER_SIZE - 1)
            {
-               circBuf.pos = 0;
+               uniCircBuf->pos = 0;
            }
            else
            {
-               circBuf.pos++;
+               uniCircBuf->pos++;
            }
        }
 
     }
 }
-
-/*****************************************************************
-** Function: playSong
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			DWORD WINAPI playSong(LPVOID arg)
-**				LPVOID arg -- Thread arguments
-**
-** Returns:
-**          DWORD -- -1 on failure; 0 on success
-**
-** Notes:
-** Plays the received song in a thread.
-**
-*******************************************************************/
-DWORD WINAPI playSong(LPVOID arg)
-{
-    //create the wave header
-    WAVEFORMATEX wavFormat;
-
-    //create a number of buffers; in this case 3
-    LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
-
-    //set up the format
-    wavFormat.nSamplesPerSec = 44100;
-    wavFormat.wBitsPerSample = 16;
-    wavFormat.nChannels = 2;
-    wavFormat.cbSize = 0;
-    wavFormat.wFormatTag = WAVE_FORMAT_PCM;
-    wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
-    wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
-
-    //open the media device for streaming to
-    if (waveOutOpen(&output, WAVE_MAPPER, &wavFormat, (DWORD) waveCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
-    {
-        cerr << "Failed to open output device." << endl;
-        return -1;
-    }
-
-    // Prepare the wave headers
-    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-    {
-        //malloc and clear the memory
-        audioBuffers[i] = (LPWAVEHDR) malloc(sizeof(WAVEHDR));
-        ZeroMemory(audioBuffers[i], sizeof(WAVEHDR));
-
-        //update the their buffers to a position in the tripple buffer
-        audioBuffers[i]->lpData = circBuf.buf;
-        audioBuffers[i]->dwBufferLength = MUSIC_BUFFER_SIZE;
-
-        // Create the header
-        if (waveOutPrepareHeader(output, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-        {
-            cerr << "Failed to create output header." << endl;
-            exit(1);
-        }
-    }
-
-    //write audio to the buffer
-    cout << "I am ready to play music!" << endl;
-
-    //wait until we have two messages worth of data; this avoids crackle
-    while(circBuf.pos < MESSAGE_SIZE * 5)
-    {
-        //wait for the buffer to be ready
-    }
-
-    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-    {
-        waveOutWrite(output, audioBuffers[i], sizeof(WAVEHDR));
-    }
-
-    return 0;
-
-}
-
-/*****************************************************************
-** Function: waveCallback
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg,
-**								DWORD dwUser, DWORD dw1, DWORD dw2)
-**				HWAVEOUT hWave -- handle to the output device
-**				UINT uMsg -- message sent to the callback
-**				DWORD dwUser -- Unused parameter
-**				DWORD dw1 -- the header used for this audio output
-**				DWORD dw2 -- Unused parameter
-**
-**
-** Returns:
-**          void
-**
-** Notes:
-** Plays the audio without skipping issues.
-**
-*******************************************************************/
-void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
-{
-    if (uMsg == WOM_DONE)
-    {
-        if (waveOutWrite(output, (LPWAVEHDR) dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-        {
-            cerr << "Failed to play audio." << endl;
-            exit(1);
-        }
-    }
-}
-
-
 

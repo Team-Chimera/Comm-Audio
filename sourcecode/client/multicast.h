@@ -19,6 +19,8 @@
 #ifndef MULTICAST_H
 #define MULTICAST_H
 
+#include "music.h"
+
  #include <mmsystem.h>
 bool StartMulticast(in_addr group);
 bool EndMulticast();
@@ -28,4 +30,5 @@ void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD d
 void receiveMulticastData();
 DWORD WINAPI playMulticastSong(LPVOID arg);
 void updateVolume(int);
+CircularBuffer * getCircularBuffer();
 #endif
