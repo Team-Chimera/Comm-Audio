@@ -31,6 +31,7 @@ typedef struct _new_session
     std::string ip;
     std::string song;
     HANDLE transferCompleteSem;
+	int type;
 
 } new_session;
 
@@ -53,7 +54,7 @@ void transmitSong(SOCKET s, std::string song);
 DWORD WINAPI sendTCPSong(LPVOID lpParameter);
 void sendToAll(std::string);
 void sendUserList(SOCKET c);
-void sendSongDone(SOCKET s);
+void sendSongDone(SOCKET s, int);
 
 
 #endif

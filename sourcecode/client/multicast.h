@@ -31,4 +31,8 @@ void receiveMulticastData();
 DWORD WINAPI playMulticastSong(LPVOID arg);
 void updateVolume(int);
 CircularBuffer * getCircularBuffer();
+void closeAudio();
+
+
+
 #endif

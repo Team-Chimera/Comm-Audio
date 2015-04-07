@@ -221,7 +221,7 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
                  break;
             case 1:
                 //transfer of a song is completed, send message for that
-                sendSongDone(si->Socket);
+                sendSongDone(si->Socket, ns->type);
                 break;
          default:
                 //error of somekind, clean up sessions and exit
@@ -366,6 +366,7 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 			ReleaseSemaphore(sessionsSem, 1, 0);
 
 			ClientData *cd = new ClientData;
+			cd->session = ns;
 			cd->ip = ns->ip;
 			cd->song = ctrl.msgData[0];
 
@@ -648,6 +649,7 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
     sendTCPMessage(&socket, temp, file_size, DATA_BUFSIZE);
 
    //signal control thread that song is completed
+	ns->type = 0;
     ReleaseSemaphore(ns->transferCompleteSem, 1, 0);
 
     //exit thread
@@ -655,13 +657,15 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
     return TRUE;
 }
 
-void sendSongDone(SOCKET s)
+void sendSongDone(SOCKET s, int mode)
 {
     string temp;
     ctrlMessage message;
-    vector<string> bob;
 
-    message.msgData = bob;
+	stringstream ss;
+	ss << mode;
+
+    message.msgData.push_back(ss.str());
     message.type = END_SONG;
     createControlString(message, temp);
     string to_send = "********************************************" + temp;

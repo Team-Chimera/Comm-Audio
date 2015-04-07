@@ -56,6 +56,8 @@ int uniVolume = 100;
 *******************************************************************/
 DWORD WINAPI unicastSong(LPVOID host)
 {
+    finished = false;
+l
     uniCircBuf = getCircularBuffer();
     //initialize the buffer position to 0
     uniCircBuf->pos = 0;
@@ -143,3 +145,19 @@ void setUniVolume(int val)
     uniVolume = val;
 }
 
+
+void endUnicast()
+{
+
+    finished = true;
+
+    //close the socket
+    closesocket(unicastSongSocket);
+
+    //end streaming thread
+    if (TerminateThread(streamThread, 0) == 0)
+    {
+        cerr << "Unicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+    }
+
+}

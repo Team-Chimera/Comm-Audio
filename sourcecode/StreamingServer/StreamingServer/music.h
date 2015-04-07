@@ -9,6 +9,7 @@
 /* The size of the circular audio buffer */
 #define BUFFER_SIZE (MESSAGE_SIZE * 10)
 
+#include "newsession.h"
 
 /** Circular Buffer Struct **/
 typedef struct CircularBuffer
@@ -28,6 +29,7 @@ typedef struct MetaData
 
 typedef struct CientData
 {
+	_new_session *session;
 	std::string ip;
 	std::string song;
 
