@@ -1,6 +1,5 @@
 #ifndef VOICEDIALOG_H
 #define VOICEDIALOG_H
-#define NOMINMAX
 
 #include <QDialog>
 #include <Windows.h>

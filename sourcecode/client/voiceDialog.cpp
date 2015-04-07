@@ -49,7 +49,7 @@ voiceDialog::voiceDialog(Microphone *mic, QWidget *parent) :
     voice = mic;
 
     //add the connection to the two buttons
-    connect(ui->connectVoice, SIGNAL(pressed()), this, SLOT(startVoiceChat()));
+    connect(ui->connectVoice, SIGNAL(pressed()), this, SLOT(triggerVoiceChat()));
 }
 
 

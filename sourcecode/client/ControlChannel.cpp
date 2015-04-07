@@ -34,6 +34,7 @@
 #include "controlChannel.h"
 #include "unicastSong.h"
 #include "mainwindow.h"
+#include "multicast.h"
 #include "tcpdownload.h"
 
 
@@ -661,6 +662,7 @@ bool requestSong(string song)
         return false;
     }
 
+    EndMulticast();
     //create the unicast thread
     DWORD threadId;
     if ((unicastThread = CreateThread(NULL, 0, unicastSong, (LPVOID) host, 0, &threadId)) == NULL)

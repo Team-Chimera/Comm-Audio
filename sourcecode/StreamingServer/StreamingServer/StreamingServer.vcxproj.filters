@@ -45,6 +45,9 @@
     <ClInclude Include="newsession.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="unicast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

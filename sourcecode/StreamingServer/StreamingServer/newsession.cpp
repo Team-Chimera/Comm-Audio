@@ -6,6 +6,7 @@
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
 #include "music.h"
+#include "unicast.h"
 
 using namespace std;
 
@@ -357,8 +358,20 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //song has been requested for unicast send to this client
           case SONG_REQUEST:
           {
-              cout << "song request from socket " << SI->Socket << endl;
-              break;
+			cout << "song request from socket " << SI->Socket << endl;
+			// get ns
+			new_session* ns;
+			WaitForSingleObject(sessionsSem, INFINITE);
+			ns = SESSIONS.at(SI->Socket);
+			ReleaseSemaphore(sessionsSem, 1, 0);
+
+			ClientData *cd = new ClientData;
+			cd->ip = ns->ip;
+			cd->song = ctrl.msgData[0];
+
+			HANDLE thread;
+			createWorkerThread(startUnicast, &thread, (LPVOID) cd, 0);
+            break;
           }
 
           //song has been requested for tcp send to this client

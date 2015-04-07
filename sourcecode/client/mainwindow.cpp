@@ -32,6 +32,7 @@
 #include "controlChannel.h"
 #include "player.h"
 #include "microphone.h"
+#include "unicastSong.h"
 
 using std::string;
 using std::vector;
@@ -364,4 +365,5 @@ void MainWindow::openVoiceMenu(QListWidgetItem *it)
 void MainWindow::changeSongVolume(int value)
 {
     updateVolume(value);
+    setUniVolume(value);
 }

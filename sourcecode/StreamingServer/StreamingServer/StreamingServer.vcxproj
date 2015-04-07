@@ -90,6 +90,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="streamingserver.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="unicast.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="helper.cpp" />

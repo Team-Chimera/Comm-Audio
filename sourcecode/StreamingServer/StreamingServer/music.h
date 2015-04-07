@@ -26,6 +26,13 @@ typedef struct MetaData
 	char *album;
 } MetaData;
 
+typedef struct CientData
+{
+	std::string ip;
+	std::string song;
+
+} ClientData;
+
 //function prototpes
 void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size); 
 void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels, 

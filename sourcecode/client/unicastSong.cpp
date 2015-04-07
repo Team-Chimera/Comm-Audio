@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <mmsystem.h>
+#include "multicast.h"
 #include "music.h"
 #include "socketinfo.h"
 #include "unicastSong.h"
@@ -20,14 +21,14 @@ HANDLE streamThread = INVALID_HANDLE_VALUE;
 //flag for the song being finished
 bool finished = false;
 
-//media output device
-HWAVEOUT output;
 
 //server structure
-sockaddr_in server;
+sockaddr_in unicastInfo;
 
 //circular buffer
-CircularBuffer circBuf;
+CircularBuffer * uniCircBuf;
+
+int uniVolume = 100;
 
 /*******************************************************************
 ** Function: unicastSong
@@ -55,20 +56,9 @@ CircularBuffer circBuf;
 *******************************************************************/
 DWORD WINAPI unicastSong(LPVOID host)
 {
+    uniCircBuf = getCircularBuffer();
     //initialize the buffer position to 0
-    circBuf.pos = 0;
-
-    //conver tthe parameter
-    hostent *hp = (hostent *) host;
-
-    //set up the structure
-    server.sin_family = AF_INET;
-    server.sin_port = htons(CLIENT_UNICAST_PORT);
-    server.sin_addr.s_addr = htonl(INADDR_ANY);
-
-
-    // Copy the server address from the resolved host
-    memcpy((char *)&server.sin_addr, hp->h_addr, hp->h_length);
+    uniCircBuf->pos = 0;
 
     //create the UDP socket
     if ((unicastSongSocket = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
@@ -77,13 +67,18 @@ DWORD WINAPI unicastSong(LPVOID host)
         return -1;
     }
 
+    //bind the socket to the specified address
+    unicastInfo.sin_family = AF_INET;
+    unicastInfo.sin_port = htons(CLIENT_UNICAST_PORT);
+    unicastInfo.sin_addr.s_addr = htonl(INADDR_ANY);
+
     //bind the socket
-    if (bind(unicastSongSocket, (struct sockaddr *) &server, sizeof(server)) == -1)
+    if (bind(unicastSongSocket, (struct sockaddr *) &unicastInfo, sizeof(unicastInfo)) == -1)
     {
         // The socket failed to be bound
-        cerr << "Failed to bind unicast socket." << endl;
+        cerr << "Failed to bind unicast socket. Error " << WSAGetLastError() << endl;
         WSACleanup();
-        exit(1);
+        return -1;
     }
 
 
@@ -97,7 +92,7 @@ DWORD WINAPI unicastSong(LPVOID host)
 
     //begin streaming audio
     DWORD threadId;
-    if ((streamThread = CreateThread(NULL, 0, playSong, (LPVOID) output, 0, &threadId)) == NULL)
+    if ((streamThread = CreateThread(NULL, 0, playMulticastSong, NULL, 0, &threadId)) == NULL)
     {
         cerr << "Unable to create unicast thread";
         return false;
@@ -116,12 +111,12 @@ void receiveData()
     while(!finished)
     {
         //receive data from the server
-       int serverInfoSize = sizeof(server);
+       int size = sizeof(unicastInfo);
        int numReceived = 0;
        char tempBuffer[MESSAGE_SIZE];
 
        if ((numReceived = recvfrom(unicastSongSocket, tempBuffer, MESSAGE_SIZE,
-       0, (struct sockaddr*) &server, &serverInfoSize)) < 0)
+       0, (struct sockaddr*) &unicastInfo, &size)) < 0)
        {
            cerr << "Error reading data from unicast socket." << endl;
            continue;
@@ -129,144 +124,22 @@ void receiveData()
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
-           circBuf.buf[circBuf.pos] = tempBuffer[i];
-           if(circBuf.pos == MUSIC_BUFFER_SIZE - 1)
+           uniCircBuf->buf[uniCircBuf->pos] = tempBuffer[i] * uniVolume / 100;
+           if(uniCircBuf->pos == MUSIC_BUFFER_SIZE - 1)
            {
-               circBuf.pos = 0;
+               uniCircBuf->pos = 0;
            }
            else
            {
-               circBuf.pos++;
+               uniCircBuf->pos++;
            }
        }
 
     }
 }
 
-/*****************************************************************
-** Function: playSong
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			DWORD WINAPI playSong(LPVOID arg)
-**				LPVOID arg -- Thread arguments
-**
-** Returns:
-**          DWORD -- -1 on failure; 0 on success
-**
-** Notes:
-** Plays the received song in a thread.
-**
-*******************************************************************/
-DWORD WINAPI playSong(LPVOID arg)
+void setUniVolume(int val)
 {
-    //create the wave header
-    WAVEFORMATEX wavFormat;
-
-    //create a number of buffers; in this case 3
-    LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
-
-    //set up the format
-    wavFormat.nSamplesPerSec = 44100;
-    wavFormat.wBitsPerSample = 16;
-    wavFormat.nChannels = 2;
-    wavFormat.cbSize = 0;
-    wavFormat.wFormatTag = WAVE_FORMAT_PCM;
-    wavFormat.nBlockAlign = wavFormat.nChannels * (wavFormat.wBitsPerSample / 8);
-    wavFormat.nAvgBytesPerSec = wavFormat.nSamplesPerSec * wavFormat.wBitsPerSample;
-
-    //open the media device for streaming to
-    if (waveOutOpen(&output, WAVE_MAPPER, &wavFormat, (DWORD) waveCallback, NULL, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
-    {
-        cerr << "Failed to open output device." << endl;
-        return -1;
-    }
-
-    // Prepare the wave headers
-    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-    {
-        //malloc and clear the memory
-        audioBuffers[i] = (LPWAVEHDR) malloc(sizeof(WAVEHDR));
-        ZeroMemory(audioBuffers[i], sizeof(WAVEHDR));
-
-        //update the their buffers to a position in the tripple buffer
-        audioBuffers[i]->lpData = circBuf.buf;
-        audioBuffers[i]->dwBufferLength = MUSIC_BUFFER_SIZE;
-
-        // Create the header
-        if (waveOutPrepareHeader(output, audioBuffers[i], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-        {
-            cerr << "Failed to create output header." << endl;
-            exit(1);
-        }
-    }
-
-    //write audio to the buffer
-    cout << "I am ready to play music!" << endl;
-
-    //wait until we have two messages worth of data; this avoids crackle
-    while(circBuf.pos < MESSAGE_SIZE * 5)
-    {
-        //wait for the buffer to be ready
-    }
-
-    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
-    {
-        waveOutWrite(output, audioBuffers[i], sizeof(WAVEHDR));
-    }
-
-    return 0;
-
+    uniVolume = val;
 }
-
-/*****************************************************************
-** Function: waveCallback
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg,
-**								DWORD dwUser, DWORD dw1, DWORD dw2)
-**				HWAVEOUT hWave -- handle to the output device
-**				UINT uMsg -- message sent to the callback
-**				DWORD dwUser -- Unused parameter
-**				DWORD dw1 -- the header used for this audio output
-**				DWORD dw2 -- Unused parameter
-**
-**
-** Returns:
-**          void
-**
-** Notes:
-** Plays the audio without skipping issues.
-**
-*******************************************************************/
-void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
-{
-    if (uMsg == WOM_DONE)
-    {
-        if (waveOutWrite(output, (LPWAVEHDR) dw1, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-        {
-            cerr << "Failed to play audio." << endl;
-            exit(1);
-        }
-    }
-}
-
-
 
