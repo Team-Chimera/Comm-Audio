@@ -14,3 +14,4 @@ void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channe
                   unsigned int rate, unsigned int nb_samples, unsigned int bits_per_sample, size_t size, int64_t pts);
 void audioCleanup();
 void setUniVolume(int);
+void endUnicast();

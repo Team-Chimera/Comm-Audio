@@ -45,6 +45,9 @@ HANDLE multicastStreamThread = INVALID_HANDLE_VALUE;
 
 HANDLE multiParentThread;
 
+//create a number of buffers; in this case 3
+LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
+
 bool streaming = false;
 
 int vol = 100;
@@ -273,9 +276,6 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
     //create the wave header
     WAVEFORMATEX wavFormat;
 
-    //create a number of buffers; in this case 3
-    LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
-
     //set up the format
     wavFormat.nSamplesPerSec = 44100;
     wavFormat.wBitsPerSample = 16;
@@ -380,6 +380,21 @@ void updateVolume(int value)
 CircularBuffer * getCircularBuffer()
 {
     return (&multiBuffer);
+}
+
+
+void closeAudio()
+{
+    //close the output device
+    waveOutPause(multicastOutput);
+    waveOutClose(multicastOutput);
+
+    //unload all the buffers
+    for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
+    {
+        waveOutUnprepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR));
+    }
+
 }
 
 

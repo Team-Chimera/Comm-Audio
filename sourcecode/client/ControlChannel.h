@@ -15,6 +15,8 @@ DWORD WINAPI read(LPVOID);
 void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
 bool downloadSong(std::string);
 bool requestSong(std::string);
+int restartMulticast();
+void handleEnd(std::string);
 
 void handleControlMessage(ctrlMessage *);
 void createControlString(ctrlMessage, std::string &);
@@ -25,6 +27,7 @@ void updateListeners(std::vector<std::string>);
 void updateNowPlaying(std::vector<std::string>);
 void establishGUIConnector(void *);
 void updateLibrary(std::vector<std::string>);
+
 
 
 

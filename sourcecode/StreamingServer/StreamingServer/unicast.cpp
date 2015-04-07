@@ -84,6 +84,9 @@ DWORD WINAPI startUnicast(LPVOID clientInfo)
 
 	playUnicastSong(cd->song);
 
+	cd->session->type = 1;
+    ReleaseSemaphore(cd->session->transferCompleteSem, 1, 0);
+
 	delete cd;
     return 0;
 }

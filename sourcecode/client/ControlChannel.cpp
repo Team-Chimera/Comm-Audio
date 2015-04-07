@@ -369,6 +369,7 @@ void handleControlMessage(ctrlMessage *cMessage)
        //end connection received from server
         case END_CONNECTION:
         {
+
             break;
         }
 
@@ -395,6 +396,7 @@ void handleControlMessage(ctrlMessage *cMessage)
         //song is ending
         case END_SONG:
         {
+            handleEnd(cMessage->msgData[0]);
             break;
         }
 
@@ -662,7 +664,9 @@ bool requestSong(string song)
         return false;
     }
 
+    closeAudio();
     EndMulticast();
+
     //create the unicast thread
     DWORD threadId;
     if ((unicastThread = CreateThread(NULL, 0, unicastSong, (LPVOID) host, 0, &threadId)) == NULL)
@@ -674,3 +678,33 @@ bool requestSong(string song)
     return true;
 }
 
+
+void handleEnd(string type)
+{
+    if(type.compare("1") == 0)
+    {
+        //end unicast
+        endUnicast();
+
+        //close all the audio
+        closeAudio();
+
+        //unicast has ended
+        restartMulticast();
+    }
+}
+
+
+int restartMulticast()
+{
+    struct in_addr ia;
+    memcpy((void*)host->h_addr,(void*)&ia, host->h_length);
+
+    if (StartMulticast(ia) < 0)
+    {
+        cerr << "Unable to restart multicast." << endl;
+        return -1;
+    }
+
+    return 0;
+}
