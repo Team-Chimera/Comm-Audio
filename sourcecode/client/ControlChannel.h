@@ -1,6 +1,5 @@
 #ifndef CONTROLCHANNEL
 #define CONTROLCHANNEL
-#define NOMINMAX
 
 #include "controlMessage.h"
 

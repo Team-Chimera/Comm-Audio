@@ -23,10 +23,12 @@ bool finished = false;
 
 
 //server structure
-sockaddr_in server;
+sockaddr_in unicastInfo;
 
 //circular buffer
 CircularBuffer * uniCircBuf;
+
+int uniVolume = 100;
 
 /*******************************************************************
 ** Function: unicastSong
@@ -58,18 +60,6 @@ DWORD WINAPI unicastSong(LPVOID host)
     //initialize the buffer position to 0
     uniCircBuf->pos = 0;
 
-    //conver tthe parameter
-    hostent *hp = (hostent *) host;
-
-    //set up the structure
-    server.sin_family = AF_INET;
-    server.sin_port = htons(CLIENT_UNICAST_PORT);
-    server.sin_addr.s_addr = htonl(INADDR_ANY);
-
-
-    // Copy the server address from the resolved host
-    memcpy((char *)&server.sin_addr, hp->h_addr, hp->h_length);
-
     //create the UDP socket
     if ((unicastSongSocket = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
     {
@@ -77,11 +67,16 @@ DWORD WINAPI unicastSong(LPVOID host)
         return -1;
     }
 
+    //bind the socket to the specified address
+    unicastInfo.sin_family = AF_INET;
+    unicastInfo.sin_port = htons(CLIENT_UNICAST_PORT);
+    unicastInfo.sin_addr.s_addr = htonl(INADDR_ANY);
+
     //bind the socket
-    if (bind(unicastSongSocket, (struct sockaddr *) &server, sizeof(server)) == -1)
+    if (bind(unicastSongSocket, (struct sockaddr *) &unicastInfo, sizeof(unicastInfo)) == -1)
     {
         // The socket failed to be bound
-        cerr << "Failed to bind unicast socket." << endl;
+        cerr << "Failed to bind unicast socket. Error " << WSAGetLastError() << endl;
         WSACleanup();
         return -1;
     }
@@ -116,12 +111,12 @@ void receiveData()
     while(!finished)
     {
         //receive data from the server
-       int serverInfoSize = sizeof(server);
+       int size = sizeof(unicastInfo);
        int numReceived = 0;
        char tempBuffer[MESSAGE_SIZE];
 
        if ((numReceived = recvfrom(unicastSongSocket, tempBuffer, MESSAGE_SIZE,
-       0, (struct sockaddr*) &server, &serverInfoSize)) < 0)
+       0, (struct sockaddr*) &unicastInfo, &size)) < 0)
        {
            cerr << "Error reading data from unicast socket." << endl;
            continue;
@@ -129,7 +124,7 @@ void receiveData()
        //place the data into the circular buffer
        for (int i = 0; i < numReceived; i++)
        {
-           uniCircBuf->buf[uniCircBuf->pos] = tempBuffer[i];
+           uniCircBuf->buf[uniCircBuf->pos] = tempBuffer[i] * uniVolume / 100;
            if(uniCircBuf->pos == MUSIC_BUFFER_SIZE - 1)
            {
                uniCircBuf->pos = 0;
@@ -141,5 +136,10 @@ void receiveData()
        }
 
     }
+}
+
+void setUniVolume(int val)
+{
+    uniVolume = val;
 }
 

@@ -1,6 +1,9 @@
 #include "stdafx.h"
+#include <cstring>
+#include <mutex>
 #include <iostream>
 #include <vector>
+#include <deque>
 #include <string>
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
@@ -13,16 +16,15 @@ using namespace std;
 
 //VLC instance objects
 libvlc_instance_t *unicastInst;
-libvlc_media_player_t *unicastMediaPlayer;
-libvlc_media_t *unicastSong;
 
 
 //circular buffer
 CircularBuffer unicastCircBuf;
 
-SOCKET unicastSock;
-struct	sockaddr_in server;
-int	client_len;
+
+//unicast variables
+deque<UnicastClient> waitingClients;
+mutex songMutex;
 
 bool uniDone;
 /*******************************************************************
@@ -49,19 +51,22 @@ bool uniDone;
 ** Notes:
 **  Beginning function of the unicast song playing.
 *******************************************************************/
-DWORD WINAPI startUnicast(LPVOID address)
+DWORD WINAPI startUnicast(LPVOID clientInfo)
 {
-		// Create a datagram socket
-	if ((unicastSock = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
+	UnicastClient uc;
+
+	// Create a datagram socket
+	if ((uc.socket = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
 	{
 		perror ("Can't create a socket");
 		exit(1);
 	}
 
 	struct hostent *he;
+	ClientData *cd = (ClientData *) clientInfo;
 
 	   /* resolve hostname */
-     if ((he = gethostbyname((const char *)address)) == NULL)
+     if ((he = gethostbyname((cd->ip).c_str())) == NULL)
      {
          //error getting the host
          cerr << "Failed to retrieve host" << endl;
@@ -69,18 +74,28 @@ DWORD WINAPI startUnicast(LPVOID address)
      }
 
 	// Bind an address to the socket
-	memset ((char *)&server, 0, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(SERVER_UNICAST_PORT);
-	memcpy((char *) &server.sin_addr, he->h_addr, he->h_length);
+	memset ((char *)&uc.client, 0, sizeof(uc.client));
+	uc.client.sin_family = AF_INET;
+	uc.client.sin_port = htons(SERVER_UNICAST_PORT);
+	memcpy((char *) &uc.client.sin_addr, he->h_addr, he->h_length);
 
-	playUnicastSong();
+	//place the new client into the deque
+	waitingClients.push_back(uc);
+
+	playUnicastSong(cd->song);
+
+	delete cd;
     return 0;
 }
 
 /** Make the music! **/
-bool playUnicastSong()
+bool playUnicastSong(string songName)
 {
+	cout << songName << endl;
+
+	libvlc_media_player_t *unicastMediaPlayer;
+	libvlc_media_t *unicastSong;
+
 	int index = 0;
 	char memoryOptions[256];
 	sprintf_s(memoryOptions, VLC_OPTIONS, (long long int)(intptr_t)(void*) &handleUnicastStream, (long long int)(intptr_t)(void*) &prepareUnicastRender);
@@ -93,38 +108,49 @@ bool playUnicastSong()
 		return false;
 	}
 
-		string song_to_play(song_dir + "/" + "test.mp3");
-		unicastSong = libvlc_media_new_path(unicastInst, song_to_play.c_str());
+	string song_to_play(song_dir + "/" + songName);
+	unicastSong = libvlc_media_new_path(unicastInst, song_to_play.c_str());
 
-		//load the song
-		if (unicastSong == NULL)
-		{
-			cerr << "failed to load the song." << endl;
-			return false;
-		}
+	//load the song
+	if (unicastSong == NULL)
+	{
+		cerr << "failed to load the song." << endl;
+		return false;
+	}
 
-		//create a media player
-		unicastMediaPlayer = libvlc_media_player_new_from_media(unicastSong);
+	//lock the mutex while another client has it
+	songMutex.lock();
 
-		//Begin playing the music
-		libvlc_media_release(unicastSong);
+		
+	//create a media player
+	unicastMediaPlayer = libvlc_media_player_new_from_media(unicastSong);
 
-		//starts the process of streaming the audio (calls pre-render then handleStream)
-		libvlc_media_player_play(unicastMediaPlayer);
 
-		while (!libvlc_media_player_is_playing(unicastMediaPlayer))
-		{
-		// Wait for the song to start
-		}
+	//Begin playing the music
+	libvlc_media_release(unicastSong);
 
-		//sleep constantly till the song finishes
-		while (!uniDone && libvlc_media_player_is_playing(unicastMediaPlayer))
-		{
-			Sleep(1000);
-		}
+	//starts the process of streaming the audio (calls pre-render then handleStream)
+	libvlc_media_player_play(unicastMediaPlayer);
 
-		//free the media player
-		unicastAudioCleanup();
+	while (!libvlc_media_player_is_playing(unicastMediaPlayer))
+	{
+	// Wait for the song to start
+	}
+
+	//sleep constantly till the song finishes
+	while (!uniDone && libvlc_media_player_is_playing(unicastMediaPlayer))
+	{
+		Sleep(1000);
+	}
+
+	libvlc_media_player_release(unicastMediaPlayer);
+
+	//remove the finished client from the deque
+	waitingClients.pop_front();
+
+	//send a message to the client saying the unicast is over
+	songMutex.unlock();
+
 
 	return true;
 }
@@ -154,7 +180,6 @@ bool playUnicastSong()
 *******************************************************************/
 void unicastAudioCleanup()
 {
-	libvlc_media_player_release(unicastMediaPlayer);
     libvlc_release(unicastInst);
 
 }
@@ -239,10 +264,10 @@ void handleUnicastStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int
 
 		
 		//send over UDP
-		if(sendto(unicastSock, buffer, MESSAGE_SIZE, 0,(struct sockaddr *)&server, sizeof(server)) <= 0)
+		if(sendto(waitingClients.front().socket, buffer, MESSAGE_SIZE, 0,(struct sockaddr *)&(waitingClients.front().client), sizeof(waitingClients.front().client)) <= 0)
 		{
 			perror ("sendto error");
-			closesocket(unicastSock);
+			closesocket(waitingClients.front().socket);
 			WSACleanup();
 			return;
 		}

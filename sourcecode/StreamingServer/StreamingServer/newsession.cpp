@@ -365,9 +365,13 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 			ns = SESSIONS.at(SI->Socket);
 			ReleaseSemaphore(sessionsSem, 1, 0);
 
+			ClientData *cd = new ClientData;
+			cd->ip = ns->ip;
+			cd->song = ctrl.msgData[0];
+
 			HANDLE thread;
-			createWorkerThread(startUnicast, &thread, (LPVOID)(ns->ip).c_str(), 0);
-              break;
+			createWorkerThread(startUnicast, &thread, (LPVOID) cd, 0);
+            break;
           }
 
           //song has been requested for tcp send to this client
