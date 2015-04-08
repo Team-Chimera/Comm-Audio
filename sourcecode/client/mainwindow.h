@@ -26,16 +26,19 @@ public:
 
 
 public slots:
-   // bool initialConnect();
     void clearListeners();
     void updateListeners(std::string);
     void updateNowPlaying(std::vector<std::string>);
     void openSongMenu(QListWidgetItem *);
     void openVoiceMenu(QListWidgetItem *);
     void changeSongVolume(int);
+    void changeMulticast();
+    void disableMulticastButton(bool);
 
 private:
     Ui::MainWindow *ui;
+    bool multicastState;
+    bool multicastDisabled;
 };
 
 #endif // MAINWINDOW_H

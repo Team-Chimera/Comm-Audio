@@ -4,7 +4,19 @@
 ** Program: Comm Audio
 **
 ** Functions:
-**
+**     explicit MainWindow(QWidget *parent = 0);
+**     ~MainWindow();
+**      void setupConnections();
+**      void addClient(std::string);
+**      void addSongToLibrary(std:: string);
+**      void clearListeners();
+**      void updateListeners(std::string);
+**      void updateNowPlaying(std::vector<std::string>);
+**      void openSongMenu(QListWidgetItem *);
+**      void openVoiceMenu(QListWidgetItem *);
+**      void changeSongVolume(int);
+**      void changeMulticast();
+**      void disableMulticastButton(bool);
 **
 ** Date: March 14th, 2015
 **
@@ -78,6 +90,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QPixmap pixmap(":/Images/images/volume.png");
     ui->volumeIcon->setPixmap(pixmap);
 
+    QPixmap pixmap2(":/Images/images/pause.png");
+    QIcon ButtonIcon(pixmap2);
+    ui->multicastButton->setIcon(ButtonIcon);
+    ui->multicastButton->setIconSize(QSize(ui->multicastButton->size().width(),ui->multicastButton->size().height()));
+
+    //set multicast to true at first
+    multicastState = true;
 
 }
 
@@ -151,7 +170,9 @@ void MainWindow::setupConnections()
     connect(ui->listeners, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(openVoiceMenu(QListWidgetItem *)));
 
     //make the volume trigger
-    connect(ui->volume, SIGNAL(valueChanged(int)),this, SLOT(changeSongVolume(int)));
+    connect(ui->volume, SIGNAL(valueChanged(int)), this, SLOT(changeSongVolume(int)));
+
+    connect(ui->multicastButton, SIGNAL(pressed()), this, SLOT(changeMulticast()));
 
 
     //create the dialog box for the launch
@@ -333,9 +354,9 @@ void MainWindow::openVoiceMenu(QListWidgetItem *it)
     micPlayer->startVoicePlay();
 
     //create the dialog box for the song
-     voiceDialog voiceMenu(mic, this);
-     voiceMenu.setClientName(it->text().toStdString());
-     voiceMenu.exec();
+    voiceDialog voiceMenu(mic, this);
+    voiceMenu.setClientName(it->text().toStdString());
+    voiceMenu.exec();
 
 }
 
@@ -366,4 +387,78 @@ void MainWindow::changeSongVolume(int value)
 {
     updateVolume(value);
     setUniVolume(value);
+}
+
+
+/*****************************************************************
+** Function: changeSongVolume
+**
+** Date: April 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void changeSongVolume(int value)
+**              int value -- Slider value
+**
+** Returns:
+**          void
+**
+** Notes:
+** Changes the volume of the current playing song
+*******************************************************************/
+void MainWindow::changeMulticast()
+{
+    if(!multicastDisabled)
+    {
+        //if multicast is on, turn it off
+        if (multicastState)
+        {
+            multicastState = false;
+
+            //set the button to the play button
+            QPixmap pixmap(":/Images/images/play.png");
+            QIcon ButtonIcon(pixmap);
+            ui->multicastButton->setIcon(ButtonIcon);
+            ui->multicastButton->setIconSize(QSize(ui->multicastButton->size().width(),ui->multicastButton->size().height()));
+
+            //end the audio
+            closeAudio();
+            EndMulticast();
+            return;
+        }
+
+        //if multicast is not on
+        if (!multicastState)
+        {
+            multicastState = true;
+
+            //set the button to the play button
+            QPixmap pixmap(":/Images/images/pause.png");
+            QIcon ButtonIcon(pixmap);
+            ui->multicastButton->setIcon(ButtonIcon);
+            ui->multicastButton->setIconSize(QSize(ui->multicastButton->size().width(),ui->multicastButton->size().height()));
+
+            //restart the audio
+            restartMulticast();
+            return;
+        }
+    }
+}
+
+void MainWindow::disableMulticastButton(bool state)
+{
+    if (state)
+    {
+        multicastDisabled = true;
+    }
+    else
+    {
+        multicastDisabled = false;
+    }
 }

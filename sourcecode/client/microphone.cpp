@@ -1,3 +1,30 @@
+/**********************************************************************
+ *
+**	SOURCE FILE:	microphone.cpp -  Microphone class for voice chat
+**
+**	PROGRAM:	Comm Audio
+**
+**	FUNCTIONS:
+**         Microphone();
+**         ~Microphone();
+**         void startVoice(QString);
+**         void stopVoice();
+**         void handleStateChanged(QAudio::State newState);
+**
+**
+**	DATE: 		April 1, 2015
+**
+**
+**	DESIGNER:	Julian Brandrick
+**
+**
+**	PROGRAMMER: Julian Brandrick
+**
+**	NOTES:
+**  Records audio from the default input device and sends it to through a UDP
+**   socket.
+*************************************************************************/
+
 #include <QIODevice>
 #include <QAudioFormat>
 #include <QAudioDeviceInfo>
@@ -121,6 +148,24 @@ void Microphone::handleStateChanged(QAudio::State newState)
     }
 }
 
+
+/*------------------------------------------------------------------------------
+-- FUNCTION: startVoice
+--
+-- DATE: April 2, 2015
+--
+-- DESIGNER: Rhea Lauzon
+--
+-- PROGRAMMER: Rhea lauzon
+--
+-- INTERFACE: void startVoice(QString address)
+--
+-- PARAMETER:
+--      address -- Address to send to
+--
+-- NOTES:
+--  Begins the voice chat
+------------------------------------------------------------------------------*/
 void Microphone::startVoice(QString address)
 {
     socket->disconnectFromHost();
@@ -130,7 +175,23 @@ void Microphone::startVoice(QString address)
     audio->start(socket);
 }
 
-
+/*------------------------------------------------------------------------------
+-- FUNCTION: stopVoice
+--
+-- DATE: April 2, 2015
+--
+-- DESIGNER: Rhea Lauzon
+--
+-- PROGRAMMER: Rhea lauzon
+--
+-- INTERFACE: void stopVoice()
+--
+-- PARAMETER:
+--      none
+--
+-- NOTES:
+--  Stops the voice chat
+------------------------------------------------------------------------------*/
 void Microphone::stopVoice()
 {
     audio->stop();

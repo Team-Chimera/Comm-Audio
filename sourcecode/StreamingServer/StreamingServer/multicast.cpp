@@ -134,7 +134,13 @@ bool playMulticastSong()
 
 		if (getMetaData(&data, song))
 		{
-			 cout << "Now Playing: " << data.artist << "'s " << data.title << " from album: " << data.album << endl;
+			 cout <<"============================================" << endl;
+			 cout << "\t Now Playing: " << endl;
+			 cout <<"============================================" << endl;
+			 cout << "Artist: " << data.artist << endl;
+			 cout << "Title: " << data.title << endl;
+			 cout  << "Album: " << data.album << endl;
+			 cout <<"============================================" << endl;
 		}
 
 		//send out the data
@@ -416,10 +422,21 @@ bool getMetaData(MetaData *md, libvlc_media_t *media)
 	md->artist = libvlc_media_get_meta(media, libvlc_meta_Artist);
 	md->album = libvlc_media_get_meta(media, libvlc_meta_Album);
 
-	if (md->title == NULL || md->artist == NULL || md->album == NULL)
+	if (md->title == NULL)
 	{
-		return false;
+		md->title = "Unknown Song";
 	}
+
+	if (md->artist == NULL)
+	{
+		md->artist = "Unknown Artist";
+	}
+
+	if (md->album == NULL)
+	{
+		md->album = "Unknown Album";
+	}
+
 	return true;
 }
 

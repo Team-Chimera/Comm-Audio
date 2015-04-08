@@ -50,6 +50,13 @@ voiceDialog::voiceDialog(Microphone *mic, QWidget *parent) :
 
     //add the connection to the two buttons
     connect(ui->connectVoice, SIGNAL(pressed()), this, SLOT(triggerVoiceChat()));
+
+    QPixmap pixmap(":/Images/images/mic.png");
+    QIcon ButtonIcon(pixmap);
+    ui->connectVoice->setIcon(ButtonIcon);
+    ui->connectVoice->setIconSize(QSize(ui->connectVoice->size().width(),ui->connectVoice->size().height()));
+
+    connected = false;
 }
 
 
@@ -107,6 +114,11 @@ voiceDialog::~voiceDialog()
 void voiceDialog::setClientName(string client)
 {
     clickedClient = client;
+
+    if(strncmp(client.c_str(), "Me: ", 4) == 0)
+    {
+        client = client.substr(3, client.length());
+    }
     ui->client->setText(QString::fromStdString(client));
 }
 
@@ -142,16 +154,14 @@ bool voiceDialog::triggerVoiceChat()
     {
         connected = true;
         voice->startVoice(QString::fromStdString(clickedClient));
-        QPixmap pixmap(":/Images/images/mic.png");
-        QIcon ButtonIcon(pixmap);
-        ui->connectVoice->setIcon(ButtonIcon);
-        ui->connectVoice->setIconSize(pixmap.rect().size());
+        return true;
 
     }
     else
     {
         connected = false;
         voice->stopVoice();
+        return true;
     }
 
     return true;

@@ -28,7 +28,7 @@ sockaddr_in unicastInfo;
 //circular buffer
 CircularBuffer * uniCircBuf;
 
-int uniVolume = 100;
+int uniVolume = 50;
 
 /*******************************************************************
 ** Function: unicastSong
