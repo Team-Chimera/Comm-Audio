@@ -1,0 +1,193 @@
+// --------------------------------------
+//  PSEUDOCODE FOR CLIENT SIDE MULTICAST
+// --------------------------------------
+
+JoinMulticast // given die signal pointer, address info (assumes validated)
+{
+	Add membership to multicast session
+
+	Start recieving thread // given die signal pointer
+
+	Call playing function // given die signal pointer
+
+	Make sure other thread is dead
+    Kill thread
+}
+
+/*
+
+The following functions require these initial conditions:
+    binary semaphore mRecv = 1
+    binary semaphore mPlay = 0
+    semaphore mBuffer = size of multicastBuffer
+
+*/
+
+MulticastRecv
+{
+	Open udp listening socket
+
+	while die signal not given
+	{
+		wait for data
+
+		wait semaphore mBuffer
+		wait semaphore mRecv
+
+		place data into multicastBuffer
+
+		signal semaphore mRecv
+		signal semaphore mPlay
+	}
+
+	cleanup
+	kill thread
+}
+
+MulticastPlay
+{
+	open local speakers
+
+	while die signal not given
+	{
+		wait semaphore mPlay
+		wait semaphore mRecv
+
+		get data from multicastBuffer
+
+		signal semaphore mRecv
+		signal semaphore mBuffer
+
+		play data on speakers
+	}
+
+	cleanup
+	// don't kill, this is the parent thread
+}
+
+
+
+// ------------------------------------------
+//  END PSEUDOCODE FOR CLIENT SIDE MULTICAST
+// ------------------------------------------
+
+// ---------------------------------------
+//  PSEUDOCODE FOR CLIENT SIDE VOICE CHAT
+// ---------------------------------------
+
+// Should be started as a thread
+StartVoiceChat // given die signal pointer, address info (assumes validated)
+{
+    Start sending thread   // pass die signal pointer, pass address info
+    Start recieving thread // pass die signal pointer
+    Start recording thread // pass die signal pointer
+
+    Call sound playing function // pass die signal pointer
+
+    Make sure other threads are dead
+    Kill thread
+}
+
+/*
+
+The following functions require these initial conditions:
+    binary semaphore OutRecord = 1
+    binary semaphore OutSend = 0
+    semaphore OutBuffer = size of voiceOutBuffer
+
+    binary semaphore InRecv = 1
+    binary semaphore InPlay = 0
+    semaphore InBuffer = size of voiceInBuffer
+
+*/
+
+// All the following functions would be in a separate thread
+
+VoiceRecord
+{
+    open local microphone
+    
+    while die signal not given
+    {
+	    record data
+
+	    wait semaphore OutBuffer
+	    wait semaphore OutRecord
+
+	    place data into voiceOutBuffer
+
+	    signal semaphore OutRecord
+	    signal semaphore OutSend
+    }
+
+    cleanup
+    kill thread
+}
+
+VoiceSend
+{
+	open udp sending socket
+
+	while die signal not given
+	{
+	    wait semaphore OutSend
+	    wait semaphore OutRecord
+
+	    get data from voiceOutBuffer
+
+	    signal semaphore OutRecord
+	    signal semaphore OutBuffer
+
+	    send data on socket
+	}
+
+	cleanup
+	kill thread
+}
+
+VoiceRecv
+{
+	Open udp listening socket
+
+	while die signal not given
+	{
+		wait for data
+
+		wait semaphore InBuffer
+		wait semaphore InRecv
+
+		place data into voiceInBuffer
+
+		signal semaphore InRecv
+		signal semaphore InPlay
+	}
+
+	cleanup
+	kill thread
+}
+
+VoicePlay
+{
+	open local speakers
+
+	while die signal not given
+	{
+		wait semaphore InPlay
+		wait semaphore InRecv
+
+		get data from voiceInBuffer
+
+		signal semaphore InRecv
+		signal semaphore InBuffer
+
+		play data on speakers
+	}
+
+	cleanup
+	// don't kill, this is the parent thread
+}
+
+// -------------------------------------------
+//  END PSEUDOCODE FOR CLIENT SIDE VOICE CHAT
+// -------------------------------------------
+
