@@ -10,7 +10,6 @@
 
 using namespace std;
 
-HANDLE userChangeSem;
 int userSemValue;
 vector<string> songList;
 HANDLE sessionsSem;
@@ -49,12 +48,6 @@ void AcceptThread()
         printf("error creating sessionSem\n");
         return;
     }
-    if( (userChangeSem = CreateSemaphore(NULL, 0, MAX_SESSIONS, NULL)) == 0)
-    {
-        printf("error creating userChangeSem\n");
-        return;
-    }
-    userSemValue = 0;
 
     if(!openListenSocket(&Accept, SERVER_TCP_LISTEN_PORT) )
         return;
@@ -110,10 +103,6 @@ bool createSession(new_session* ns)
 
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(make_pair(ns->s, ns));
-    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
-
-    userSemValue += SESSIONS.size();
-
     ReleaseSemaphore(sessionsSem, 1, 0);
 
     createWorkerThread(controlThread, &h, ns, 0);
@@ -160,19 +149,23 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
         printf("error creating transferComplete\n");
         return FALSE;
     }
-  
+
+    if( (ns->userChangeSem = CreateSemaphore(NULL, 0, 1, NULL)) == 0)
+    {
+        printf("error creating userChangeSem\n");
+        return FALSE;
+    }
+
     DWORD RecvBytes, result, flags;
     int handles = 2;
     HANDLE* waitHandles = new HANDLE[handles];
-    waitHandles[0] = userChangeSem;
+    waitHandles[0] = ns->userChangeSem;
     waitHandles[1] = ns->transferCompleteSem;
 
-    flags = 0;
-
-
-    // send song list and currently playing
+    // send song list and currently playing, then update all users about the new user
     sendSongList(s);
     updateNewUser(s);
+    signalUserChanged();
     
     //post rcv call waiting for data
     if ( WSARecv( s, &(si->DataBuf), 1, &RecvBytes, &flags, &(si->Overlapped), controlRoutine ) == SOCKET_ERROR)
@@ -272,19 +265,13 @@ void sessionCleanUp(SOCKET s)
     if(ns)
     {
         CloseHandle(ns->transferCompleteSem);
+        CloseHandle(ns->userChangeSem);
         int inny = SESSIONS.erase(s);
     }
-
-    ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
-
-    userSemValue += SESSIONS.size();
-
     ReleaseSemaphore(sessionsSem, 1, NULL);
 
     //signal other sessions to send the updated userlist
-    
-
-
+    signalUserChanged();
 
     //close this thread
     ExitThread(0);
@@ -579,6 +566,7 @@ void sendNowPlaying(MetaData *data)
 	sendToAll(to_send);
 }
 
+
 void sendToAll(string message)
 {
 	std::map<SOCKET, new_session *>::iterator it;
@@ -657,4 +645,22 @@ void sendSongDone(SOCKET s, int mode)
     string to_send = "********************************************" + temp;
 
     sendTCPMessage(&s, to_send, DATA_BUFSIZE);
+}
+
+
+void signalUserChanged()
+{
+    new_session* ns;
+
+    WaitForSingleObject(sessionsSem, INFINITE);
+
+    auto it = SESSIONS.begin();
+    while(it != SESSIONS.end())
+    {
+        ns = it->second;
+        ReleaseSemaphore(ns->userChangeSem, 1, 0);
+        it++;
+    }
+
+    ReleaseSemaphore(sessionsSem, 1, 0);
 }
