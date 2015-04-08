@@ -4,6 +4,20 @@
 ** Program: Comm Audio
 **
 ** Functions:
+**      int setupControlChannel(hostent *);
+**      DWORD WINAPI read(LPVOID);
+**      void CALLBACK ReadRoutine(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
+**      bool downloadSong(std::string);
+**      bool requestSong(std::string);
+**      int restartMulticast();
+**      void handleEnd(std::string);
+**      void handleControlMessage(ctrlMessage *);
+**      void createControlString(ctrlMessage, std::string &);
+**      void parseControlString(std::string, ctrlMessage *);
+**      void updateListeners(std::vector<std::string>);
+**      void updateNowPlaying(std::vector<std::string>);
+**      void establishGUIConnector(void *);
+**      void updateLibrary(std::vector<std::string>);
 **
 **
 ** Date: March 14th, 2015
@@ -15,8 +29,7 @@
 ** Programmer: Rhea Lauzon
 **
 ** Notes:
-**
-**
+**  The Control Channel for Comm Audio. handles all control messages.
 *****************************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
@@ -220,8 +233,6 @@ DWORD WINAPI read(LPVOID arg)
 *******************************************************************/
 void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD inFlags)
 {
-    DWORD recvBytes;
-    DWORD flags;
 
     ctrlMessage message;
     SOCKET_INFORMATION * sockInfo = (SOCKET_INFORMATION *) Overlapped;
@@ -667,6 +678,8 @@ bool requestSong(string song)
     closeAudio();
     EndMulticast();
 
+    //hide the pause/play button
+    GUI->disableMulticastButton(true);
     //create the unicast thread
     DWORD threadId;
     if ((unicastThread = CreateThread(NULL, 0, unicastSong, (LPVOID) host, 0, &threadId)) == NULL)
@@ -679,6 +692,28 @@ bool requestSong(string song)
 }
 
 
+/*******************************************************************
+** Function: handleEnd
+**
+** Date: April 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void handleEnd(string type)
+**              string type -- Type of end song message
+**
+** Returns:
+**			void
+**
+** Notes:
+** Handles the various end song messages
+**********************************************************************/
 void handleEnd(string type)
 {
     if(type.compare("1") == 0)
@@ -691,16 +726,53 @@ void handleEnd(string type)
 
         //unicast has ended
         restartMulticast();
+
+        GUI->disableMulticastButton(false);
+
+        return;
+    }
+
+    if (type.compare("0") == 0)
+    {
+        string message = "Download Complete!";
+        std::wstring stemp = std::wstring(message.begin(), message.end());
+        LPCWSTR sw = stemp.c_str();
+        MessageBox(NULL, sw, sw, MB_OK);
+
+        return;
     }
 }
 
 
+
+/*******************************************************************
+** Function: restartMulticast
+**
+** Date: April 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			int restartMulticast()
+**
+**
+** Returns:
+**			int -- -1 on failure, 0 on success
+**
+** Notes:
+** Restarts the multicast server
+**********************************************************************/
 int restartMulticast()
 {
     struct in_addr ia;
     memcpy((void*)host->h_addr,(void*)&ia, host->h_length);
 
-    if (StartMulticast(ia) < 0)
+    if (!StartMulticast(ia))
     {
         cerr << "Unable to restart multicast." << endl;
         return -1;

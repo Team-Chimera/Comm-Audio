@@ -1,17 +1,25 @@
 /*------------------------------------------------------------------------------------------------------------------
--- SOURCE FILE: multicast.cpp
+-- SOURCE FILE: multicast.cpp -- Multicast mode of the client of comm audio
 --
--- PROGRAM: CommAudio_Client
+-- PROGRAM: Commm Audio (Client)
 --
 -- FUNCTIONS:
---
+**      bool StartMulticast(in_addr group);
+**      bool EndMulticast();
+**      DWORD WINAPI JoinMulticast(LPVOID parameter);
+**      void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
+**      void receiveMulticastData();
+**      DWORD WINAPI playMulticastSong(LPVOID arg);
+**      void updateVolume(int);
+**      CircularBuffer * getCircularBuffer();
+**      void closeAudio();
+**
 -- DATE: March 12, 2015
 --
--- REVISIONS: Created March 10, 2015
 --
--- DESIGNER: Michael Chimick
+-- DESIGNER: Rhea Lauzon
 --
--- PROGRAMMER: Michael Chimick
+-- PROGRAMMER: Rhea Lauzon & Michael Chimick
 --
 -- NOTES:
 --
@@ -50,7 +58,7 @@ LPWAVEHDR audioBuffers[NUM_OUTPUT_BUFFERS];
 
 bool streaming = false;
 
-int vol = 100;
+int vol = 50;
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: DropMulticast
@@ -95,7 +103,7 @@ bool StartMulticast(in_addr group)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropMulticast
+-- FUNCTION: endpMulticast
 --
 -- DATE: March 12, 2015
 --
@@ -105,7 +113,7 @@ bool StartMulticast(in_addr group)
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void DropMulticast()
+-- INTERFACE: void endMulticast()
 --
 -- RETURNS: void
 --
@@ -143,7 +151,8 @@ bool EndMulticast()
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void JoinMulticast(SOCKET multicast, in_addr group)
+-- INTERFACE: void JoinMulticast(LPVOID parameter)
+--          LPVOID parameter -- thread parameter
 --
 -- RETURNS: void
 --
@@ -151,13 +160,10 @@ bool EndMulticast()
 -- Joins the multicast session, and starts multicast processing
 --
 ----------------------------------------------------------------------------------------------------------------------*/
-DWORD WINAPI JoinMulticast(LPVOID parameter)
+DWORD WINAPI JoinMulticast(LPVOID)
 {
-	DWORD recvThread;
 
-	BOOL flag = true;
-
-	in_addr * group = (in_addr *)parameter;
+    BOOL flag = true;
 
 
     socketInfo.socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -211,6 +217,29 @@ DWORD WINAPI JoinMulticast(LPVOID parameter)
 
 
 
+
+/*****************************************************************
+** Function: receiveMulticastData
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**         void receiveMulticastData()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Receives multicast data from the server until specified to end
+**
+*******************************************************************/
 void receiveMulticastData()
 {
     streaming = true;
@@ -271,8 +300,9 @@ void receiveMulticastData()
 ** Plays the received song in a thread.
 **
 *******************************************************************/
-DWORD WINAPI playMulticastSong(LPVOID arg)
+DWORD WINAPI playMulticastSong(LPVOID)
 {
+
     //create the wave header
     WAVEFORMATEX wavFormat;
 
@@ -291,6 +321,7 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
         cerr << "Failed to open output device." << endl;
         return -1;
     }
+
 
     // Prepare the wave headers
     for (int i = 0; i < NUM_OUTPUT_BUFFERS; i++)
@@ -313,6 +344,7 @@ DWORD WINAPI playMulticastSong(LPVOID arg)
 
     //write audio to the buffer
     cout << "I am ready to play music!" << endl;
+
 
     //wait until we have two messages worth of data; this avoids crackle
     while(multiBuffer.pos < MESSAGE_SIZE * 10)
@@ -371,18 +403,88 @@ void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD d
 }
 
 
+
+/*****************************************************************
+** Function: updateVolume
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**          void updateVolume(int value)
+**              int value -- Volume value to change to
+**
+** Returns:
+**          void
+**
+** Notes:
+** Updates the volume value
+**
+*******************************************************************/
 void updateVolume(int value)
 {
     vol = value;
 }
 
 
+
+/*****************************************************************
+** Function: getCircularBuffer
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**          CircularBuffer * getCircularBuffer()
+**
+** Returns:
+**          CircularBuffer * -- Pointer to the media buffer
+**
+** Notes:
+** Fetches a pointer to the circular buffer for use.
+**
+*******************************************************************/
 CircularBuffer * getCircularBuffer()
 {
     return (&multiBuffer);
 }
 
 
+
+/*****************************************************************
+** Function: closeAudio
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**          void closeAudio()
+**
+** Returns:
+**          void
+**
+** Notes:
+** Closed the audio and resets the circular buffer.
+**
+*******************************************************************/
 void closeAudio()
 {
     //close the output device
@@ -394,6 +496,14 @@ void closeAudio()
     {
         waveOutUnprepareHeader(multicastOutput, audioBuffers[i], sizeof(WAVEHDR));
     }
+
+    //reset the circular buffer
+    for (int i = 0; i < MUSIC_BUFFER_SIZE; i++)
+    {
+       multiBuffer.buf[i] = '\0';
+    }
+
+       multiBuffer.pos = 0;
 
 }
 

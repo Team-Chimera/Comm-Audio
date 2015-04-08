@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>870</width>
-    <height>537</height>
+    <width>775</width>
+    <height>421</height>
    </rect>
   </property>
   <property name="palette">
@@ -655,27 +655,11 @@ QAbstractButton {
 }</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QSlider" name="horizontalSlider">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>440</y>
-      <width>831</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
    <widget class="QSlider" name="volume">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>470</y>
+      <x>380</x>
+      <y>330</y>
       <width>160</width>
       <height>19</height>
      </rect>
@@ -722,8 +706,8 @@ QAbstractButton {
      <rect>
       <x>20</x>
       <y>10</y>
-      <width>591</width>
-      <height>371</height>
+      <width>531</width>
+      <height>281</height>
      </rect>
     </property>
     <property name="acceptDrops">
@@ -854,7 +838,7 @@ font-weight: bold;
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>650</x>
+      <x>590</x>
       <y>10</y>
       <width>131</width>
       <height>21</height>
@@ -872,18 +856,18 @@ font-weight: bold;
    <widget class="QListWidget" name="listeners">
     <property name="geometry">
      <rect>
-      <x>640</x>
+      <x>580</x>
       <y>30</y>
-      <width>211</width>
-      <height>341</height>
+      <width>171</width>
+      <height>281</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="volumeIcon">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>470</y>
+      <x>340</x>
+      <y>330</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -898,13 +882,30 @@ font-weight: bold;
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QPushButton" name="multicastButton">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>300</y>
+      <width>101</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background: none;
+border: none;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>870</width>
+     <width>775</width>
      <height>28</height>
     </rect>
    </property>

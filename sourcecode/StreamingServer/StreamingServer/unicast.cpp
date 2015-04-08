@@ -94,8 +94,6 @@ DWORD WINAPI startUnicast(LPVOID clientInfo)
 /** Make the music! **/
 bool playUnicastSong(string songName)
 {
-	cout << songName << endl;
-
 	libvlc_media_player_t *unicastMediaPlayer;
 	libvlc_media_t *unicastSong;
 

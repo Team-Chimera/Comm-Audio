@@ -1,3 +1,25 @@
+/**********************************************************************
+ *
+**	SOURCE FILE:	main.cpp -  driver file
+**
+**	PROGRAM:	Comm Audio
+**
+**	FUNCTIONS:
+**          int main(int argc, char *argv[]);
+**
+**
+**	DATE: 		March 7th, 2015
+**
+**
+**	DESIGNER:	Rhea Lauzon A00881688
+**
+**
+**	PROGRAMMER: Rhea Lauzon A00881688
+**
+**	NOTES:
+**	This is the main jumping off point for the client side of comm audio.
+*************************************************************************/
+
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <WS2tcpip.h>

@@ -55,14 +55,10 @@ void AcceptThread()
         return;
     }
     userSemValue = 0;
-    cout << "UserSemValue at create : " << userSemValue << endl;
 
-    cout << endl << "Accepting Clients" << endl;
     if(!openListenSocket(&Accept, SERVER_TCP_LISTEN_PORT) )
         return;
 
-
-    cout << "Id of Accepting thread " << GetCurrentThreadId() << endl;
 
         while(TRUE)
        {
@@ -78,10 +74,6 @@ void AcceptThread()
             char* temp_addr = inet_ntoa( s_in->sin_addr );
 
             ns->ip.assign(temp_addr);
-
-            printf("Socket %d is connected to ", temp);
-            printIP(*s_in);
-
             createSession(ns);
        }
 
@@ -114,14 +106,13 @@ void AcceptThread()
 bool createSession(new_session* ns)
 {
     HANDLE h;
-    cout << endl << "Creating a session for control socket " << ns->s << " with ip " << ns->ip << endl;
+    cout << endl << "A New Client Has Joined with IP: " << ns->ip << endl;
 
     WaitForSingleObject(sessionsSem, INFINITE);
     SESSIONS.insert(make_pair(ns->s, ns));
     ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
 
     userSemValue += SESSIONS.size();
-    cout << "UserSemValue after user added: " << userSemValue << endl;
 
     ReleaseSemaphore(sessionsSem, 1, 0);
 
@@ -217,7 +208,6 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
                 sendUserList(si->Socket);
 
                 userSemValue--;
-                cout << "UserSemValue after sleep ex, someone used it: " << userSemValue << endl;
                  break;
             case 1:
                 //transfer of a song is completed, send message for that
@@ -275,10 +265,6 @@ void sendSongList(SOCKET c)
 *******************************************************************/
 void sessionCleanUp(SOCKET s)
 {
-    printf("Session clean up for socket %d\n", s);
-
-    
-
     //delete session from map
     WaitForSingleObject(sessionsSem, INFINITE);
     new_session* ns = SESSIONS.at(s);
@@ -292,8 +278,6 @@ void sessionCleanUp(SOCKET s)
     ReleaseSemaphore(userChangeSem, SESSIONS.size(), 0);
 
     userSemValue += SESSIONS.size();
-    cout << "Sessions size after removing user  " << SESSIONS.size() << endl;
-    cout << "UserSemValue after session deleted: " << userSemValue << endl;
 
     ReleaseSemaphore(sessionsSem, 1, NULL);
 
@@ -321,12 +305,10 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
 
    if (Error != 0)
    {
-     printf("I/O operation failed with error %d\n", Error);
    }
 
    if (BytesTransferred == 0) // nothing sent or rcvd...
    {
-      printf("Closing control socket %d\n", SI->Socket);
    }
 
    if (Error != 0 || BytesTransferred == 0)
@@ -352,13 +334,17 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //someone wants to make a mic chat with this client
           case MIC_CONNECTION:
           {
+			  cout << "==========================================" << endl;
               cout << "mic connection from socket " << SI->Socket << endl;
+			  cout << "==========================================" << endl << endl << endl;
               break;
           }
           //song has been requested for unicast send to this client
           case SONG_REQUEST:
           {
+			cout << "==========================================" << endl;
 			cout << "song request from socket " << SI->Socket << endl;
+			cout << "==========================================" << endl;
 			// get ns
 			new_session* ns;
 			WaitForSingleObject(sessionsSem, INFINITE);
@@ -378,7 +364,9 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
           //song has been requested for tcp send to this client
           case SAVE_SONG:
           {
+			cout << "==========================================" << endl;
             cout << "download request from socket " << SI->Socket << endl;
+			cout << "==========================================" << endl;
             transmitSong(SI->Socket, ctrl.msgData[0]);
               break;
           }
@@ -492,7 +480,6 @@ void updateNewUser(SOCKET c)
     message.type = NOW_PLAYING;
 
     createControlString(message, temp);
-     std::cout << "ACKKKKKKKKKKKKKKKKKKKKKKK !!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     string to_send = "********************************************" + temp;
 
 	//send the message to the client
@@ -547,7 +534,6 @@ void sendNowPlaying(MetaData *data)
 {
 	string temp;
     ctrlMessage message;
-    cout << "YESSSSSSSSSSSSSSSSSSSSSSSSSSSS !!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 
 	//create the control message
 	stringstream ss;

@@ -51,6 +51,8 @@ unicastDialog::unicastDialog(QWidget *parent) :
     QIcon ButtonIcon2(pixmap2);
     ui->playUnicast->setIcon(ButtonIcon2);
     ui->playUnicast->setIconSize(QSize(ui->playUnicast->size().width(),ui->playUnicast->size().height()));
+
+
 }
 
 

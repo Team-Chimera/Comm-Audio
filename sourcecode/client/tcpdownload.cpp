@@ -27,10 +27,9 @@ bool TCP_rcv;
 ----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI doTCPDownload(LPVOID lpParameter)
 {
-    cout << "I am HERE!" << endl;
    string* file_name = (std::string*) lpParameter;
 
-    ofstream file;
+   ofstream file;
    SOCKET acceptSocket;
 
    file.open(*file_name, ios::binary);
@@ -72,17 +71,17 @@ DWORD WINAPI doTCPDownload(LPVOID lpParameter)
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: TestRoutine
+-- FUNCTION: tcpDownloadRotuine
 --
 -- DATE: January 30, 2015
 --
--- REVISIONS: (Date and Description)
+-- REVISIONS
 --
 -- DESIGNER: Jeff Bayntun
 --
 -- PROGRAMMER: Jeff Bayntun
 --
--- INTERFACE: void CALLBACK TestRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
+-- INTERFACE: void CALLBACK tcpDownloadRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
 --
 -- RETURNS: void
 --

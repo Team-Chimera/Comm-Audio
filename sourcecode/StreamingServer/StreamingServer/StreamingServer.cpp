@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
 		return 55;
 	}
 	
-    cout << "Id of Main thread " << GetCurrentThreadId() << endl;
 	 initWSA(&wsadata);
     // Julian's multicast...
     createWorkerThread(startMulticastThread, &multicastThread, (LPVOID *) &songList, 0);
@@ -56,7 +55,9 @@ int main(int argc, char *argv[])
 
 bool loadSongList()
 {
-    cout << endl << "Loading Songs" << endl;
+	cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    cout << endl << "Song Library:" << endl;
+	cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
     HANDLE hFind;
     WIN32_FIND_DATA data;
     int count = 0;
@@ -89,6 +90,8 @@ bool loadSongList()
   {
       cout << s << endl;
   }
+
+	cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl << endl;
 
   return true;
 }

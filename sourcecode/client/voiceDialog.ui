@@ -11,19 +11,26 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Song Options</string>
+   <string>Voice Chat</string>
   </property>
   <widget class="QPushButton" name="connectVoice">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>180</x>
      <y>20</y>
-     <width>151</width>
+     <width>51</width>
      <height>41</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background: none;
+border: none;</string>
+   </property>
    <property name="text">
-    <string>Connect Microphone</string>
+    <string/>
+   </property>
+   <property name="flat">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QLabel" name="client">

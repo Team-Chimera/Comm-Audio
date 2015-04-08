@@ -444,7 +444,6 @@ int sendTCPMessage( SOCKET *s, std::string message, int size)
 
 		if( (result = send (*s, to_send, packet_size, 0)) == SOCKET_ERROR )
 		{
-			std::cout << "send "  << WSAGetLastError()  << std::endl;
 			return -1;
 		}
 		totalSent += result;
@@ -476,12 +475,6 @@ int sendTCPMessage( SOCKET *s, std::string message, int size)
 ----------------------------------------------------------------------------------------------------------------------*/
 bool openTCPSend( SOCKET* s, int port, std::string ip)
 {
-/*	WSADATA WSAData;
-	if ( WSAStartup( MAKEWORD( 2, 2 ), &WSAData ) != 0 ) //No useable DLL
-	{
-		std::cout << "WSAStartup DLL not found!\n";
-		return false;
-	} */
 
 	struct sockaddr_in server;
 	struct hostent	*hp;

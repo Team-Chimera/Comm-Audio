@@ -2,11 +2,14 @@
  *
 **	SOURCE FILE:	dialog.cpp -  Custom dialog class
 **
-**	PROGRAM:	Linux Chat Program
+**	PROGRAM:	Comm Audio
 **
 **	FUNCTIONS:
 **          explicit Dialog(QWidget *parent = 0);
 **          ~Dialog();
+**          void reject();
+**          bool initialConnect(QString);
+**          bool connectMulticast();
 **
 **
 **	DATE: 		March 7th, 2015
@@ -18,7 +21,7 @@
 **	PROGRAMMER: Rhea Lauzon A00881688
 **
 **	NOTES:
-**	Dialog class for the launch of the chat program.
+**	Dialog class for the launcher
 *************************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
@@ -224,7 +227,11 @@ bool Dialog::initialConnect(QString address)
      {
          //error getting the host
          cerr << "Failed to retrieve host" << endl;
-         exit(1);
+         string message = "Error Retrieving Host";
+         std::wstring stemp = std::wstring(message.begin(), message.end());
+         LPCWSTR sw = stemp.c_str();
+         MessageBox(NULL, sw, sw, MB_ICONERROR);
+         return false;
      }
 
      //create the control channel
@@ -238,9 +245,7 @@ bool Dialog::initialConnect(QString address)
      //Resolve multicast
      if ((multi = gethostbyname(multicastIP.c_str())) == NULL)
      {
-         //error getting the host
-         cerr << "Failed to retrieve host" << endl;
-         exit(1);
+         return false;
      }
 
      struct in_addr ia;

@@ -143,12 +143,42 @@ void Player::playData()
     }
 }
 
+
+/*------------------------------------------------------------------------------
+-- FUNCTION: ~Microphone
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- INTERFACE: ~Microphone()
+--
+-- NOTES:
+--  Stops recording, closes the socket and frees their memory.
+------------------------------------------------------------------------------*/
 void Player::startVoicePlay()
 {
     device = audio->start();
     socket->bind(VOICE_CHAT_CHANNEL);
 }
 
+
+/*------------------------------------------------------------------------------
+-- FUNCTION: stopVoicePlay
+--
+-- DATE: April 3, 2015
+--
+-- DESIGNER: Rhea Lauzon
+--
+-- PROGRAMMER: Rhea Lauzon
+--
+-- INTERFACE: void stopVoicePlay()
+--
+-- NOTES:
+--  Stops recording, closes the socket and frees their memory.
+------------------------------------------------------------------------------*/
 void Player::stopVoicePlay()
 {
     audio->stop();
