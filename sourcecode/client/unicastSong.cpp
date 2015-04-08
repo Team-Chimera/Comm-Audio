@@ -57,7 +57,7 @@ int uniVolume = 100;
 DWORD WINAPI unicastSong(LPVOID host)
 {
     finished = false;
-l
+
     uniCircBuf = getCircularBuffer();
     //initialize the buffer position to 0
     uniCircBuf->pos = 0;
