@@ -1,3 +1,34 @@
+/*---------------------------------------------------------------------------------------------
+-- SOURCE FILE: newsession.cpp -
+--
+-- PROGRAM: StreamingServer.exe
+--
+-- DATE: March 22, 2015
+--
+-- Interface:
+    void AcceptThread();
+    void sendSongList(SOCKET c);
+    bool createSession(new_session* ns);
+    void sessionCleanUp(SOCKET s);
+    DWORD WINAPI controlThread(LPVOID lpParameter);
+
+    void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+    void sendNowPlaying(MetaData *);
+    void updateNewUser(SOCKET c);
+    void transmitSong(SOCKET s, std::string song);
+    DWORD WINAPI sendTCPSong(LPVOID lpParameter);
+    void sendToAll(std::string);
+    void sendUserList(SOCKET c);
+    void sendSongDone(SOCKET s, int);
+    void signalUserChanged();
+
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--------------------------------------------------------------------------------------------*/
+
 #include "stdafx.h"
 #include "newsession.h"
 #include <iostream>
@@ -34,7 +65,9 @@ std::map<SOCKET, new_session*> SESSIONS;
 **
 ** Returns:
 **
-** Notes: listens and waits for incoming connections indefinetely
+** Notes: listens and waits for incoming connections indefinetely.
+            when a client connects, creates a session and spawns
+            a thread to handle them.
 *******************************************************************/
 void AcceptThread()
 {
@@ -94,7 +127,7 @@ void AcceptThread()
 ** Returns:
 **			false on failure
 **
-** Notes: Creates the threads and semaphores specific to this session
+** Notes: Creates the a worker thread for a new session
 *******************************************************************/
 bool createSession(new_session* ns)
 {
@@ -125,13 +158,16 @@ bool createSession(new_session* ns)
 **
 ** Interface:
 **			DWORD WINAPI controlThread(LPVOID lpParameter)
+            lpParameter is new_session* for this session
 **
 **
 ** Returns:
 **			FALSE on failure
 **
 ** Notes: each session has its own control thread.  This is used
-**  to coordinate other threads and activities
+**  to coordinate other threads and activities.  waits for tcp action
+    on the control socket, or semaphore notifications for new 
+    users or completed song transfers
 *******************************************************************/
 DWORD WINAPI controlThread(LPVOID lpParameter)
 {
@@ -214,7 +250,27 @@ DWORD WINAPI controlThread(LPVOID lpParameter)
 
     return FALSE;
 }
-
+/*******************************************************************
+** Function:  sendSongList()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void sendSongList(SOCKET c)
+**          c: socket to send on
+**
+** Returns:
+**
+** Notes: sends the list of songs in the library using the 
+            given socket.
+*******************************************************************/
 void sendSongList(SOCKET c)
 {
     if(songList.empty())
@@ -253,8 +309,8 @@ void sendSongList(SOCKET c)
 ** Returns:
 **		 void
 **
-** Notes: closes threads, SOCKET_INFORMATIONS, and semaphores of
-** the input session.
+** Notes: closes semaphores and ends this sessions control thread
+           updates other users with new client list
 *******************************************************************/
 void sessionCleanUp(SOCKET s)
 {
@@ -277,7 +333,30 @@ void sessionCleanUp(SOCKET s)
     ExitThread(0);
 }
 
-
+/*******************************************************************
+** Function:  controlRoutine()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun, Rhea Lauzon
+**
+** Interface:
+**			void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
+            Error: error value
+            BytesTransferred: number of bytes transferred
+            Overlapped: Overlapped structure for transfer
+            InFlags: flags set
+** Returns:
+**		 void
+**
+** Notes: control thread for a session in response to WSA socket callbacks.
+            takes action based on control message received
+*******************************************************************/
 void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
 {
 
@@ -422,6 +501,26 @@ void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPE
    }
 }
 
+/*******************************************************************
+** Function:  updateNewUser()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void updateNewUser(SOCKET c)
+            c: socket to send on
+** Returns:
+**		 void
+**
+** Notes: sends currently playing song info over given socket
+*******************************************************************/
 void updateNewUser(SOCKET c)
 {
 
@@ -476,7 +575,26 @@ void updateNewUser(SOCKET c)
 	
 }
 
-
+/*******************************************************************
+** Function:  sendUserList()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void sendUserList(SOCKET c)
+            c: socket to send on
+** Returns:
+**		 void
+**
+** Notes: sends user List to current socket
+*******************************************************************/
 void sendUserList(SOCKET c)
 {
     vector<string> users;
@@ -516,7 +634,26 @@ void sendUserList(SOCKET c)
 }
 
 
-
+/*******************************************************************
+** Function:  sendNowPlaying()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void sendNowPlaying(MetaData *data)
+            metadata for song
+** Returns:
+**		 void
+**
+** Notes: creates now playing list to send to multicast clients
+*******************************************************************/
 void sendNowPlaying(MetaData *data)
 {
 	string temp;
@@ -566,7 +703,27 @@ void sendNowPlaying(MetaData *data)
 	sendToAll(to_send);
 }
 
-
+/*******************************************************************
+** Function:  sendToAll()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void sendToAll(string message)
+            message to send
+** Returns:
+**		 void
+**
+** Notes: sends a string to all clients.
+        todo:  make new function that is thread safe
+*******************************************************************/
 void sendToAll(string message)
 {
 	std::map<SOCKET, new_session *>::iterator it;
@@ -578,7 +735,27 @@ void sendToAll(string message)
 	}
 }
 
-
+/*******************************************************************
+** Function:  transmitSong()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void transmitSong(SOCKET s, string song)
+            s: socket to send on
+            song: title of song
+** Returns:
+**		 void
+**
+** Notes: creates a thread to send a song via TCP to a song
+*******************************************************************/
 void transmitSong(SOCKET s, string song)
 {
     // get ns
@@ -596,6 +773,27 @@ void transmitSong(SOCKET s, string song)
     createWorkerThread(sendTCPSong, &thread, ns, 0);
 }
 
+/*******************************************************************
+** Function:  sendTCPSong()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			DWORD WINAPI sendTCPSong(LPVOID lpParameter)
+            param is new_session* for this session
+** Returns:
+**		 void
+**
+** Notes: thread function that handles the sending of a song
+            to a client via TCP
+*******************************************************************/
 DWORD WINAPI sendTCPSong(LPVOID lpParameter)
 {
     new_session* ns = (new_session*) lpParameter;
@@ -609,7 +807,6 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
         return FALSE;
     }
     
-
     SOCKET socket;
     Sleep(2000);
     if(!openTCPSend(&socket, CLIENT_TCP_PORT, ns->ip) )
@@ -631,6 +828,27 @@ DWORD WINAPI sendTCPSong(LPVOID lpParameter)
     return TRUE;
 }
 
+/*******************************************************************
+** Function:  sendSongDone()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void sendSongDone(SOCKET s, int mode)
+            socket to send on
+            mode, tcp or udp song
+** Returns:
+**		 void
+**
+** Notes: send message to user that file transfer is complete
+*******************************************************************/
 void sendSongDone(SOCKET s, int mode)
 {
     string temp;
@@ -647,7 +865,26 @@ void sendSongDone(SOCKET s, int mode)
     sendTCPMessage(&s, to_send, DATA_BUFSIZE);
 }
 
-
+/*******************************************************************
+** Function:  signalUserChanged()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			void signalUserChanged()
+** Returns:
+**		 void
+**
+** Notes: signals all current sessions that the userList has
+            changed so they can update their clients
+*******************************************************************/
 void signalUserChanged()
 {
     new_session* ns;

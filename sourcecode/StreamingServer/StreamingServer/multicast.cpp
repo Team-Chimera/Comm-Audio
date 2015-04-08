@@ -102,7 +102,26 @@ DWORD WINAPI startMulticastThread(LPVOID songs)
     return 0;
 }
 
-/** Make the music! **/
+/*******************************************************************
+** Function: playMulticastSong()
+**
+** Date: 
+**
+** Revisions:
+**
+**
+** Designer: 
+**
+** Programmer:
+**
+** Interface:
+**			bool playMulticastSong()
+**
+** Returns:
+**
+** Notes:
+**  
+*******************************************************************/
 bool playMulticastSong()
 {
 	int index = 0;
@@ -413,7 +432,26 @@ void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size)
 	*pp_pcm_buffer = (uint8_t*) malloc(size);
 }
 
-
+/*******************************************************************
+** Function: getMetaData()
+**
+** Date: 
+**
+** Revisions:
+**
+**
+** Designer: 
+**
+** Programmer:
+**
+** Interface:
+**			bool getMetaData(MetaData *md, libvlc_media_t *media)
+**
+** Returns:
+**
+** Notes:
+**  
+*******************************************************************/
 bool getMetaData(MetaData *md, libvlc_media_t *media)
 {
 	libvlc_media_parse(media);
@@ -440,14 +478,52 @@ bool getMetaData(MetaData *md, libvlc_media_t *media)
 	return true;
 }
 
-
+/*******************************************************************
+** Function: freeMetaData()
+**
+** Date: 
+**
+** Revisions:
+**
+**
+** Designer: 
+**
+** Programmer:
+**
+** Interface:
+**			bool freeMetaData(MetaData *md, libvlc_media_t *media)
+**
+** Returns:
+**
+** Notes:
+**  
+*******************************************************************/
 void freeMetaData(MetaData *md)
 {
 	libvlc_free(md->artist);
 	libvlc_free(md->album);
 	libvlc_free(md->title);
 }
-
+/*******************************************************************
+** Function: fetchMetaData()
+**
+** Date: 
+**
+** Revisions:
+**
+**
+** Designer: 
+**
+** Programmer:
+**
+** Interface:
+**			void fetchMetaData(MetaData *m)
+**
+** Returns:
+**
+** Notes:
+**  
+*******************************************************************/
 void fetchMetaData(MetaData *m)
 {
 	m->artist = data.artist;

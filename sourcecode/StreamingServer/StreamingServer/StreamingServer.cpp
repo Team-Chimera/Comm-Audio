@@ -1,5 +1,20 @@
-// StreamingServer.cpp : Defines the entry point for the console application.
-//
+/*---------------------------------------------------------------------------------------------
+-- SOURCE FILE: StreaminServer.cpp -
+--
+-- PROGRAM: StreamingServer.ext
+--
+-- DATE: March 22, 2015
+--
+-- Interface:
+        bool makeSharedSems();
+        bool loadSongList();
+
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--------------------------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 #include "multicast.h"
@@ -32,7 +47,8 @@ HANDLE multicastThread;
 ** Returns:
 **			0 on success
 **
-** Notes:
+** Notes:   loads songs from directory, starts multicast thread then
+            waits for sockets to connect on TCP listen port 
 *******************************************************************/
 int main(int argc, char *argv[])
 {
@@ -52,7 +68,29 @@ int main(int argc, char *argv[])
 
 }
 
-
+/*******************************************************************
+** Function: loadSongList()
+**
+** Date: March 22th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+**			bool loadSongList()
+**
+**
+** Returns:
+**			false if directory is invalid or has no files
+**
+** Notes:   Opens a directory defined in SONG_DIR and loads all
+            file names into songList. Doesn't check if they are 
+            actually songs or anything.
+*******************************************************************/
 bool loadSongList()
 {
 	cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -68,7 +106,6 @@ bool loadSongList()
         cout << "invalid song directory" << endl;
         return false;
     }
-
 
   do 
   {

@@ -9,15 +9,18 @@
         SOCKET createTCPSOCKET();
         SOCKET createUDPSOCKET();
         bool connectTCPSOCKET(SOCKET s, sockaddr_in* addr);
-        bool createSocketInfo(LPSOCKET_INFORMATION si, SOCKET s);
+        LPSOCKET_INFORMATION createSocketInfo(SOCKET s);
         void deleteSocketInfo(LPSOCKET_INFORMATION si);
 
         bool initWSA(WSADATA* wsaData);
         bool openListenSocket(SOCKET* s, int port);
         bool setAcceptEvent(WSAEVENT* a);
+        int sendTCPMessage( SOCKET* s, std::string message, int size);
+        int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size);
 
         bool getIP_Addr(sockaddr_in* addr, char* host, int port);
         void printIP(sockaddr_in& addr);
+        bool openTCPSend( SOCKET* s, int port, std::string ip);
 --
 -- REVISIONS: (Date and Description)
 --
@@ -222,7 +225,7 @@ LPSOCKET_INFORMATION createSocketInfo(SOCKET s)
 void deleteSocketInfo(LPSOCKET_INFORMATION si)
 {
    /* if (closesocket(si->Socket) == SOCKET_ERROR)
-         {
+         { closed in control function now
             printf("closesocket() failed with error %d\n", WSAGetLastError());
          } */
 
@@ -401,7 +404,7 @@ bool getIP_Addr(sockaddr_in* addr, char* host, int port)
 -- message: message to send
 -- size: size of message, defaults to BUFSIZE
 --			
--- RETURNS: false on failure, else true
+-- RETURNS: -1 on failure or total bytes sent
 --
 -- NOTES:
 -------------------------------------------------------------------------------------------------*/
@@ -425,7 +428,27 @@ int sendTCPMessage( SOCKET *s, std::string message, int size)
     delete [] to_send;
 	return totalSent;
 }
-
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: sendTCPMessage
+--
+-- DATE: January 30, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE:  int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size)
+-- s:           pointer to SOCKET to send on
+-- message:     message to send
+-- file_size:   size of message
+-- packet_size: amount of chars to send in one packet
+--			
+-- RETURNS: -1 on failure or total bytes sent
+--
+-- NOTES:
+-------------------------------------------------------------------------------------------------*/
  int sendTCPMessage( SOCKET* s, char* message, long file_size, int packet_size)
  {
      	int result;
