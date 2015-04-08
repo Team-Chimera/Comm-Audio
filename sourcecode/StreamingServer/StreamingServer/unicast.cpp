@@ -91,7 +91,26 @@ DWORD WINAPI startUnicast(LPVOID clientInfo)
     return 0;
 }
 
-/** Make the music! **/
+/*******************************************************************
+** Function: playUnicastSong()
+**
+** Date: 
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			bool playUnicastSong(string songName)
+**
+** Returns:
+**
+** Notes: Plays a unicast song for a specific client.
+**  
+*******************************************************************/
 bool playUnicastSong(string songName)
 {
 	libvlc_media_player_t *unicastMediaPlayer;
