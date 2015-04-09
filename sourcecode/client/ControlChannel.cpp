@@ -249,7 +249,20 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
 
     if (error != 0 || bytesTransferred == 0)
     {
+        //end the music
+        closeAudio();
+        EndMulticast();
+        endUnicast();
+
+        //open popup
+        string message = "Server Closed";
+        std::wstring stemp = std::wstring(message.begin(), message.end());
+        LPCWSTR sw = stemp.c_str();
+        MessageBox(NULL, sw, sw, MB_OK);
+
+        //cleanup, close program
         closesocket(controlSocket);
+        exit(0);
         return;
     }
 
@@ -263,7 +276,6 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
     //handle it
     handleControlMessage(&message);
     cout.flush();
-    //Sleep(1000);
 
 }
 
@@ -381,12 +393,6 @@ void handleControlMessage(ctrlMessage *cMessage)
         case END_CONNECTION:
         {
 
-            break;
-        }
-
-        //someone wants to make a mic chat with this client
-        case MIC_CONNECTION:
-        {
             break;
         }
 
@@ -716,6 +722,18 @@ bool requestSong(string song)
 **********************************************************************/
 void handleEnd(string type)
 {
+    //download song has completed
+    if (type.compare("0") == 0)
+    {
+        string message = "Download Complete!";
+        std::wstring stemp = std::wstring(message.begin(), message.end());
+        LPCWSTR sw = stemp.c_str();
+        MessageBox(NULL, sw, sw, MB_OK);
+
+        return;
+    }
+
+    //unicast song has completed
     if(type.compare("1") == 0)
     {
         //end unicast
@@ -732,12 +750,11 @@ void handleEnd(string type)
         return;
     }
 
-    if (type.compare("0") == 0)
+    //multicast song is swapping
+    if (type.compare("2") == 0)
     {
-        string message = "Download Complete!";
-        std::wstring stemp = std::wstring(message.begin(), message.end());
-        LPCWSTR sw = stemp.c_str();
-        MessageBox(NULL, sw, sw, MB_OK);
+        cout << "Swapping multicast" << endl;
+        waitForNewSong();
 
         return;
     }

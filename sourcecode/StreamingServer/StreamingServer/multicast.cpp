@@ -170,6 +170,9 @@ bool playMulticastSong()
 		//free the media player
 		libvlc_media_player_release(mediaPlayer);
 
+		//send an end song to all the clients
+		swapSong();
+
 		//iterate to the next song
 		if(!done)
 		{

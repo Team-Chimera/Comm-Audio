@@ -97,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //set multicast to true at first
     multicastState = true;
-
+    multicastDisabled = false;
 }
 
 

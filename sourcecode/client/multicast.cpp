@@ -13,6 +13,7 @@
 **      void updateVolume(int);
 **      CircularBuffer * getCircularBuffer();
 **      void closeAudio();
+**      void waitForNewSong();
 **
 -- DATE: March 12, 2015
 --
@@ -505,6 +506,51 @@ void closeAudio()
 
        multiBuffer.pos = 0;
 
+}
+
+
+/*****************************************************************
+** Function: waitForNewSong
+**
+** Date: April 8th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**         void  waitForNewSong()
+**
+** Returns:
+**          void
+**
+** Notes:
+** This function is called between each multicast song.
+** It is necessary in order to keep the buffer from chasing
+** itself in reading.
+*******************************************************************/
+void waitForNewSong()
+{
+    //reset the circular buffer
+    for (int i = 0; i < MUSIC_BUFFER_SIZE; i++)
+    {
+       multiBuffer.buf[i] = '\0';
+    }
+
+    multiBuffer.pos = 0;
+
+    waveOutPause(multicastOutput);
+
+    //wait until we have two messages worth of data; this avoids crackle
+    while(multiBuffer.pos < MESSAGE_SIZE * 10)
+    {
+        //wait for the buffer to be ready
+    }
+
+    waveOutRestart(multicastOutput);
 }
 
 

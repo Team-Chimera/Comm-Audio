@@ -227,6 +227,8 @@ bool Dialog::initialConnect(QString address)
      {
          //error getting the host
          cerr << "Failed to retrieve host" << endl;
+
+         //create a popup
          string message = "Error Retrieving Host";
          std::wstring stemp = std::wstring(message.begin(), message.end());
          LPCWSTR sw = stemp.c_str();
