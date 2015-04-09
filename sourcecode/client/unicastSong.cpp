@@ -1,4 +1,36 @@
-
+/**********************************************************************
+ *
+**	SOURCE FILE:	unicastdialog.cpp -  Custom dialog class for the unicast selections
+**
+**	PROGRAM:	Comm Audio
+**
+**	FUNCTIONS:
+**         DWORD WINAPI unicastSong(LPVOID);
+**         void receiveData();
+**
+**         //function prototpes
+**         DWORD WINAPI unicastSong(LPVOID arg);
+**         void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
+**         void prepareRender(void* p_audio_data, uint8_t** pp_pcm_buffer , size_t size);
+**         void handleStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels,
+**                           unsigned int rate, unsigned int nb_samples, unsigned int bits_per_sample, size_t size, int64_t pts);
+**         void audioCleanup();
+**         void setUniVolume(int);
+**         int endUnicast();
+**
+**
+**
+**	DATE: 		March 27th, 2015
+**
+**
+**	DESIGNER:	Rhea Lauzon A00881688
+**
+**
+**	PROGRAMMER: Rhea Lauzon A00881688
+**
+**	NOTES:
+**	Dialog class for unicast menu for songs
+*************************************************************************/
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <WinSock2.h>
@@ -140,13 +172,61 @@ void receiveData()
     }
 }
 
+
+/*******************************************************************
+** Function: setUniVoulume
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void setUniVolume(int val)
+**              int val -- new volume value
+**
+** Returns:
+**			void
+**
+** Notes:
+** Updates the volume of the song
+**
+*******************************************************************/
 void setUniVolume(int val)
 {
     uniVolume = val;
 }
 
 
-void endUnicast()
+
+/*******************************************************************
+** Function: endUnicast
+**
+** Date: April 6th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void endUnicast()
+**
+**
+** Returns:
+**			void
+**
+** Notes:
+** Ends the unicast session
+**
+*******************************************************************/
+int endUnicast()
 {
 
     finished = true;
@@ -158,6 +238,9 @@ void endUnicast()
     if (TerminateThread(streamThread, 0) == 0)
     {
         cerr << "Unicast: terminate thread error (" << WSAGetLastError() << ")" << endl;
+        return -1;
     }
+
+    return 0;
 
 }

@@ -151,6 +151,25 @@ bool openListenSocket(SOCKET* s, int port)
    return true;
 }
 
+
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: deleteSocketInfo
+--
+-- DATE: January 30, 2015
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Jeff Bayntun
+--
+-- PROGRAMMER: Jeff Bayntun
+--
+-- INTERFACE: void deleteSocketInfo(LPSOCKET_INFORMATION si)
+-- si: information about the socket
+--
+-- RETURNS: void
+--
+-- NOTES: Deletes the socket information structure
+----------------------------------------------------------------------------------------------------------------------*/
 void deleteSocketInfo(LPSOCKET_INFORMATION si)
 {
     if (closesocket(si->socket) == SOCKET_ERROR)
@@ -160,6 +179,8 @@ void deleteSocketInfo(LPSOCKET_INFORMATION si)
 
          GlobalFree(si);
 }
+
+
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: createWorkerThread

@@ -1,4 +1,29 @@
-#include <QAudioFormat>
+/*------------------------------------------------------------------------------------------------------------------
+-- SOURCE FILE: player.cpp -- Music player
+--
+-- PROGRAM: Commm Audio (Client)
+--
+-- FUNCTIONS:
+--        Player();
+--        ~Player();
+--        void handleStateChanged(QAudio::State newState);
+--        void playData();
+--        void startVoicePlay();
+--        void stopVoicePlay();
+--
+--
+-- DATE: April 1, 2015
+--
+--
+-- DESIGNER: Julian Brandrick
+--
+-- PROGRAMMER: Julian Brandrick
+--
+-- NOTES:
+--
+--
+----------------------------------------------------------------------------------------------------------------------*/
+
 #include <QAudioDeviceInfo>
 #include <QIODevice>
 #include <QByteArray>

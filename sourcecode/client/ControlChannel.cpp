@@ -265,9 +265,6 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
         exit(0);
         return;
     }
-
-    cout << "Received: " << sockInfo->Buffer;
-
     string received = sockInfo->Buffer;
 
     //parse control string into the structure
@@ -275,7 +272,6 @@ void CALLBACK ReadRoutine(DWORD error, DWORD bytesTransferred, LPWSAOVERLAPPED O
 
     //handle it
     handleControlMessage(&message);
-    cout.flush();
 
 }
 
@@ -753,7 +749,6 @@ void handleEnd(string type)
     //multicast song is swapping
     if (type.compare("2") == 0)
     {
-        cout << "Swapping multicast" << endl;
         waitForNewSong();
 
         return;

@@ -1,3 +1,27 @@
+/*******************************************************************************
+** Source File: multicast.cpp -- Multicast mode of the server
+**
+** Program: Comm Audio
+**
+** Functions: 
+**			DWORD WINAPI startMulticastThread(LPVOID lpParameter);
+**			LPMULTICAST_INFORMATION initMulticastSocket();
+**			DWORD WINAPI multicastSendLoop(LPVOID lpParameter);
+**			void CALLBACK multicastRoutine(DWORD Error, DWORD BytesTransferred, 
+									LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+**			bool playMulticastSong();
+**
+** Date: March 12th, 2015
+**
+** Revisions: N/A
+**
+** Designer: Julian Brandrick
+**
+** Programmer: Rhea Lauzon + Julian Brandrick
+**
+** Notes:
+**  Sends media via multicast to any listeners
+*****************************************************************************/
 #include "stdafx.h"
 #include <iostream>
 #include <vector>

@@ -1,3 +1,29 @@
+/**********************************************************************
+ *
+**	SOURCE FILE:	unicastdialog.cpp -  Custom dialog class for the unicast selections
+**
+**	PROGRAM:	Comm Audio
+**
+**	FUNCTIONS:
+**          explicit unicastDialog(QWidget *parent = 0);
+**          ~unicastDialog();
+**          void reject();
+**          void setSongName(string);void unicastSong();
+**          void requestDownload();
+**
+**
+**	DATE: 		March 27th, 2015
+**
+**
+**	DESIGNER:	Rhea Lauzon A00881688
+**
+**
+**	PROGRAMMER: Rhea Lauzon A00881688
+**
+**	NOTES:
+**	Dialog class for unicast menu for songs
+*************************************************************************/
+
 #include <iostream>
 #include <string>
 #include "unicastdialog.h"

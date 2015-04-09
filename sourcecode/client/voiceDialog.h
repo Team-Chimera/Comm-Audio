@@ -27,7 +27,4 @@ private:
     std::string clickedClient;
     bool connected;
 };
-
-DWORD WINAPI voiceChat(LPVOID);
-
 #endif // VOICEDIALOG_H

@@ -720,7 +720,7 @@ QAbstractButton {
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="tabBarAutoHide">
      <bool>false</bool>
@@ -828,8 +828,8 @@ font-weight: bold;
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>591</width>
-        <height>351</height>
+        <width>521</width>
+        <height>241</height>
        </rect>
       </property>
      </widget>

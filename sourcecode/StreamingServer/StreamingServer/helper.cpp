@@ -1,3 +1,29 @@
+/*******************************************************************************
+** Source File: helper.cpp -- Holds helpers for the server
+**
+** Program: Comm Audio
+**
+** Functions: 
+**			void parseControlString(std::string str, ctrlMessage *msg);
+**			void createControlString(ctrlMessage &msg, std::string &str);
+**			void Split( std::string list, std::vector<std::string>& v );
+**			bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags = 0);
+**			long loadFile(const char* file_name, char** file_out);
+**			void displayError(char *errStr, int errCode);
+**			void displayOutput(char *outStr);
+**
+** Date: April 6th, 2015
+**
+** Revisions: N/A
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Notes:
+**  Helper functions for the server.
+*****************************************************************************/
+
 #include "stdafx.h"
 #include "helper.h"
 

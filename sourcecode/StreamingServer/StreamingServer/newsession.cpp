@@ -6,21 +6,21 @@
 -- DATE: March 22, 2015
 --
 -- Interface:
-    void AcceptThread();
-    void sendSongList(SOCKET c);
-    bool createSession(new_session* ns);
-    void sessionCleanUp(SOCKET s);
-    DWORD WINAPI controlThread(LPVOID lpParameter);
-
-    void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-    void sendNowPlaying(MetaData *);
-    void updateNewUser(SOCKET c);
-    void transmitSong(SOCKET s, std::string song);
-    DWORD WINAPI sendTCPSong(LPVOID lpParameter);
-    void sendToAll(std::string);
-    void sendUserList(SOCKET c);
-    void sendSongDone(SOCKET s, int);
-    void signalUserChanged();
+--   void AcceptThread();
+--    void sendSongList(SOCKET c);
+--    bool createSession(new_session* ns);
+--    void sessionCleanUp(SOCKET s);
+--    DWORD WINAPI controlThread(LPVOID lpParameter);
+--    void CALLBACK controlRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+--    void sendNowPlaying(MetaData *);
+--    void updateNewUser(SOCKET c);
+--    void transmitSong(SOCKET s, std::string song);
+--    DWORD WINAPI sendTCPSong(LPVOID lpParameter);
+--    void sendToAll(std::string);
+--    void sendUserList(SOCKET c);
+--    void sendSongDone(SOCKET s, int);
+--    void signalUserChanged();
+--	void swapSong();
 
 -- REVISIONS: (Date and Description)
 --
@@ -865,6 +865,27 @@ void sendSongDone(SOCKET s, int mode)
     sendTCPMessage(&s, to_send, DATA_BUFSIZE);
 }
 
+
+/*******************************************************************
+** Function:  swapSong
+**
+** Date: April 8th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void swapSong()
+** Returns:
+**		 void
+**
+** Notes: sends a "Swap song" message to all clients
+** in order to prevent the clients from chasing the buffer.
+*******************************************************************/
 void swapSong()
 {
 	//sends an end message to all the clients

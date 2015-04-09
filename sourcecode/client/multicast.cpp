@@ -23,7 +23,7 @@
 -- PROGRAMMER: Rhea Lauzon & Michael Chimick
 --
 -- NOTES:
---
+-- Receives multicast data from the server and plays it.
 --
 ----------------------------------------------------------------------------------------------------------------------*/
 

@@ -155,9 +155,9 @@ void Microphone::handleStateChanged(QAudio::State newState)
 --
 -- DATE: April 2, 2015
 --
--- DESIGNER: Rhea Lauzon
+-- DESIGNER: Julian Brandrick
 --
--- PROGRAMMER: Rhea lauzon
+-- PROGRAMMER: Rhea lauzon based on Julian`s code
 --
 -- INTERFACE: void startVoice(QString address)
 --
@@ -181,9 +181,9 @@ void Microphone::startVoice(QString address)
 --
 -- DATE: April 2, 2015
 --
--- DESIGNER: Rhea Lauzon
+-- DESIGNER: Julian Brandrick
 --
--- PROGRAMMER: Rhea lauzon
+-- PROGRAMMER: Rhea lauzon based on Julian`s code
 --
 -- INTERFACE: void stopVoice()
 --

@@ -1,3 +1,27 @@
+/*******************************************************************************
+** Source File: unicast.cpp -- Unicast mode of the server
+**
+** Program: Comm Audio
+**
+** Functions: 
+**			DWORD WINAPI startUnicast(LPVOID);
+**			void prepareUnicastRender(void* , uint8_t** , size_t);
+**			void handleUnicastStream(void* p_audio_data, uint8_t* p_pcm_buffer, unsigned int channels, 
+				  unsigned int rate, unsigned int nb_samples, unsigned int bits_per_sample, size_t size, int64_t pts);
+**			bool playUnicastSong(std::string);
+**			void unicastAudioCleanup();
+**
+** Date: April 6th, 2015
+**
+** Revisions: N/A
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Notes:
+**  Sends media via unicast to designated clients via a deque of requests.
+*****************************************************************************/
 #include "stdafx.h"
 #include <cstring>
 #include <mutex>
@@ -27,6 +51,7 @@ deque<UnicastClient> waitingClients;
 mutex songMutex;
 
 bool uniDone;
+
 /*******************************************************************
 ** Function: startUnicast
 **
@@ -40,13 +65,13 @@ bool uniDone;
 ** Programmer: Rhea Lauzon
 **
 ** Interface:
-**			DWORD WINAPI startMulticastThread(LPVOID socket)
-**				LPVOID socket -- The socket that requested unicast
+**			DWORD WINAPI startUnicast(LPVOID clientInfo)
+**				LPVOID clientInfo -- Information on the requesting
+**									 client.
 **
 **
 ** Returns:
-**			true on success
-**          false if error occurs
+**				-1 on failure, 0 on success
 **
 ** Notes:
 **  Beginning function of the unicast song playing.
@@ -59,7 +84,7 @@ DWORD WINAPI startUnicast(LPVOID clientInfo)
 	if ((uc.socket = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
 	{
 		perror ("Can't create a socket");
-		exit(1);
+		return -1;
 	}
 
 	struct hostent *he;
@@ -105,9 +130,11 @@ DWORD WINAPI startUnicast(LPVOID clientInfo)
 **
 ** Interface:
 **			bool playUnicastSong(string songName)
+**				string songName -- requested song for unicast
 **
 ** Returns:
-**
+** bool -- false on failure for libvlc, true on success
+
 ** Notes: Plays a unicast song for a specific client.
 **  
 *******************************************************************/

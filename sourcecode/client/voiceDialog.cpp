@@ -1,3 +1,30 @@
+/**********************************************************************
+**
+**	SOURCE FILE:	voiceDialog.cpp -  Custom dialog class for voice chat
+**
+**	PROGRAM:	Comm Audio
+**
+**	FUNCTIONS:
+**       explicit voiceDialog(Microphone *, QWidget *parent = 0);
+**       ~voiceDialog();
+**       void setClientName(std::string);
+**       bool triggerVoiceChat();
+**       void reject();
+**
+**
+**	DATE: 		March 7th, 2015
+**
+**
+**	DESIGNER:	Rhea Lauzon A00881688
+**
+**
+**	PROGRAMMER: Rhea Lauzon A00881688
+**
+**	NOTES:
+**	Dialog class for the launcher
+*************************************************************************/
+
+
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <WS2tcpip.h>
