@@ -61,25 +61,22 @@ bool streaming = false;
 
 int vol = 50;
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: DropMulticast
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: StartMulticast
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void DropMulticast()
+-- INTERFACE: bool StartMulticast()
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Drops the multicast session, and stops multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Starts receiving and playback threads for the multicasting data
+-------------------------------------------------------------------------------------------------*/
 bool StartMulticast(in_addr group)
 {
 	DWORD thread;
@@ -103,25 +100,22 @@ bool StartMulticast(in_addr group)
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: endpMulticast
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: EndMulticast
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
 -- PROGRAMMER: Michael Chimick
 --
--- INTERFACE: void endMulticast()
+-- INTERFACE: bool EndMulticast()
 --
--- RETURNS: void
+-- RETURNS: bool // returns true is all calls successful, false otherwise
 --
 -- NOTES:
--- Drops the multicast session, and stops multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Stops the receiving and playback threads, and resets variables
+-------------------------------------------------------------------------------------------------*/
 bool EndMulticast()
 {
     if (setsockopt(socketInfo.socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&(socketInfo.addr), sizeof(socketInfo.addr)) == SOCKET_ERROR)
@@ -141,26 +135,23 @@ bool EndMulticast()
 	return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 -- FUNCTION: JoinMulticast
 --
--- DATE: March 12, 2015
---
--- REVISIONS: Created March 10, 2015
+-- DATE: April 1, 2015
 --
 -- DESIGNER: Michael Chimick
 --
--- PROGRAMMER: Michael Chimick
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
 --
--- INTERFACE: void JoinMulticast(LPVOID parameter)
---          LPVOID parameter -- thread parameter
+-- INTERFACE: DWORD WINAPI JoinMulticast(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
 --
--- RETURNS: void
+-- RETURNS: DWORD // thread exit code
 --
 -- NOTES:
--- Joins the multicast session, and starts multicast processing
---
-----------------------------------------------------------------------------------------------------------------------*/
+--    Initializes multicast variables and starts the playback thread and receive function
+-------------------------------------------------------------------------------------------------*/
 DWORD WINAPI JoinMulticast(LPVOID)
 {
 
@@ -219,28 +210,22 @@ DWORD WINAPI JoinMulticast(LPVOID)
 
 
 
-/*****************************************************************
-** Function: receiveMulticastData
-**
-** Date: April 6th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**         void receiveMulticastData()
-**
-** Returns:
-**          void
-**
-** Notes:
-** Receives multicast data from the server until specified to end
-**
-*******************************************************************/
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: receiveMulticastData
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick, Rhea Lauzon
+--
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
+--
+-- INTERFACE: void receiveMulticastData()
+--
+-- RETURNS: void
+--
+-- NOTES:
+--    Runs a loop that receives voice data and places it into the buffer
+-------------------------------------------------------------------------------------------------*/
 void receiveMulticastData()
 {
     streaming = true;
@@ -278,29 +263,23 @@ void receiveMulticastData()
 
 }
 
-/*****************************************************************
-** Function: playMulticastSong
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			DWORD WINAPI playSong(LPVOID arg)
-**				LPVOID arg -- Thread arguments
-**
-** Returns:
-**          DWORD -- -1 on failure; 0 on success
-**
-** Notes:
-** Plays the received song in a thread.
-**
-*******************************************************************/
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: playMulticastSong
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick, Rhea Lauzon
+--
+-- PROGRAMMER: Michael Chimick, Rhea Lauzon
+--
+-- INTERFACE: DWORD WINAPI playMulticastSong(LPVOID parameter)
+--                LPVOID parameter // NULL pointer
+--
+-- RETURNS: DWORD // thread exit code, -1 on failure; 0 on success
+--
+-- NOTES:
+--    Starts the multicast playback
+-------------------------------------------------------------------------------------------------*/
 DWORD WINAPI playMulticastSong(LPVOID)
 {
 
@@ -362,35 +341,27 @@ return 0;
 
 }
 
-/*****************************************************************
-** Function: waveCallback
-**
-** Date: March 28th, 2015
-**
-** Revisions:
-**
-**
-** Designer: Rhea Lauzon
-**
-** Programmer: Rhea Lauzon
-**
-** Interface:
-**			void CALLBACK waveCallback(HWAVEOUT hWave, UINT uMsg,
-**								DWORD dwUser, DWORD dw1, DWORD dw2)
-**				HWAVEOUT hWave -- handle to the output device
-**				UINT uMsg -- message sent to the callback
-**				DWORD dwUser -- Unused parameter
-**				DWORD dw1 -- the header used for this audio output
-**				DWORD dw2 -- Unused parameter
-**
-**
-** Returns:
-**          void
-**
-** Notes:
-** Plays the audio without skipping issues.
-**
-*******************************************************************/
+/*-------------------------------------------------------------------------------------------------
+-- FUNCTION: MultiPlaybackCallback
+--
+-- DATE: April 1, 2015
+--
+-- DESIGNER: Michael Chimick
+--
+-- PROGRAMMER: Michael Chimick
+--
+-- INTERFACE: void CALLBACK MultiPlaybackCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+--                HWAVEOUT hWave // handle to the waveform-audio device associated with the callback
+--                UINT uMsg      // waveform-audio output message
+--                DWORD dwUser   // user-instance data
+--                DWORD dw1      // message parameter; wavehdr outputted
+--                DWORD dw2      // message parameter
+--
+-- RETURNS: void
+--
+-- NOTES:
+--    Callback after a buffer has finished playing, simply adds it to the back of the queue
+-------------------------------------------------------------------------------------------------*/
 void CALLBACK MultiWaveCallback(HWAVEOUT hWave, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
 {
     if (uMsg == WOM_DONE)
