@@ -1,6 +1,8 @@
 #ifndef MICROPHONE
 #define MICROPHONE
 
+#define VOICE_CHAT_CHANNEL 8800
+
 #include <QUdpSocket>
 #include <QAudioInput>
 #include <QAudio>

@@ -241,7 +241,13 @@ bool Dialog::initialConnect(QString address)
     if (setupControlChannel(he) < 0)
     {
         cerr << "Unable to open control channel." << endl;
-        exit(1);
+
+        //create a popup
+        string message = "Error Connecting Control Channel";
+        std::wstring stemp = std::wstring(message.begin(), message.end());
+        LPCWSTR sw = stemp.c_str();
+        MessageBox(NULL, sw, sw, MB_ICONERROR);
+        return false;
     }
 
      //Resolve multicast

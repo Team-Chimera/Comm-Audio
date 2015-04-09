@@ -113,13 +113,14 @@ voiceDialog::~voiceDialog()
 *******************************************************************/
 void voiceDialog::setClientName(string client)
 {
-    clickedClient = client;
 
     if(strncmp(client.c_str(), "Me: ", 4) == 0)
     {
-        client = client.substr(3, client.length());
+        client = client.substr(4, client.length());
     }
     ui->client->setText(QString::fromStdString(client));
+
+    clickedClient = client;
 }
 
 
@@ -154,6 +155,13 @@ bool voiceDialog::triggerVoiceChat()
     {
         connected = true;
         voice->startVoice(QString::fromStdString(clickedClient));
+
+        //update the image
+        QPixmap pixmap(":/Images/images/micmute.png");
+        QIcon ButtonIcon(pixmap);
+        ui->connectVoice->setIcon(ButtonIcon);
+        ui->connectVoice->setIconSize(QSize(ui->connectVoice->size().width(),ui->connectVoice->size().height()));
+
         return true;
 
     }
@@ -161,6 +169,14 @@ bool voiceDialog::triggerVoiceChat()
     {
         connected = false;
         voice->stopVoice();
+
+        //update the image
+        QPixmap pixmap(":/Images/images/mic.png");
+        QIcon ButtonIcon(pixmap);
+        ui->connectVoice->setIcon(ButtonIcon);
+        ui->connectVoice->setIconSize(QSize(ui->connectVoice->size().width(),ui->connectVoice->size().height()));
+
+
         return true;
     }
 

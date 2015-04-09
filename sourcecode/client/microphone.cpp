@@ -137,6 +137,7 @@ void Microphone::handleStateChanged(QAudio::State newState)
                 
             }
         break;
+
         case QAudio::ActiveState:
             // Started recording - read from IO device
             qDebug() << "Active: Microphone";
@@ -169,7 +170,7 @@ void Microphone::handleStateChanged(QAudio::State newState)
 void Microphone::startVoice(QString address)
 {
     socket->disconnectFromHost();
-    socket->connectToHost(address, 8800);
+    socket->connectToHost(address, VOICE_CHAT_CHANNEL);
 
     // Starts the microphone recording and writes it directly to the socket.
     audio->start(socket);

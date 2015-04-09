@@ -83,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //set up the GUI
     ui->setupUi(this);
 
-    mic = new Microphone();
+    mic = new Microphone;
     micPlayer = new Player;
 
     //add the volume icon
@@ -351,12 +351,19 @@ void MainWindow::openSongMenu(QListWidgetItem *it)
 *******************************************************************/
 void MainWindow::openVoiceMenu(QListWidgetItem *it)
 {
+    int previousVolume = ui->volume->value();
+
+    //lower the volume on the slider
+    ui->volume->setValue(30);
     micPlayer->startVoicePlay();
 
     //create the dialog box for the song
     voiceDialog voiceMenu(mic, this);
     voiceMenu.setClientName(it->text().toStdString());
     voiceMenu.exec();
+
+    //increase the volume
+     ui->volume->setValue(previousVolume);
 
 }
 
@@ -451,14 +458,40 @@ void MainWindow::changeMulticast()
     }
 }
 
+
+/*****************************************************************
+** Function: changeSongVolume
+**
+** Date: April 7th, 2015
+**
+** Revisions:
+**
+**
+** Designer: Rhea Lauzon
+**
+** Programmer: Rhea Lauzon
+**
+** Interface:
+**			void disableMulticastButton(bool state)
+**              bool state -- State to change the button to
+**
+** Returns:
+**          void
+**
+** Notes:
+** Changes the volume of the current playing song
+*******************************************************************/
 void MainWindow::disableMulticastButton(bool state)
 {
     if (state)
     {
         multicastDisabled = true;
+
     }
+
     else
     {
         multicastDisabled = false;
     }
+
 }
