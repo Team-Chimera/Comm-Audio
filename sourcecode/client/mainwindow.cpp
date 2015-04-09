@@ -398,7 +398,7 @@ void MainWindow::changeSongVolume(int value)
 
 
 /*****************************************************************
-** Function: changeSongVolume
+** Function: changeMulticast
 **
 ** Date: April 7th, 2015
 **
