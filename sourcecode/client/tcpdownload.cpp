@@ -1,3 +1,33 @@
+/*******************************************************************
+** File: tcpdownload.cpp
+**
+** Program: client.exe
+**
+** Date: April 1, 2015
+**
+** Revisions:
+**
+**
+** Designer: Jeff Bayntun
+**
+** Programmer: Jeff Bayntun
+**
+** Interface:
+        bool openListenSocket(SOCKET* s, int port);
+        DWORD WINAPI doTCPDownload(LPVOID lpParameter);
+        void CALLBACK tcpDownloadRoutine(DWORD Error, DWORD BytesTransferred,
+        LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+        void deleteSocketInfo(LPSOCKET_INFORMATION si);
+
+        bool createWorkerThread(LPTHREAD_START_ROUTINE routine, HANDLE* hThread, LPVOID param, DWORD flags);
+        void readTCP(SOCKET* s, int size, char** out , int *size_out);
+**
+**
+** Notes:
+** Handles the TCP download of a song from the server
+**
+*******************************************************************/
+
 #include <iostream>
 #include "tcpdownload.h"
 #include "controlChannel.h"
@@ -7,9 +37,9 @@ bool TCP_rcv;
 
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: TestThread
+-- FUNCTION: doTCPDownload
 --
--- DATE: January 30, 2015
+-- DATE: Date: April 1, 2015
 --
 -- REVISIONS: (Date and Description)
 --
@@ -17,13 +47,14 @@ bool TCP_rcv;
 --
 -- PROGRAMMER: Jeff Bayntun
 --
--- INTERFACE: DWORD WINAPI TestThread(LPVOID lpParameter)
--- lpParameter: points to a WSA event to wait for
+-- INTERFACE: DWORD WINAPI doTCPDownload(LPVOID lpParameter)
+--          lpParameter: string* to name of file
 --
--- RETURNS: false on failure
+-- RETURNS: FALSE on failure
 --
 -- NOTES:
-    listens for a test connection and sets up the correct WSA receive event
+    opens a file to store data in, opens a listen socket and accepts a connection,
+    then stores the data in file as it is received.  Closes file and socket.
 ----------------------------------------------------------------------------------------------------------------------*/
 DWORD WINAPI doTCPDownload(LPVOID lpParameter)
 {
@@ -70,86 +101,6 @@ DWORD WINAPI doTCPDownload(LPVOID lpParameter)
    return TRUE;
 }
 
-/*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: tcpDownloadRotuine
---
--- DATE: January 30, 2015
---
--- REVISIONS
---
--- DESIGNER: Jeff Bayntun
---
--- PROGRAMMER: Jeff Bayntun
---
--- INTERFACE: void CALLBACK tcpDownloadRoutine(DWORD Error, DWORD BytesTransferred, LPWSAOVERLAPPED Overlapped, DWORD InFlags)
---
--- RETURNS: void
---
--- NOTES:
-    callback function for test WSA receive events
-----------------------------------------------------------------------------------------------------------------------*/
-void CALLBACK tcpDownloadRoutine(DWORD Error, DWORD BytesTransferred,
-   LPWSAOVERLAPPED Overlapped, DWORD InFlags)
-{
-   DWORD RecvBytes;
-   DWORD Flags;
-
-   string message_rcv;
-   // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
-   LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION) Overlapped;
-
-   if (Error != 0)
-   {
-     printf("I/O operation failed with error %d\n", Error);
-   }
-
-   if (BytesTransferred == 0) // nothing sent or rcvd...
-   {
-      printf("Download completed %d\n", SI->socket);
-   }
-
-   if (Error != 0 || BytesTransferred == 0)
-   {
-      TCP_rcv = false;
-      return;
-   }
-
-   // Check to see if the BytesRECV field equals zero. If this is so, then
-   // this means a WSARecv call just completed so update the BytesRECV field
-   // with the BytesTransferred value from the completed WSARecv() call.
-
-   if (SI->bytesRECV == 0) // after a rcv
-   {
-      SI->bytesRECV = BytesTransferred;
-      SI->bytesSEND = 0;
-      //rcv = true;
-      message_rcv.assign(SI->Buffer);
-
-    //  file << message_rcv;
-
-   }
-
-      SI->bytesRECV = 0;
-
-      // Now that there are no more bytes to send post another WSARecv() request.
-
-      Flags = 0;
-      ZeroMemory(&(SI->overlapped), sizeof(WSAOVERLAPPED));
-
-      SI->DataBuf.len = DATA_BUFSIZE;
-      SI->DataBuf.buf = SI->Buffer; // should this be zeroed??
-
-
-      if (WSARecv(SI->socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
-         &(SI->overlapped), tcpDownloadRoutine) == SOCKET_ERROR)
-      {
-         if (WSAGetLastError() != WSA_IO_PENDING )
-         {
-            printf("TestWSARecv() failed with error %d\n", WSAGetLastError());
-            return;
-         }
-      }
-}
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: openListenSocket(SOCKET* s, int port)
