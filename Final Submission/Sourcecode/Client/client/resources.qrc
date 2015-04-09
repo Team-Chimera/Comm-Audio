@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/Images">
+        <file>images/mic.png</file>
+        <file>images/volume.png</file>
+        <file>images/download.png</file>
+        <file>images/play.png</file>
+        <file>images/pause.png</file>
+        <file>images/micmute.png</file>
+    </qresource>
+</RCC>
